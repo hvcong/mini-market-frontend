@@ -1,0 +1,46 @@
+.admin {
+  //sidenav
+  .sidenav {
+    .logo {
+      height: 60px;
+      width: 60px;
+    }
+    .image {
+      height: 60px;
+      width: 60px;
+    }
+  }
+
+  // header
+  .header {
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+
+  //products
+  .products {
+    // .btns {
+    //   display: flex;
+    //   justify-content: flex-end;
+    //   padding-bottom: 8px;
+    //   padding-right: 12px;
+    // }
+
+    .pagination__container {
+      padding-top: 16px;
+      padding-bottom: 16px;
+      text-align: center;
+    }
+
+    .form__add--product {
+      .input {
+        margin-left: 16;
+      }
+    }
+  }
+
+  .category1 {
+    .category1__modal {
+    }
+  }
+}
