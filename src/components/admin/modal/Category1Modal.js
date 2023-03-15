@@ -19,6 +19,8 @@ const Category1Modal = ({ visible, setVisible, modalType }) => {
         width="90%"
         style={{
           top: 24,
+          right: 24,
+          left: 24,
         }}
       >
         <div className="category1__modal">

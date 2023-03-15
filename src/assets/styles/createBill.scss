@@ -1,0 +1,213 @@
+.create_bill_container {
+  background: #e3e3e3;
+  .header {
+    display: flex;
+    align-items: center;
+    height: 45px;
+    width: 100%;
+    background: #018547;
+    padding: 0 24px;
+    .scan_qr {
+    }
+    .tabs_wrap {
+      height: 45px;
+      padding: 0 24px;
+      padding-top: 8px;
+      overflow: hidden;
+
+      .ant-tabs-nav-list {
+      }
+      .ant-tabs-tab {
+        border: 1px solid #ccccccb7;
+        color: rgba(0, 0, 0, 0.735);
+        height: 40px;
+        color: white;
+      }
+      .ant-tabs-tab-active {
+      }
+      .ant-tabs-nav-add {
+        background: transparent;
+        color: white;
+        border: none;
+        font-weight: bold;
+        &:hover {
+          color: white;
+          background: #dddddd71;
+        }
+      }
+    }
+    .right__btns {
+    }
+  }
+  .content {
+    display: flex;
+    .list_container {
+      height: calc(100vh - 45px - 60px);
+      width: 70%;
+      margin: 12px;
+      margin-right: 0;
+      // - height of header and footer
+      overflow-y: auto;
+      background: white;
+      padding: 12px;
+      border-radius: 4px;
+    }
+    .bill_infor_container {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin: 12px;
+      height: calc(100vh - 45px - 60px);
+      background: white;
+
+      .bill_infor {
+        width: 370px;
+        height: inherit;
+        padding: 12px;
+        font-size: 13px;
+        border-radius: 4px;
+        margin-left: 0;
+        display: flex;
+        flex-direction: column;
+        .employee {
+          display: flex;
+          align-items: center;
+          flex: 1;
+        }
+        .select_container {
+          width: 160px;
+        }
+        .time_container {
+          flex: 1;
+          text-align: right;
+        }
+        .row {
+          display: flex;
+          padding: 8px 4px;
+          align-items: center;
+        }
+        .line {
+          height: 4px;
+          background: #ddd;
+        }
+        .customer {
+          flex: 1;
+          display: flex;
+          align-items: center;
+        }
+        .add_cus_icon {
+          padding: 4px;
+          // background: #ccc;
+          border-radius: 4px;
+          .icon {
+            transition: all 0.2s ease;
+            font-size: 15px;
+          }
+
+          .icon:hover {
+            transform: scale(1.2);
+            cursor: pointer;
+          }
+        }
+        .price_mode {
+        }
+        .label {
+          width: 160px;
+        }
+        .selectLabel {
+          width: 80px;
+        }
+        .label.bold {
+          font-weight: bold;
+        }
+        .quantitty {
+          padding: 4px;
+          border-radius: 50%;
+          background: #ddd;
+          font-size: 14px;
+        }
+        .value {
+          margin-left: auto;
+
+          .input {
+            border: none;
+            font-size: 18px;
+            padding-right: 4px;
+            text-align: right;
+
+            &:focus {
+              outline: none;
+              border: none;
+            }
+          }
+        }
+
+        .btn {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+        }
+      }
+    }
+  }
+  .footer {
+  }
+
+  //list product item
+  .list_product {
+    // margin: 12px;
+    .list_product_item {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      padding: 8px 4px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 4px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: #018547;
+      }
+
+      .index {
+        padding-left: 12px;
+      }
+      .delete_icon {
+        padding: 0 24px;
+        cursor: pointer;
+      }
+      .product_id {
+        width: 100px;
+      }
+      .product_name {
+        flex: 1;
+      }
+      .product_unit {
+        padding: 0 24px 0 12px;
+      }
+      .quantity_container {
+        display: flex;
+        border-bottom: 2px solid #ddd;
+
+        .value {
+          padding: 0 4px;
+          width: 48px;
+          border: none;
+          position: relative;
+          left: 6px;
+        }
+      }
+    }
+    .price {
+      padding: 0 24px;
+      width: 100px;
+    }
+    .sum_price {
+      padding: 0 24px;
+      min-width: 120px;
+      font-weight: bold;
+      color: rgb(26, 26, 26);
+    }
+  }
+}

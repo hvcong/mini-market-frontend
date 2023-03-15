@@ -19,52 +19,37 @@ function getItem(label, key, icon, children, type) {
     type,
   };
 }
-const Sidenav = ({
-  keysSidenav,
-  setKeysSidenav,
-  selectedKey,
-  setSelectedKey,
-}) => {
-  const {
-    product,
-    productActive,
-    productInactive,
-    cate,
-    cate1,
-    cate2,
-    price,
-    priceActive,
-    priceInactive,
-    order,
-    orderWaiting,
-    orderDone,
-    bill,
-    customer,
-  } = keysSidenav;
-
+const Sidenav = () => {
   const items = [
-    getItem("Sản phẩm", product, <AppstoreOutlined />, [
-      getItem(<NavLink to="products/active">Đang bán</NavLink>, productActive),
-      getItem(
-        <NavLink to="products/inactive">Đã dừng bán</NavLink>,
-        productInactive
-      ),
+    getItem("Sản phẩm", "sub1", <AppstoreOutlined />, [
+      getItem(<NavLink to="products">Danh sách</NavLink>, "products"),
+      getItem(<NavLink to="category">Nhóm sản phẩm</NavLink>, "category"),
     ]),
-    getItem("Danh mục sản phẩm", cate, <AppstoreOutlined />, [
-      getItem(<NavLink to="categories1">Danh mục sp cấp 1</NavLink>, cate1),
-      getItem(<NavLink to="categories2">Danh mục sp cấp 2</NavLink>, cate2),
+    getItem(
+      <NavLink to="prices">Bảng giá</NavLink>,
+      "price",
+      <DollarCircleOutlined />
+    ),
+    getItem("Giao dịch", "sub2", <FileDoneOutlined />, [
+      getItem(<NavLink to="bills">Hóa đơn</NavLink>, "bills"),
+      getItem(<NavLink to="returns">Trả hàng</NavLink>, "returns"),
+      getItem(<NavLink to="storage">Nhập kho</NavLink>, "storage"),
     ]),
-    getItem("Bảng giá", price, <DollarCircleOutlined />, [
-      getItem(<NavLink to="prices">Đang áp dụng</NavLink>, "aa"),
-      getItem(<NavLink to="prices">Đã ngưng</NavLink>, "sdfdsf"),
-    ]),
-    getItem("Đơn đặt hàng online", order, <ApartmentOutlined />, [
-      getItem("Đang chờ xử lí", orderWaiting),
-      getItem("Hoàn tất", orderDone),
-    ]),
-    getItem("Hóa đơn bán hàng", bill, <FileDoneOutlined />),
-    getItem("Khách hàng", customer, <FileDoneOutlined />),
-    getItem("Thống kê", "áddfdsfsd", <FileDoneOutlined />),
+    getItem(
+      <NavLink to="statistic">Thống kê</NavLink>,
+      "statistic",
+      <FileDoneOutlined />
+    ),
+    getItem(
+      <NavLink to="customers">Khách hàng</NavLink>,
+      "customers",
+      <FileDoneOutlined />
+    ),
+    getItem(
+      <NavLink to="employee">Nhân viên</NavLink>,
+      "employee",
+      <FileDoneOutlined />
+    ),
   ];
 
   const [collapsed, setCollapsed] = useState(false);
@@ -76,15 +61,12 @@ const Sidenav = ({
     <div
       style={{
         height: "100%",
+        position: "fixed",
+        width: "200px",
       }}
       className="sidenav"
     >
-      <div className="logo">
-        <img src={logoImage} className="image" />
-      </div>
       <Menu
-        defaultSelectedKeys={[selectedKey.key]}
-        defaultOpenKeys={[selectedKey.subOpen]}
         mode="inline"
         theme="dark"
         inlineCollapsed={collapsed}

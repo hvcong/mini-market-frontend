@@ -2,13 +2,14 @@ import { Button, ConfigProvider } from "antd";
 import "antd/dist/reset.css";
 import { Route, Routes } from "react-router-dom";
 import Main from "../components/admin/layout/Main";
-import Category1 from "../views/admin/Category1";
 import Category2 from "../views/admin/Category2";
-import AdminProducts from "./admin/AdminProducts";
-import Price from "./admin/Price";
 import "./App.css";
-import Cart from "./cart/Cart";
-import Home from "./home/Home";
+import Bill from "./bill/Bill";
+import CreateBill from "./bill/CreateBill";
+import Category from "./category/Category";
+import Customer from "./customer/Customer";
+import Price from "./price/Price";
+import AdminProducts from "./product/AdminProducts";
 
 function App() {
   return (
@@ -16,20 +17,20 @@ function App() {
       theme={{
         token: {
           colorPrimary: "#018547",
+          fontSize: 13,
         },
       }}
     >
       <Routes>
         <Route path="/admin" element={<Main />}>
-          <Route path="products/:active" element={<AdminProducts />} />
-          <Route path="categories1" element={<Category1 />} />
-          <Route path="categories2" element={<Category2 />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="category" element={<Category />} />
+          <Route path="sub-category" element={<Category2 />} />
           <Route path="prices" element={<Price />} />
+          <Route path="bills" element={<Bill />} />
+          <Route path="customers" element={<Customer />} />
         </Route>
-        <Route path="/custommer">
-          <Route path="cart" element={<Cart />} />
-          <Route path="" element={<Home />} />
-        </Route>
+        <Route path="bills/create" element={<CreateBill />} />
       </Routes>
     </ConfigProvider>
   );
