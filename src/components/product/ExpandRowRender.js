@@ -118,7 +118,7 @@ const ExpandRowRender = ({ rowData, modalState, setModalState }) => {
               <div className="infor__item">
                 <div className="label">Nhóm hàng:</div>
                 <div className="value">
-                  {rowData.SubCategory.name + "/ ??? "}
+                  {rowData.SubCategory && rowData.SubCategory.name + "/ ??? "}
                 </div>
               </div>
               <div className="infor__item">

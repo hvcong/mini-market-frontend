@@ -1,46 +1,44 @@
 import { Tabs } from "antd";
 import { useRef, useState } from "react";
-const initialItems = [
-  {
-    label: "Hóa đơn 1",
-    key: "1",
-  },
-  {
-    label: "Hóa đơn 2",
-    key: "2",
-  },
-  {
-    label: "Hóa đơn 3",
-    key: "3",
-  },
-];
-const TabsCreateBill = () => {
-  const [activeKey, setActiveKey] = useState(initialItems[0].key);
-  const [items, setItems] = useState(initialItems);
+
+const TabsCreateBill = ({ tabState, setTabState }) => {
+  const { tabItems, activeKey } = tabState;
   const newTabIndex = useRef(0);
+
   const onChange = (newActiveKey) => {
-    setActiveKey(newActiveKey);
+    setTabState({
+      ...tabState,
+      activeKey: newActiveKey,
+    });
   };
+
   const add = () => {
     const newActiveKey = `newTab${newTabIndex.current++}`;
-    const newPanes = [...items];
+    const newPanes = [...tabItems];
     newPanes.push({
-      label: "Hóa đơn " + (items.length + 1),
+      label: "Hóa đơn " + (newTabIndex.current + 1),
       children: "abd",
       key: newActiveKey,
     });
-    setItems(newPanes);
-    setActiveKey(newActiveKey);
+    setTabState({
+      tabItems: newPanes,
+      activeKey: newActiveKey,
+    });
   };
+
   const remove = (targetKey) => {
+    if (tabItems.length == 1) {
+      return;
+    }
+
     let newActiveKey = activeKey;
     let lastIndex = -1;
-    items.forEach((item, i) => {
+    tabItems.forEach((item, i) => {
       if (item.key === targetKey) {
         lastIndex = i - 1;
       }
     });
-    const newPanes = items.filter((item) => item.key !== targetKey);
+    const newPanes = tabItems.filter((item) => item.key !== targetKey);
     if (newPanes.length && newActiveKey === targetKey) {
       if (lastIndex >= 0) {
         newActiveKey = newPanes[lastIndex].key;
@@ -48,9 +46,12 @@ const TabsCreateBill = () => {
         newActiveKey = newPanes[0].key;
       }
     }
-    setItems(newPanes);
-    setActiveKey(newActiveKey);
+    setTabState({
+      tabItems: newPanes,
+      activeKey: newActiveKey,
+    });
   };
+
   const onEdit = (targetKey, action) => {
     if (action === "add") {
       add();
@@ -64,7 +65,7 @@ const TabsCreateBill = () => {
       onChange={onChange}
       activeKey={activeKey}
       onEdit={onEdit}
-      items={items}
+      items={tabItems}
       size="small"
     />
   );

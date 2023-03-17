@@ -1,18 +1,12 @@
 import { SearchOutlined } from "@ant-design/icons";
-import { Empty, message, Select, Spin } from "antd";
+import { Empty, message, Select, Spin, Tag } from "antd";
 import { useState } from "react";
 import productApi from "./../../api/productApi";
-import { Highlighter } from "react-highlight-words";
 import HighlightedText from "../HighlightedText";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  addManyPriceLines,
-  addPriceLine,
-  setPriceLines,
-} from "../../store/slices/priceLineSlice";
+import { useDispatch } from "react-redux";
+import { addPriceLine, setPriceLines } from "../../store/slices/priceLineSlice";
 
-const SearchProductInput = ({ formState, ...props }) => {
-  const { priceLines } = useSelector((state) => state.priceLine);
+const SearchProductInput = (props) => {
   const dispatch = useDispatch();
 
   const [data, setData] = useState([]);
@@ -22,47 +16,23 @@ const SearchProductInput = ({ formState, ...props }) => {
     // fetching data here
     fetchData(input, setData, setFetching);
   };
-  const handleChange = async (productId) => {
-    let res = await productApi.findOneById(productId);
+  const handleChange = async (value) => {
+    let res = await productApi.findOneById(value);
     if (res.isSuccess) {
-      let { product } = res;
-      let { ProductUnitTypes } = product;
-
-      let _listNewPriceLines = ProductUnitTypes.map((put) => {
-        let _newPriceLine = {
-          startDate: formState.time.start,
-          endDate: formState.time.end,
-          price: 0,
-          state: false,
-          DiscountRateProductId: null,
-          ProductUnitTypeId: put.id,
-
-          ProductUnitType: {
-            ...put,
-            Product: {
-              ...product,
-            },
-          },
-        };
-        return _newPriceLine;
-      });
-
-      // check exist
-      priceLines.map((item) => {
-        _listNewPriceLines = _listNewPriceLines.filter(
-          (newPriceLine) =>
-            newPriceLine.ProductUnitType.id != item.ProductUnitType.id
-        );
-      });
-
-      if (_listNewPriceLines.length == 0) {
-        message.warning("Sản phẩm đã tồn tại trong bảng giá");
-        return;
-      }
-
-      dispatch(addManyPriceLines(_listNewPriceLines));
+      message.info("handle more");
+      dispatch(
+        addPriceLine({
+          id: "cong-create",
+          startDate: "",
+          endDate: "",
+          price: 10000,
+          state: true,
+          product: res.product,
+          isCanDelete: true,
+          ProductUnitTypeId: "eeee",
+        })
+      );
     }
-
     setInput("");
   };
 
@@ -136,6 +106,7 @@ async function fetchData(input, setData, setFetching) {
           style={{
             display: "flex",
             alignItems: "center",
+            position: "relative",
           }}
         >
           <div>
@@ -151,23 +122,40 @@ async function fetchData(input, setData, setFetching) {
           <div
             style={{
               paddingLeft: "8px",
+              paddingBottom: "12px",
             }}
           >
             {typeFind == "name" ? (
               <>
                 <HighlightedText text={p.name} highlightText={input} />
-                <div>{p.id}</div>
+                <div
+                  style={{
+                    fontSize: "12px",
+                  }}
+                >
+                  {p.id}
+                </div>
+                <div>Tồn kho: 100 || KH đặt: 4</div>
               </>
             ) : (
               <>
                 <div>{p.name}</div>
                 <HighlightedText text={p.id} highlightText={input} />
+                <div>Tồn kho: 100 || KH đặt: 4</div>
               </>
             )}
           </div>
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+            }}
+          >
+            <Tag color="gold">Lon</Tag>
+          </div>
         </div>
       ),
-      product: p,
     };
   });
   setData(data);

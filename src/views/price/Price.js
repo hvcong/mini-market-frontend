@@ -35,6 +35,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import PriceCUModal from "../../components/price/PriceCUModal";
 import priceHeaderApi from "./../../api/priceHeaderApi";
 import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
+import { sqlToDDmmYYY } from "./../../utils/index";
 const { Text } = Typography;
 
 const Price = ({}) => {
@@ -86,11 +87,13 @@ const Price = ({}) => {
     {
       title: "Ngày bắt đầu",
       dataIndex: "startDate",
+      render: (_, header) => <>{sqlToDDmmYYY(header.startDate)}</>,
     },
 
     {
       title: "Ngày kết thúc",
       dataIndex: "endDate",
+      render: (_, header) => <>{sqlToDDmmYYY(header.endDate)}</>,
     },
     {
       title: "Trạng thái",
@@ -108,7 +111,7 @@ const Price = ({}) => {
   useEffect(() => {
     getPriceHeaders(pageState.page, pageState.limit);
     return () => {};
-  }, [pageState]);
+  }, [pageState.page]);
 
   useEffect(() => {
     if (refresh) {
@@ -127,7 +130,10 @@ const Price = ({}) => {
 
   // pagination handle
   function onChangePageNumber(pageNumber, pageSize) {
-    setPageState(pageNumber, pageSize);
+    setPageState({
+      page: pageNumber,
+      limit: pageSize,
+    });
   }
 
   // open storetransactionDetail modal with id
@@ -197,7 +203,8 @@ const Price = ({}) => {
         <Pagination
           onChange={onChangePageNumber}
           total={count}
-          defaultCurrent={pageState.page}
+          pageSize={10}
+          current={pageState.page}
           hideOnSinglePage
         />
       </div>

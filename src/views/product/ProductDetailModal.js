@@ -28,6 +28,7 @@ import productApi from "./../../api/productApi";
 import UnitTypeList from "../../components/product/UnitTypeList";
 import { useDispatch } from "react-redux";
 import { refreshProducts, setRefresh } from "../../store/slices/productSlice";
+import CategoryDetailModal from "./../../components/category/CategoryDetailModal";
 const { Text } = Typography;
 
 const initFormState = {

@@ -14,14 +14,35 @@ export const priceLineSlice = createSlice({
     addPriceLine: (state, action) => {
       state.priceLines.unshift(action.payload);
     },
-    removePriceLineById: (state, action) => {
+    removePriceLineByProductId: (state, action) => {
+      console.log(action.payload);
       state.priceLines = state.priceLines.filter((item) => {
-        return item.id != action.payload;
+        return item.ProductUnitType.Product.id != action.payload;
       });
+    },
+    removeAllPriceLines: (state) => {
+      state.priceLines = [];
+    },
+    updateOnePriceLine: (state, action) => {
+      state.priceLines = state.priceLines.map((item) => {
+        if (item.ProductUnitTypeId == action.payload.ProductUnitTypeId) {
+          return action.payload;
+        }
+        return item;
+      });
+    },
+    addManyPriceLines: (state, action) => {
+      state.priceLines.push(...action.payload);
     },
   },
 });
 
-export const { setPriceLines, addPriceLine, removePriceLineById } =
-  priceLineSlice.actions;
+export const {
+  setPriceLines,
+  addPriceLine,
+  removePriceLineByProductId,
+  removeAllPriceLines,
+  updateOnePriceLine,
+  addManyPriceLines,
+} = priceLineSlice.actions;
 export default priceLineSlice.reducer;

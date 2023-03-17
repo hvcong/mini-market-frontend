@@ -106,6 +106,7 @@ const AdminProducts = ({}) => {
   ]);
 
   useEffect(() => {
+    console.log(pageState);
     getProducts(pageState.page, pageState.limit);
     return () => {};
   }, [pageState]);
@@ -138,7 +139,10 @@ const AdminProducts = ({}) => {
 
   // pagination handle
   function onChangePageNumber(pageNumber, pageSize) {
-    setPageState(pageNumber, pageSize);
+    setPageState({
+      page: pageNumber,
+      limit: pageSize,
+    });
   }
 
   // open storetransactionDetail modal with id

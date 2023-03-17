@@ -210,6 +210,56 @@
       .table {
         margin-bottom: 12px;
       }
+      .expand_price_line {
+        border-radius: 4px;
+        border: 1px solid #018547;
+        padding: 8px 12px;
+        .expand_price_line_list {
+        }
+        .expand_price_line_item {
+          display: flex;
+          border-bottom: 1px solid #ddddddb9;
+          padding: 4px;
+          .expand_price_line_checkbox {
+            width: 40px;
+          }
+          .expand_price_line_label {
+            width: 120px;
+          }
+          .expand_price_line_conver {
+            width: 120px;
+          }
+
+          .expand_price_line_input {
+            width: 200px;
+          }
+          .expand_price_line_date {
+            width: 400px;
+          }
+
+          .expand_price_line_state {
+            width: 120px;
+          }
+
+          .hide {
+            display: none;
+          }
+
+          .blur {
+            opacity: 0.5;
+          }
+        }
+
+        .expand_price_line_item.checked {
+          .blur {
+            opacity: 1;
+          }
+
+          .hide {
+            display: block;
+          }
+        }
+      }
     }
   }
 

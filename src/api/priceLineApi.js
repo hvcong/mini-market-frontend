@@ -5,6 +5,11 @@ class PriceLineApi {
     let url = `price/getPriceHeader?priceHeaderId=${headerId}`;
     return axiosClient.get(url);
   }
+
+  getOneBy_PUT_id(id) {
+    let url = `price/proUnitId?productUnitTypeId=${id}`;
+    return axiosClient.get(url);
+  }
 }
 
 const priceLineApi = new PriceLineApi();

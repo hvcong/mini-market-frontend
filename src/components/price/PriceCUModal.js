@@ -18,6 +18,7 @@ import {
   InputNumber,
   Divider,
   Table,
+  message,
 } from "antd";
 import ModalCustomer from "../ModalCustomer";
 import {
@@ -27,7 +28,6 @@ import {
   PlusOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
-import dayjs, { isDayjs } from "dayjs";
 
 import SelectCategory from "../product/SelectCategory";
 import SelectSubCategory from "../product/SelectSubCategory";
@@ -37,9 +37,22 @@ import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import priceLineApi from "./../../api/priceLineApi";
 import {
-  removePriceLineById,
+  removeAllPriceLines,
+  removePriceLineByProductId,
   setPriceLines,
+  updateOnePriceLine,
 } from "../../store/slices/priceLineSlice";
+import dayjs, { isDayjs } from "dayjs";
+import {
+  antdToDmy,
+  dmyToAntd,
+  dmyToYmd,
+  sqlToDDmmYYY,
+} from "./../../utils/index";
+import ExpandRowRender from "./ExpandRowRender";
+import productApi from "./../../api/productApi";
+import priceHeaderApi from "../../api/priceHeaderApi";
+import { setRefreshPriceHeaders } from "../../store/slices/priceHeaderSlice";
 const { Text } = Typography;
 
 const initFormState = {
@@ -52,55 +65,80 @@ const initFormState = {
   state: true,
 };
 
+const initErrMessage = {
+  id: "",
+  title: "",
+  time: "",
+};
+
+const initDataTable = [
+  // {
+  //   key: "", // productId
+  //   productName:"",
+  //   items: [
+  //     // priceLine
+  //   ],
+  // },
+];
+
+const ddMMyyyy = "DD/MM/YYYY";
+
 const PriceCUModal = ({ modalState, setModalState }) => {
   const { priceLines, sum } = useSelector((state) => state.priceLine);
   const dispatch = useDispatch();
+  let hideLoading = null;
 
   const [formState, setFormState] = useState(initFormState);
+  const [errMessage, setErrMessage] = useState(initErrMessage);
   const [allColumns, setAllColumns] = useState([]);
+  const [dataTable, setDataTable] = useState(initDataTable);
 
+  // open modal
   useEffect(() => {
-    let _priceLines = [...priceLines];
-    _priceLines = _priceLines.map((item) => {
-      return {
-        ...item,
-        startDate: formState.time.start,
-        endDate: formState.time.end,
-      };
-    });
-    dispatch(setPriceLines(_priceLines));
+    // load priceLines when modal for update
+    if (modalState.rowSelected) getPriceLines(modalState.rowSelected.id);
 
-    let _allColumns = [
+    //set header infor for formState
+    if (modalState.rowSelected && modalState.type == "update") {
+      let { id, title, startDate, endDate, state } = modalState.rowSelected;
+      setFormState({
+        ...formState,
+        id,
+        title,
+        time: {
+          start: sqlToDDmmYYY(startDate),
+          end: sqlToDDmmYYY(endDate),
+        },
+        state,
+      });
+    }
+
+    // set columns
+    let _columns = [
       {
         title: modalState.type == "create" ? <CloseSquareOutlined /> : "",
         width: 42,
         fixed: "left",
         fixedShow: true,
-        render: (_, price) => (
+        render: (_, row) => (
           <Button
             icon={<DeleteOutlined />}
             size="small"
             danger
-            disabled={!price.isCanDelete}
+            disabled={!row.isCanDelete}
             onClick={() => {
-              dispatch(removePriceLineById(price.id));
+              message.info("delete");
+              dispatch(removePriceLineByProductId(row.key));
             }}
           />
         ),
       },
       {
-        title: "Id",
-        dataIndex: "id",
-        width: 80,
-        fixed: "left",
-        fixedShow: true,
-      },
-      {
         title: "Mã SP",
-        dataIndex: "productId",
         width: 100,
         fixed: "left",
-        hidden: true,
+        dataIndex: "key",
+        // hidden: true,
       },
       {
         title: "Tên SP",
@@ -114,121 +152,280 @@ const PriceCUModal = ({ modalState, setModalState }) => {
         dataIndex: "priceIn",
         fixedShow: true,
       },
-
-      {
-        title: "Thời gian áp dụng",
-        dataIndex: "startDate",
-        width: 240,
-        render: (_, row) => (
-          <div className="cellDateEditable">
-            <DatePicker.RangePicker
-              size="small"
-              onChange={(value) => {
-                onRowChangeTime(value, row);
-              }}
-              disabledDate={(current) => {
-                // Can not select days before today and today
-                if (
-                  current &&
-                  isDayjs(formState.time.start) &&
-                  isDayjs(formState.time.end)
-                ) {
-                  return (
-                    current < formState.time.start ||
-                    current > formState.time.end
-                  );
-                }
-              }}
-              value={[
-                isDayjs(row.startDate) && row.startDate,
-                isDayjs(row.endDate) && row.endDate,
-              ]}
-            />
-          </div>
-        ),
-      },
-      {
-        title: "Trạng thái",
-        width: 80,
-        dataIndex: "active",
-        render: (_, price) => (
-          <Switch
-            checkedChildren="On"
-            unCheckedChildren="Off"
-            defaultChecked={price.acitve}
-          />
-        ),
-      },
-      {
-        title: "Giá bán",
-        dataIndex: "price",
-        fixedShow: true,
-        fixed: "right",
-        render: (_, product) => <Input placeholder="0"></Input>,
-      },
     ];
-
-    setAllColumns(_allColumns);
+    setAllColumns(_columns);
 
     return () => {};
-  }, [formState.time, modalState.type]);
+  }, [modalState]);
 
   useEffect(() => {
-    if (modalState.rowSelected && modalState.type == "update") {
-      let { id, title, startDate, endDate, state } = modalState.rowSelected;
-      setFormState({
-        ...formState,
-        id,
-        title,
-        time: {
-          start: "",
-          end: "",
-        },
-        state,
+    if (modalState.type == "create") {
+      let _priceLines = priceLines.map((item) => {
+        return {
+          ...item,
+          startDate: formState.time.start,
+          endDate: formState.time.end,
+        };
       });
-    }
-    return () => {};
-  }, [modalState]);
 
-  // load data
-  useEffect(() => {
-    if (modalState.rowSelected) getPriceLines(modalState.rowSelected.id);
+      dispatch(setPriceLines(_priceLines));
+    }
+
     return () => {};
-  }, [modalState]);
+  }, [formState.time]);
 
   async function getPriceLines(headerId) {
-    let res = await priceLineApi.getByHeaderId(headerId);
+    let res = null;
+    res = await priceLineApi.getByHeaderId(headerId);
+
     if (res.isSuccess) {
-      dispatch(setPriceLines(res.listPrices));
-    }
-  }
+      let listPrices = res.listPrices;
+      let _newList = listPrices.map((item) => {
+        return {
+          ...item,
+          isExistInDB: true,
+          isChecked: true,
+        };
+      });
 
-  // on row change time
-  function onRowChangeTime(value, row) {
-    let _priceLines = [...priceLines];
-    _priceLines = _priceLines.map((item) => {
-      if (item.id == row.id) {
-        item.startDate = value[0];
-        item.endDate = value[1];
-        return item;
-      } else {
-        item.startDate = formState.time.start;
-        item.endDate = formState.time.end;
-        return item;
+      for (const priceLine of listPrices) {
+        let product = priceLine.ProductUnitType.Product || {};
+        let productUnitTypes = product.ProductUnitTypes || [];
+
+        //lặp qua từng putId kiểm tra xem đã tồn tại trong listPrices chưa, nếu chưa có thì thêm
+        productUnitTypes.map((put) => {
+          let isExist = false;
+
+          for (const item of listPrices) {
+            if (put.id == item.ProductUnitType.id) {
+              isExist = true;
+              break;
+            }
+          }
+
+          // thêm mới một priceline
+          if (!isExist) {
+            let _newPriceLine = {
+              startDate: "",
+              endDate: "",
+              price: 0,
+              state: false,
+              DiscountRateProductId: null,
+              ProductUnitTypeId: put.id,
+
+              ProductUnitType: {
+                ...put,
+                Product: product,
+              },
+            };
+
+            _newList.push(_newPriceLine);
+          }
+        });
       }
-    });
 
-    _priceLines = _priceLines.filter((item) => true);
-
-    dispatch(setPriceLines(_priceLines));
+      console.log(_newList);
+      dispatch(setPriceLines(_newList));
+    }
   }
 
   function onCloseModal() {
+    clearModal();
     setModalState({
       visible: false,
       type: "",
     });
   }
+
+  function clearModal() {
+    setFormState(initFormState);
+    setErrMessage(initErrMessage);
+    dispatch(removeAllPriceLines());
+  }
+
+  // expand when click row
+  function expandedRowRender(rowData) {
+    return (
+      <ExpandRowRender
+        rowData={rowData}
+        updateRowState={updateRowState}
+        formState={formState}
+      />
+    );
+  }
+  //
+  function disableDateForHeader(current) {}
+
+  useEffect(() => {
+    const _dataTable = [];
+    priceLines.forEach((priceLine) => {
+      let productId = priceLine.ProductUnitType.Product.id;
+      let productName = priceLine.ProductUnitType.Product.name;
+
+      if (_dataTable.length > 0) {
+        let isPushed = false;
+        for (const row of _dataTable) {
+          if (productId == row.key) {
+            row.items.push(priceLine);
+
+            isPushed = true;
+            break;
+          }
+        }
+        // if not exist, push new row
+        if (!isPushed) {
+          _dataTable.push({
+            key: productId,
+            productName,
+            items: [priceLine],
+          });
+        }
+      } else {
+        // if not exist, push new row
+        _dataTable.push({
+          key: productId,
+          productName,
+          items: [priceLine],
+        });
+      }
+    });
+
+    for (const row of _dataTable) {
+      let { items } = row;
+      let isCanDelete = true;
+
+      for (const item of items) {
+        if (item.isExistInDB) {
+          isCanDelete = false;
+          break;
+        }
+      }
+      row.isCanDelete = isCanDelete;
+    }
+    setDataTable(_dataTable);
+    return () => {};
+  }, [priceLines]);
+
+  //onChange state a priceline
+  function updateRowState(newRow) {
+    if (newRow) {
+      let _dataTable = dataTable.map((item) => {
+        if (item.key == newRow.key) {
+          return {
+            ...newRow,
+          };
+        }
+        return item;
+      });
+      setDataTable(_dataTable);
+    }
+  }
+
+  // on submit create/update header
+  async function onSubmit(type, isClose) {
+    let _formData = {
+      id: "",
+      title: "",
+      startDate: "",
+      endDate: "",
+      state: true,
+      priceLines: [],
+    };
+
+    if (await isCheckData()) {
+      hideLoading = message.loading("Đang tạo mới ...", 0);
+
+      let res = {};
+
+      if (type == "create") {
+        res = await priceHeaderApi.addOne(_formData);
+      } else {
+        res = await priceHeaderApi.updateOne(_formData);
+      }
+      hideLoading();
+      if (res.isSuccess) {
+        dispatch(setRefreshPriceHeaders());
+        if (type == "create") {
+          message.info("Thêm mới thành công");
+        } else {
+          message.info("Cập nhật thành công");
+          setModalState({
+            visible: false,
+          });
+        }
+
+        if (isClose) {
+          setModalState({
+            visible: false,
+          });
+        }
+        clearModal();
+      } else {
+        message.info("Thêm mới không thành công!");
+      }
+    } else {
+      message.error("Thông tin điền vào không hợp lệ!");
+    }
+
+    async function isCheckData() {
+      let _errMess = {};
+      let isCheck = true;
+      if (!formState.id) {
+        _errMess.id = "Không được bỏ trống!";
+        isCheck = false;
+      } else {
+        // check is exist in db
+      }
+
+      if (!formState.title) {
+        _errMess.title = "Không được bỏ trống!";
+        isCheck = false;
+      } else {
+        // check is exist in db
+      }
+
+      if (!formState.time.start || !formState.time.end) {
+        _errMess.time = "Không được bỏ trống!";
+        isCheck = false;
+      }
+
+      setErrMessage(_errMess);
+      if (!isCheck) {
+        return isCheck;
+      }
+
+      _formData.id = formState.id;
+      _formData.title = formState.title;
+      _formData.startDate = dmyToYmd(formState.time.start);
+      _formData.endDate = dmyToYmd(formState.time.end);
+      _formData.state = formState.state;
+
+      dataTable.map((row) => {
+        row.items.map((item) => {
+          if (item.isChecked) {
+            _formData.priceLines.push({
+              startDate: dmyToYmd(item.startDate),
+              endDate: dmyToYmd(item.endDate),
+              price: item.price,
+              state: item.state,
+              productUnitTypeId: item.ProductUnitTypeId,
+            });
+          }
+        });
+      });
+
+      return true;
+    }
+  }
+
+  // close hideloading
+  useEffect(() => {
+    return () => {
+      if (hideLoading) {
+        hideLoading();
+      }
+    };
+  }, []);
 
   return (
     <div className="price__modal">
@@ -256,8 +453,10 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                     onChange={({ target }) =>
                       setFormState({ ...formState, id: target.value })
                     }
+                    status={errMessage.id && "error"}
+                    disabled={modalState.type == "update"}
                   />
-                  <div className="input_err">asfsfd</div>
+                  <div className="input_err">{errMessage.id}</div>
                 </div>
               </div>
               <div className="input__container">
@@ -273,8 +472,9 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                     onChange={({ target }) =>
                       setFormState({ ...formState, title: target.value })
                     }
+                    status={errMessage.title && "error"}
                   />
-                  <div className="input_err">asfsfd</div>
+                  <div className="input_err">{errMessage.title}</div>
                 </div>
               </div>
               <div className="input__container">
@@ -282,18 +482,34 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                 <div className="input_wrap">
                   <DatePicker.RangePicker
                     size="small"
-                    value={[formState.time.start, formState.time.end]}
+                    format={ddMMyyyy}
+                    value={[
+                      dmyToAntd(formState.time.start),
+                      dmyToAntd(formState.time.end),
+                    ]}
                     onChange={(value) => {
-                      setFormState({
-                        ...formState,
-                        time: {
-                          start: value[0],
-                          end: value[1],
-                        },
-                      });
+                      if (value) {
+                        setFormState({
+                          ...formState,
+                          time: {
+                            start: antdToDmy(value[0]),
+                            end: antdToDmy(value[1]),
+                          },
+                        });
+                      } else {
+                        setFormState({
+                          ...formState,
+                          time: {
+                            start: "",
+                            end: "",
+                          },
+                        });
+                      }
                     }}
+                    disabledDate={disableDateForHeader}
+                    status={errMessage.time && "error"}
                   />
-                  <div className="input_err">asfsfd</div>
+                  <div className="input_err">{errMessage.time}</div>
                 </div>
               </div>
               <div className="input__container">
@@ -328,6 +544,7 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                     style={{
                       width: "280px",
                     }}
+                    formState={formState}
                   />
                 </div>
               </div>
@@ -341,7 +558,7 @@ const PriceCUModal = ({ modalState, setModalState }) => {
             </div>
             <Table
               columns={allColumns.filter((col) => !col.hidden)}
-              dataSource={priceLines}
+              dataSource={dataTable}
               pagination={false}
               size="small"
               scroll={{
@@ -349,6 +566,9 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                 y: window.innerHeight * 0.5,
               }}
               className="table"
+              expandable={{
+                expandedRowRender,
+              }}
             />
 
             <Space
@@ -360,10 +580,32 @@ const PriceCUModal = ({ modalState, setModalState }) => {
             >
               {modalState.type == "create" ? (
                 <>
-                  <Button type="primary">Lưu & Đóng</Button>
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      onSubmit("create", false);
+                    }}
+                  >
+                    Lưu & Thêm mới
+                  </Button>
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      onSubmit("create", true);
+                    }}
+                  >
+                    Lưu & Đóng
+                  </Button>
                 </>
               ) : (
-                <Button type="primary">Cập nhật</Button>
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    onSubmit("update");
+                  }}
+                >
+                  Cập nhật
+                </Button>
               )}
               <Button type="primary" danger onClick={onCloseModal}>
                 Hủy bỏ

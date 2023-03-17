@@ -15,7 +15,7 @@ import React from "react";
 import { render } from "@testing-library/react";
 
 const ExpandRowRender = ({ rowData, modalState, setModalState }) => {
-  const { SubCategories } = rowData;
+  const { SubCategories = [] } = rowData;
   const onChange = (key) => {
     console.log(key);
   };
@@ -105,13 +105,6 @@ const ExpandRowRender = ({ rowData, modalState, setModalState }) => {
           columns={columns}
           pagination={false}
         />
-        <div className="pagination__container">
-          <Pagination
-            onChange={onChangePageNumber}
-            total={24}
-            defaultPageSize={6}
-          />
-        </div>
       </div>
     );
   }

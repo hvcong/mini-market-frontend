@@ -2,7 +2,7 @@ import { DeleteOutlined, MoreOutlined } from "@ant-design/icons";
 import React from "react";
 import ListProductItem from "./ListProductItem";
 
-const ListProduct = () => {
+const ListProduct = ({ items }) => {
   return (
     <div className="list_product">
       <ListProductItem />

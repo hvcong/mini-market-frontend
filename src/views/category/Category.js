@@ -64,6 +64,7 @@ const Category = ({}) => {
   // search on a column handle
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
+  let hideLoading = null;
 
   const searchInput = useRef(null);
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
@@ -198,7 +199,11 @@ const Category = ({}) => {
   useEffect(() => {
     getCates(pageState.page, pageState.limit);
 
-    return () => {};
+    return () => {
+      if (hideLoading) {
+        hideLoading();
+      }
+    };
   }, [pageState]);
 
   // handle when have some update will reload data
@@ -206,11 +211,15 @@ const Category = ({}) => {
     if (refresh) {
       getCates(pageState.page, pageState.limit);
     }
-    return () => {};
+    return () => {
+      if (hideLoading) {
+        hideLoading();
+      }
+    };
   }, [refresh]);
 
   async function getCates(page, limit) {
-    let hideLoading = message.loading("Đang tải dữ liệu nhóm hàng...", 0);
+    hideLoading = message.loading("Đang tải dữ liệu nhóm hàng...", 0);
     const res = await cateApi.getMany(page, limit);
     dispatch(setCates(res.cates));
     hideLoading();
@@ -300,7 +309,11 @@ const Category = ({}) => {
         className="table"
       />
       <div className="pagination__container">
-        <Pagination onChange={onChangePageNumber} total={count} />
+        <Pagination
+          onChange={onChangePageNumber}
+          total={count}
+          hideOnSinglePage
+        />
       </div>
       <CategoryDetailModal
         modalState={modalState}
