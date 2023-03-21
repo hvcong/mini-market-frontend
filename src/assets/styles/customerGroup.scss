@@ -1,0 +1,23 @@
+.customer_group {
+  .customer_group_modal {
+    .customer_group_form {
+      font-size: 13px;
+      .customer_group_form_group {
+        display: flex;
+        margin-bottom: 12px;
+      }
+      .customer_group_form_label {
+        min-width: 100px;
+      }
+      .customer_group_form_input_wrap {
+      }
+      .customer_group_form_input {
+        min-width: 200px;
+      }
+      .customer_group_form_input_err {
+        font-size: 12px;
+        color: red;
+      }
+    }
+  }
+}

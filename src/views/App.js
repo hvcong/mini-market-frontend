@@ -2,14 +2,18 @@ import { Button, ConfigProvider } from "antd";
 import "antd/dist/reset.css";
 import { Route, Routes } from "react-router-dom";
 import Main from "../components/admin/layout/Main";
-import Category2 from "../views/admin/Category2";
-import "./App.css";
-import Bill from "./bill/Bill";
-import CreateBill from "./bill/CreateBill";
-import Category from "./category/Category";
-import Customer from "./customer/Customer";
-import Price from "./price/Price";
-import AdminProducts from "./product/AdminProducts";
+import AdminProducts from "./../components/product/AdminProducts";
+import Price from "../components/price/Price";
+import Bill from "./../components/bill/Bill";
+import Promotion from "./../components/promotion/Promotion";
+import UnitType from "../components/unittype/UnitType";
+import StoreChanging from "./../components/store/StoreChanging";
+import StoreChecking from "./../components/store/StoreChecking";
+import CustomerGroup from "./../components/customerGroup/CustomerGroup";
+import Employee from "./../components/employee/Employee";
+import Customer from "./../components/customer/Customer";
+import Category from "./../components/category/Category";
+import CreateBill from "./../components/bill/CreateBill";
 
 function App() {
   return (
@@ -25,10 +29,15 @@ function App() {
         <Route path="/admin" element={<Main />}>
           <Route path="products" element={<AdminProducts />} />
           <Route path="category" element={<Category />} />
-          <Route path="sub-category" element={<Category2 />} />
           <Route path="prices" element={<Price />} />
           <Route path="bills" element={<Bill />} />
           <Route path="customers" element={<Customer />} />
+          <Route path="promotion" element={<Promotion />} />
+          <Route path="unitType" element={<UnitType />} />
+          <Route path="store_change" element={<StoreChanging />} />
+          <Route path="store_check" element={<StoreChecking />} />
+          <Route path="customer_group" element={<CustomerGroup />} />
+          <Route path="employee" element={<Employee />} />
         </Route>
         <Route path="bills/create" element={<CreateBill />} />
       </Routes>

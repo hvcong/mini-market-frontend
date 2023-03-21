@@ -1,62 +1,34 @@
 import { Tabs } from "antd";
 import { useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import {
+  addTab,
+  removeOneTab,
+  setActiveKeyTab,
+} from "../../store/slices/createBillSlice";
 
-const TabsCreateBill = ({ tabState, setTabState }) => {
+const TabsCreateBill = () => {
+  const { tabState } = useSelector((state) => state.createBill);
+  const dispatch = useDispatch();
+
   const { tabItems, activeKey } = tabState;
-  const newTabIndex = useRef(0);
+  const newTabIndex = useRef(1);
 
   const onChange = (newActiveKey) => {
-    setTabState({
-      ...tabState,
-      activeKey: newActiveKey,
-    });
-  };
-
-  const add = () => {
-    const newActiveKey = `newTab${newTabIndex.current++}`;
-    const newPanes = [...tabItems];
-    newPanes.push({
-      label: "Hóa đơn " + (newTabIndex.current + 1),
-      children: "abd",
-      key: newActiveKey,
-    });
-    setTabState({
-      tabItems: newPanes,
-      activeKey: newActiveKey,
-    });
-  };
-
-  const remove = (targetKey) => {
-    if (tabItems.length == 1) {
-      return;
-    }
-
-    let newActiveKey = activeKey;
-    let lastIndex = -1;
-    tabItems.forEach((item, i) => {
-      if (item.key === targetKey) {
-        lastIndex = i - 1;
-      }
-    });
-    const newPanes = tabItems.filter((item) => item.key !== targetKey);
-    if (newPanes.length && newActiveKey === targetKey) {
-      if (lastIndex >= 0) {
-        newActiveKey = newPanes[lastIndex].key;
-      } else {
-        newActiveKey = newPanes[0].key;
-      }
-    }
-    setTabState({
-      tabItems: newPanes,
-      activeKey: newActiveKey,
-    });
+    dispatch(setActiveKeyTab(newActiveKey));
   };
 
   const onEdit = (targetKey, action) => {
     if (action === "add") {
-      add();
+      let _newTab = {
+        label: "Hóa đơn " + (newTabIndex.current + 1),
+        children: "abd",
+        key: `newTab${newTabIndex.current++}`,
+      };
+      dispatch(addTab(_newTab));
     } else {
-      remove(targetKey);
+      dispatch(removeOneTab(targetKey));
     }
   };
   return (

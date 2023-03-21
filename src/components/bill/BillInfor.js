@@ -1,19 +1,103 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { Button, Input, InputNumber, Tag, Typography } from "antd";
-import React from "react";
+import { Button, Input, InputNumber, message, Tag, Typography } from "antd";
+import React, { useEffect, useState } from "react";
 import CustomerSelect from "./CustomerSelect";
 import EmployeeSelect from "./EmployeeSelect";
+import { useDispatch, useSelector } from "react-redux";
+import { convertToVND } from "./../../utils/index";
+import billApi from "./../../api/billApi";
+import {
+  addOneProductToActiveTab,
+  clearOneTab,
+  removeAllProductOnActiveTab,
+} from "../../store/slices/createBillSlice";
 
 const BillInfor = () => {
+  const { account, isLogged } = useSelector((state) => state.user);
+  const { activeKey } = useSelector((state) => state.createBill.tabState);
+  const list = useSelector((state) => state.createBill.listState[activeKey]);
+  let hideLoading = null;
+  const dispatch = useDispatch();
+  const [amountMoney, setAmountMoney] = useState({
+    subTotal: 0,
+    discountOnProduct: 0,
+    discountOnBill: 0,
+    total: 0,
+    customerTake: 0,
+  });
+
+  const { subTotal, discountOnProduct, discountOnBill, total, customerTake } =
+    amountMoney;
+
+  useEffect(() => {
+    calAmountMoney();
+    return () => {};
+  }, [list]);
+
+  function calAmountMoney() {
+    let subTotal = 0;
+    list.map((productLine) => {
+      subTotal =
+        subTotal + Number(productLine.price) * Number(productLine.quantity);
+    });
+
+    let discountOnProduct = 0;
+    let discountOnBill = 0;
+
+    let total = subTotal - discountOnBill - discountOnProduct;
+    setAmountMoney({
+      ...amountMoney,
+      subTotal,
+      total,
+    });
+  }
+
+  async function onSubmit() {
+    hideLoading = message.loading("Đang tạo bill...", 0);
+    let formData = {
+      cost: total,
+      customerPhonenumber: "0356267136",
+      employeeId: account.id,
+      priceIds: list.map((p) => p.id),
+    };
+
+    if (await checkData()) {
+      let res = await billApi.addOne(formData);
+      hideLoading();
+      if (res.isSuccess) {
+        message.info("Tạo mới hóa đơn thành công");
+        clearBill();
+      } else {
+        message.info("Tạo mới hóa đơn thất bại, vui lòng thử lại");
+      }
+    }
+
+    async function checkData() {
+      let isCheck = true;
+
+      return isCheck;
+    }
+  }
+
+  function clearBill() {
+    dispatch(clearOneTab());
+  }
   return (
     <div className="bill_infor">
       <div className="row">
         <div className="label selectLabel">Nhân viên</div>
         <div className="employee">
-          <div className="select_container">
-            <EmployeeSelect />
+          <div
+            className="select_container"
+            style={{
+              border: "1px solid #ddd",
+              padding: "4px 8px",
+              borderRadius: "4px",
+            }}
+          >
+            {account.name}
           </div>
-          <div className="time_container">10/1/2023 20:04</div>
+          <div className="time_container">10/03/2023</div>
         </div>
       </div>
       <div className="row">
@@ -32,8 +116,8 @@ const BillInfor = () => {
       </div>
       <div className="row">
         <div className="label">Tổng tiền hàng</div>
-        <div className="quantitty">23</div>
-        <div className="value">200.000</div>
+        <div className="quantitty">{(list && list.length) || 0}</div>
+        <div className="value">{convertToVND(subTotal)}</div>
       </div>
       <div className="row">
         <div className="label">Giảm giá trên sp</div>
@@ -43,7 +127,7 @@ const BillInfor = () => {
             color: "green",
           }}
         >
-          200.000
+          {convertToVND(discountOnProduct)}
         </div>
       </div>
       <div className="row">
@@ -54,14 +138,14 @@ const BillInfor = () => {
             color: "green",
           }}
         >
-          200.000
+          {convertToVND(discountOnBill)}
         </div>
       </div>
       <div className="row">
         <div className="label bold">Khách cần trả</div>
         <div className="value">
           <Typography.Title level={3} type="success">
-            300.000
+            {convertToVND(total)}
           </Typography.Title>
         </div>
       </div>
@@ -77,7 +161,6 @@ const BillInfor = () => {
         </div>
         <div className="value">
           <InputNumber
-            defaultValue={1000}
             formatter={(value) =>
               `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
@@ -88,6 +171,14 @@ const BillInfor = () => {
             style={{
               fontSize: "17px",
               width: "140px",
+            }}
+            value={customerTake}
+            onChange={(value) => {
+              setAmountMoney({
+                ...amountMoney,
+                customerTake: value,
+                total: subTotal - discountOnBill - discountOnProduct,
+              });
             }}
           />
         </div>
@@ -101,7 +192,7 @@ const BillInfor = () => {
             fontSize: "15px",
           }}
         >
-          187,888
+          {convertToVND(total - customerTake)}
         </div>
       </div>
       <div className="btn">
@@ -111,6 +202,8 @@ const BillInfor = () => {
           style={{
             width: "100%",
           }}
+          onClick={onSubmit}
+          disabled={list.length == 0}
         >
           THANH TOÁN (F5)
         </Button>

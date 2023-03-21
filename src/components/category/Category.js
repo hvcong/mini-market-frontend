@@ -25,18 +25,15 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { useEffect, useRef, useState } from "react";
-import ProductDetailModal from "../product/ProductDetailModal";
-import DropSelectColum from "../../components/product/DropSelectColum";
-import ModalCustomer from "../../components/ModalCustomer";
-import StoreTransationDetailModal from "../../components/StoreTransationDetailModal";
-import productApi from "../../api/productApi";
-import { useDispatch, useSelector } from "react-redux";
-import { setProducts } from "../../store/slices/productSlice";
-import cateApi from "../../api/cateApi";
+import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import cateApi from "./../../api/cateApi";
+import CategoryDetailModal from "./CategoryDetailModal";
+import StoreTransationDetailModal from "./../StoreTransationDetailModal";
 import { setCates } from "../../store/slices/cateSlice";
-import ExpandRowRender from "../../components/category/ExpandRowRender";
-import Highlighter from "react-highlight-words";
-import CategoryDetailModal from "../../components/category/CategoryDetailModal";
+import ExpandRowRender from "./ExpandRowRender";
+import DropSelectColum from "./../product/DropSelectColum";
+
 const { Text } = Typography;
 
 const Category = ({}) => {
@@ -170,6 +167,21 @@ const Category = ({}) => {
       width: 100,
       fixed: "left",
       fixedShow: true,
+      render: (_, rowData) => {
+        return (
+          <Typography.Link
+            onClick={() => {
+              setModalState({
+                visible: true,
+                type: "update",
+                rowSelected: rowData,
+              });
+            }}
+          >
+            {rowData.id}
+          </Typography.Link>
+        );
+      },
     },
     {
       title: "Tên nhóm (c1)",
@@ -183,14 +195,15 @@ const Category = ({}) => {
       title: "Trạng thái",
       dataIndex: "state",
       key: "state",
-      width: 80,
+      width: 120,
       render: (_, category) => (
-        <Switch
-          checkedChildren="On"
-          unCheckedChildren="Off"
-          checked={category.state}
-          disabled
-        />
+        <>
+          {category.state ? (
+            <div style={{ color: "green" }}>Đang sử dụng</div>
+          ) : (
+            <div style={{ color: "red" }}>Đã ngưng</div>
+          )}
+        </>
       ),
     },
   ]);
@@ -226,15 +239,15 @@ const Category = ({}) => {
   }
 
   // expand when click row
-  function expandedRowRender(rowData) {
-    return (
-      <ExpandRowRender
-        rowData={rowData}
-        modalState={modalState}
-        setModalState={setModalState}
-      />
-    );
-  }
+  // function expandedRowRender(rowData) {
+  //   return (
+  //     <ExpandRowRender
+  //       rowData={rowData}
+  //       modalState={modalState}
+  //       setModalState={setModalState}
+  //     />
+  //   );
+  // }
 
   // pagination handle
   function onChangePageNumber(pageNumber, pageSize) {
@@ -242,12 +255,6 @@ const Category = ({}) => {
       page: pageNumber,
       limit: pageSize,
     });
-  }
-
-  // open storetransactionDetail modal with id
-  function openStoreTrDetailModal(id) {
-    setIdTransactionSelected(id);
-    setIsShowStoreTransactionDetailModal(true);
   }
 
   return (
@@ -302,10 +309,10 @@ const Category = ({}) => {
           x: allColumns.filter((item) => !item.hidden).length * 150,
           y: window.innerHeight * 0.66,
         }}
-        expandable={{
-          expandedRowRender,
-          expandRowByClick: true,
-        }}
+        // expandable={{
+        //   expandedRowRender,
+        //   expandRowByClick: true,
+        // }}
         className="table"
       />
       <div className="pagination__container">
@@ -318,12 +325,6 @@ const Category = ({}) => {
       <CategoryDetailModal
         modalState={modalState}
         setModalState={setModalState}
-      />
-
-      <StoreTransationDetailModal
-        visible={isShowStoreTransactionDetailModal}
-        setVisible={setIsShowStoreTransactionDetailModal}
-        idTransactionSelected={idTransactionSelected}
       />
     </div>
   );

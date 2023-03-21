@@ -22,23 +22,16 @@ import {
   StopOutlined,
   DownOutlined,
 } from "@ant-design/icons";
-import { useEffect, useState } from "react";
-import ProductDetailModal from "../product/ProductDetailModal";
-import DropSelectColum from "../../components/product/DropSelectColum";
-import ModalCustomer from "../../components/ModalCustomer";
-import ExpandRowRender from "../../components/product/ExpandRowRender";
-import StoreTransationDetailModal from "../../components/StoreTransationDetailModal";
-import productApi from "../../api/productApi";
 import { useDispatch, useSelector } from "react-redux";
-import { setProducts } from "../../store/slices/productSlice";
-import { Navigate, useNavigate } from "react-router-dom";
-import PriceCUModal from "../../components/price/PriceCUModal";
+import { useEffect, useState } from "react";
 import priceHeaderApi from "./../../api/priceHeaderApi";
 import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
-import { sqlToDDmmYYY } from "./../../utils/index";
+import DropSelectColum from "./../product/DropSelectColum";
+import StoreCUModal from "./StoreCUModal";
+
 const { Text } = Typography;
 
-const Price = ({}) => {
+const StoreChanging = ({}) => {
   const { priceHeaders, refresh, count } = useSelector(
     (state) => state.priceHeader
   );
@@ -62,7 +55,7 @@ const Price = ({}) => {
   const [idTransactionSelected, setIdTransactionSelected] = useState(null);
   const [allColumns, setAllColumns] = useState([
     {
-      title: "Id",
+      title: "Mã",
       dataIndex: "id",
       width: 100,
       fixed: "left",
@@ -78,33 +71,26 @@ const Price = ({}) => {
       ),
     },
     {
-      title: "Tên",
-      dataIndex: "title",
-      width: 200,
-      fixed: "left",
-      fixedShow: true,
+      title: "Mã sản phẩm",
+      dataIndex: "availableBudget",
     },
     {
-      title: "Ngày bắt đầu",
+      title: "Phương thức",
+      dataIndex: "title",
+    },
+    {
+      title: "Số lượng biến động",
+      dataIndex: "availableBudget",
+    },
+    {
+      width: 200,
+      title: "Thời gian",
       dataIndex: "startDate",
-      render: (_, header) => <>{sqlToDDmmYYY(header.startDate)}</>,
     },
 
     {
-      title: "Ngày kết thúc",
-      dataIndex: "endDate",
-      render: (_, header) => <>{sqlToDDmmYYY(header.endDate)}</>,
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "state",
-      render: (_, header) => (
-        <Switch
-          checkedChildren="On"
-          unCheckedChildren="Off"
-          checked={header.state}
-        />
-      ),
+      title: "Mã nhân viên",
+      dataIndex: "availableBudget",
     },
   ]);
 
@@ -160,7 +146,7 @@ const Price = ({}) => {
               margin: 0,
             }}
           >
-            Danh sách bảng giá{" "}
+            Danh sách biến động kho{" "}
           </Typography.Title>
         </div>
         <div className="btn__item">
@@ -175,7 +161,7 @@ const Price = ({}) => {
               });
             }}
           >
-            Thêm mới
+            Nhập kho
           </Button>
         </div>
         <div className="btn__item">
@@ -208,15 +194,9 @@ const Price = ({}) => {
           hideOnSinglePage
         />
       </div>
-      <PriceCUModal modalState={modalState} setModalState={setModalState} />
-
-      <StoreTransationDetailModal
-        visible={isShowStoreTransactionDetailModal}
-        setVisible={setIsShowStoreTransactionDetailModal}
-        idTransactionSelected={idTransactionSelected}
-      />
+      <StoreCUModal modalState={modalState} setModalState={setModalState} />
     </div>
   );
 };
 
-export default Price;
+export default StoreChanging;

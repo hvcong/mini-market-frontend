@@ -1,0 +1,21 @@
+.employee_modal {
+  .employee_form {
+    font-size: 13px;
+  }
+  .employee_form_group {
+    display: flex;
+    margin-bottom: 12px;
+  }
+  .employee_form_label {
+    min-width: 140px;
+  }
+  .employee_form_input_wrap {
+  }
+  .employee_form_input {
+    width: 200px;
+  }
+  .employee_form_input_err {
+    color: red;
+    font-size: 12px;
+  }
+}

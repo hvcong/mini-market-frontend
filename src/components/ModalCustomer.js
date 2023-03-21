@@ -1,7 +1,7 @@
 import { Spin } from "antd";
 import React from "react";
 
-const ModalCustomer = ({ children, visible, setVisible, isLoading }) => {
+const ModalCustomer = ({ children, visible, setVisible, isLoading, style }) => {
   return (
     <div
       className="modal"
@@ -10,7 +10,9 @@ const ModalCustomer = ({ children, visible, setVisible, isLoading }) => {
       }}
     >
       <div className="wrap">
-        <div className="content">{children}</div>
+        <div className="content" style={style}>
+          {children}
+        </div>
         <div className={`loading_container ${isLoading && "active"}`}>
           <Spin size="large" />
         </div>

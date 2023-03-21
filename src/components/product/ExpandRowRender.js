@@ -18,6 +18,7 @@ const ExpandRowRender = ({ rowData, modalState, setModalState }) => {
     console.log(key);
   };
 
+  console.log(rowData);
   const [imageIndexActive, setImageIndexActive] = useState(0);
 
   const items = [

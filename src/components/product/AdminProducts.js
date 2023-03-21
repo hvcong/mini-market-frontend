@@ -23,15 +23,15 @@ import {
   DownOutlined,
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import ProductDetailModal from "./ProductDetailModal";
-import DropSelectColum from "../../components/product/DropSelectColum";
-import ModalCustomer from "../../components/ModalCustomer";
-import ExpandRowRender from "../../components/product/ExpandRowRender";
-import StoreTransationDetailModal from "../../components/StoreTransationDetailModal";
-import productApi from "../../api/productApi";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import productApi from "./../../api/productApi";
 import { setProducts } from "../../store/slices/productSlice";
-import cateApi from "./../../api/cateApi";
+import ExpandRowRender from "./ExpandRowRender";
+import DropSelectColum from "./DropSelectColum";
+import ProductDetailModal from "./ProductDetailModal";
+import StoreTransationDetailModal from "./../StoreTransationDetailModal";
+
 const { Text } = Typography;
 
 const AdminProducts = ({}) => {
@@ -61,6 +61,21 @@ const AdminProducts = ({}) => {
       width: 100,
       fixed: "left",
       fixedShow: true,
+      render: (_, rowData) => {
+        return (
+          <Typography.Link
+            onClick={() => {
+              setModalState({
+                type: "update",
+                visible: true,
+                rowSelected: rowData,
+              });
+            }}
+          >
+            {rowData.id}
+          </Typography.Link>
+        );
+      },
     },
     {
       title: "Tên",
@@ -77,30 +92,27 @@ const AdminProducts = ({}) => {
     {
       title: "Đơn vị tính",
       dataIndex: "unitType",
+      hidden: true,
     },
     {
       title: "Nhóm sản phẩm",
       dataIndex: "category",
-      render: (_, SubCategory) => {
-        return SubCategory.name;
+      render: (_, product) => {
+        return product.SubCategory.name;
       },
     },
-    {
-      title: "Đơn giá hiện tại",
-      dataIndex: "price",
-      className: "colum-money",
-      align: "right",
-      hidden: true,
-    },
+
     {
       title: "Trạng thái",
       dataIndex: "active",
       render: (_, product) => (
-        <Switch
-          checkedChildren="On"
-          unCheckedChildren="Off"
-          defaultChecked={product.state}
-        />
+        <>
+          {product.state ? (
+            <div style={{ color: "green" }}>Đang kinh doanh</div>
+          ) : (
+            <div style={{ color: "red" }}>Đã ngưng</div>
+          )}
+        </>
       ),
     },
   ]);
@@ -127,15 +139,15 @@ const AdminProducts = ({}) => {
   }
 
   // expand when click row
-  function expandedRowRender(rowData) {
-    return (
-      <ExpandRowRender
-        rowData={rowData}
-        modalState={modalState}
-        setModalState={setModalState}
-      />
-    );
-  }
+  // function expandedRowRender(rowData) {
+  //   return (
+  //     <ExpandRowRender
+  //       rowData={rowData}
+  //       modalState={modalState}
+  //       setModalState={setModalState}
+  //     />
+  //   );
+  // }
 
   // pagination handle
   function onChangePageNumber(pageNumber, pageSize) {
@@ -143,12 +155,6 @@ const AdminProducts = ({}) => {
       page: pageNumber,
       limit: pageSize,
     });
-  }
-
-  // open storetransactionDetail modal with id
-  function openStoreTrDetailModal(id) {
-    setIdTransactionSelected(id);
-    setIsShowStoreTransactionDetailModal(true);
   }
 
   return (
@@ -204,19 +210,10 @@ const AdminProducts = ({}) => {
           x: allColumns.filter((item) => !item.hidden).length * 150,
           y: window.innerHeight * 0.66,
         }}
-        onRow={(record, rowIndex) => {
-          return {
-            onClick: (event) => {
-              console.log(record);
-              // setIdSelected(record.id);
-              // setTypeOfModal("update");
-            },
-          };
-        }}
-        expandable={{
-          expandedRowRender,
-          expandRowByClick: true,
-        }}
+        // expandable={{
+        //   expandedRowRender,
+        //   expandRowByClick: true,
+        // }}
         className="table"
       />
       <div className="pagination__container">
@@ -230,12 +227,6 @@ const AdminProducts = ({}) => {
       <ProductDetailModal
         modalState={modalState}
         setModalState={setModalState}
-      />
-
-      <StoreTransationDetailModal
-        visible={isShowStoreTransactionDetailModal}
-        setVisible={setIsShowStoreTransactionDetailModal}
-        idTransactionSelected={idTransactionSelected}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import UploadImageProduct from "../../components/admin/UploadImageProduct";
+import UploadImageProduct from "../admin/UploadImageProduct";
 import {
   Modal,
   Button,
@@ -19,16 +19,17 @@ import {
   Divider,
   message,
 } from "antd";
-import ModalCustomer from "../../components/ModalCustomer";
+import ModalCustomer from "../ModalCustomer";
 import { PlusOutlined } from "@ant-design/icons";
-import SelectCategory from "../../components/product/SelectCategory";
-import SelectSubCategory from "../../components/product/SelectSubCategory";
+import SelectCategory from "./SelectCategory";
+import SelectSubCategory from "./SelectSubCategory";
 import { useEffect } from "react";
-import productApi from "./../../api/productApi";
-import UnitTypeList from "../../components/product/UnitTypeList";
+import productApi from "../../api/productApi";
+import UnitTypeList from "./UnitTypeList";
 import { useDispatch } from "react-redux";
 import { refreshProducts, setRefresh } from "../../store/slices/productSlice";
-import CategoryDetailModal from "./../../components/category/CategoryDetailModal";
+import CategoryDetailModal from "../category/CategoryDetailModal";
+import unitTypeApi from "./../../api/unitTypeApi";
 const { Text } = Typography;
 
 const initFormState = {
@@ -38,7 +39,6 @@ const initFormState = {
     "https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png",
   ],
   description: "",
-  quantity: 0,
   state: true,
   subCategoryId: "",
   categoryId: "",
@@ -46,7 +46,7 @@ const initFormState = {
     {
       id: "",
       name: "",
-      convertion: 1,
+      convertionQuantity: 1,
       state: true,
     },
   ],
@@ -58,13 +58,11 @@ const initErrMessage = {
   images: "",
   description: "",
   quantity: "",
-  priceIn: "",
   categoryId: "",
   subCategoryId: "",
   unitList: [
     {
       name: "",
-      convertion: "",
     },
   ],
 };
@@ -76,26 +74,53 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
 
   useEffect(() => {
     if (modalState.type == "update" && modalState.visible) {
-      const { id, name, images, description, quantity, state, SubCategory } =
-        modalState.rowSelected;
-      setFormState({
-        ...formState,
-        id,
-        name,
-        images,
-        description,
-        quantity,
-        state,
-        subCategoryId: SubCategory.id,
-        categoryId: SubCategory.CategoryId,
-      });
+      loadFormStateWhenUpdate();
     }
 
     return () => {};
   }, [modalState.rowSelected]);
 
+  async function loadFormStateWhenUpdate() {
+    const { id, name, images, description, quantity, state, SubCategory } =
+      modalState.rowSelected;
+    let unitList;
+
+    let res = await unitTypeApi.findAllByProductId(id);
+    if (res.isSuccess) {
+      unitList = res.unitTypes;
+    }
+    console.log(unitList);
+
+    let _errMess = { ...errMessage };
+    _errMess.unitList = (unitList || []).map((item) => {
+      return {
+        name: "",
+      };
+    });
+    setErrMessage(_errMess);
+
+    setFormState({
+      ...formState,
+      id,
+      name,
+      images,
+      description,
+      quantity,
+      state,
+      subCategoryId: SubCategory.id,
+      categoryId: SubCategory.CategoryId,
+      unitList: unitList.map((item) => {
+        return {
+          ...item,
+          isExistOnDB: true,
+        };
+      }),
+    });
+  }
+
   async function onSubmit(type, isClose) {
     let is = await checkForm(type);
+    // xóa những id == ""
     if (is) {
       let formData = {
         id: formState.id,
@@ -107,12 +132,12 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
         subCategoryId: formState.subCategoryId,
         unitTypes: formState.unitList.map((item) => {
           return {
-            name: item.name,
-            convertionQuantity: item.convertion,
+            id: item.id,
           };
         }),
       };
       let res = null;
+      console.log(formData);
 
       if (type == "create") {
         res = await productApi.addOne(formData);
@@ -154,7 +179,6 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
       name,
       images = [],
       description,
-      quantity,
       state,
       subCategoryId,
       categoryId,
@@ -196,24 +220,25 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
     }
 
     unitList.map((item, index) => {
-      const { name, convertion } = item;
+      const { name, convertionQuantity } = item;
       if (!name) {
         _errMess.unitList[index].name = "Không được bỏ trống!";
         isCheck = false;
       } else {
         _errMess.unitList[index].name = "";
       }
-      if (!convertion) {
-        _errMess.unitList[index].convertion = "Không được bỏ trống!";
+      if (!convertionQuantity) {
+        _errMess.unitList[index].convertionQuantity = "Không được bỏ trống!";
         isCheck = false;
       } else {
-        _errMess.unitList[index].convertion = "";
+        _errMess.unitList[index].convertionQuantity = "";
       }
-      if (convertion == 1 && index != 0) {
-        _errMess.unitList[index].convertion = "Chỉ một đơn vị cơ duy nhất!";
+      if (convertionQuantity == 1 && index != 0) {
+        _errMess.unitList[index].convertionQuantity =
+          "Chỉ một đơn vị cơ duy nhất!";
         isCheck = false;
       } else {
-        _errMess.unitList[index].convertion = "";
+        _errMess.unitList[index].convertionQuantity = "";
       }
     });
 
@@ -302,44 +327,23 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                       <div className="input__err">{errMessage.name}</div>
                     </Col>
                     <Col span={6}>
-                      <Text>Tồn kho</Text>
+                      <Text>Mô tả</Text>
                     </Col>
                     <Col span={15}>
-                      <InputNumber
+                      <Input
+                        className="input"
+                        placeholder="Mô tả về sản phẩm"
                         size="small"
-                        min={0}
-                        defaultValue={1}
-                        style={{ minWidth: "120px" }}
-                        value={formState.quantity}
-                        onChange={(value) => {
+                        value={formState.description}
+                        onChange={({ target }) => {
                           setFormState({
                             ...formState,
-                            quantity: value,
+                            description: target.value,
                           });
                         }}
-                        status={errMessage.quantity && "error"}
+                        status={errMessage.description && "error"}
                       />
-                      <div className="input__err">{errMessage.quantity}</div>
-                    </Col>
-                    <Col span={6}>
-                      <Text>Giá nhập</Text>
-                    </Col>
-                    <Col span={15}>
-                      <InputNumber
-                        size="small"
-                        min={0}
-                        defaultValue={0}
-                        style={{ minWidth: "120px" }}
-                        // value={formState.name}
-                        // onChange={({ target }) => {
-                        //   setFormState({
-                        //     ...formState,
-                        //     name: target.value,
-                        //   });
-                        // }}
-                        status={errMessage.priceIn && "error"}
-                      />
-                      <div className="input__err">{errMessage.priceIn}</div>
+                      <div className="input__err">{errMessage.description}</div>
                     </Col>
                   </Row>
                 </Col>
@@ -418,6 +422,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                         unitList: errList,
                       })
                     }
+                    typeOfModal={modalState.type}
                   />
                 </Col>
               </Row>

@@ -1,0 +1,28 @@
+.customer_modal {
+  .customer_form {
+    font-size: 13px;
+    display: flex;
+  }
+  .customer_form_group {
+    display: flex;
+    margin-bottom: 12px;
+  }
+  .customer_form_label {
+    min-width: 140px;
+  }
+  .customer_form_input_wrap {
+  }
+  .customer_form_input {
+    width: 200px;
+  }
+  .customer_form_input_err {
+    font-size: 12px;
+  }
+
+  .customer_form_left {
+    padding: 0 12px;
+  }
+  .customer_form_right {
+    padding: 0 12px;
+  }
+}

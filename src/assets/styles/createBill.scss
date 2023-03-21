@@ -73,7 +73,7 @@
           flex: 1;
         }
         .select_container {
-          width: 160px;
+          width: 180px;
         }
         .time_container {
           flex: 1;
@@ -183,11 +183,12 @@
         flex: 1;
       }
       .product_unit {
-        padding: 0 24px 0 12px;
       }
+
       .quantity_container {
         display: flex;
         border-bottom: 2px solid #ddd;
+        margin: 0 4px;
 
         .value {
           padding: 0 4px;
@@ -199,8 +200,8 @@
       }
     }
     .price {
-      padding: 0 24px;
-      width: 100px;
+      min-width: 100px;
+      margin-left: 12px;
     }
     .sum_price {
       padding: 0 24px;

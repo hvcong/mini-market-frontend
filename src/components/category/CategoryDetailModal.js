@@ -68,7 +68,11 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
   const [countDefaultSub, setCountDefaultSub] = useState(0);
 
   useEffect(() => {
-    if (modalState.rowSelected && modalState.visible) {
+    if (
+      modalState.rowSelected &&
+      modalState.visible &&
+      modalState.type == "update"
+    ) {
       setCountDefaultSub(modalState.rowSelected.SubCategories.length);
       setCategoryState({
         id: modalState.rowSelected.id,
@@ -82,6 +86,7 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
           id: item.id,
           name: item.name,
           state: item.state,
+          isExistOnDB: true,
         };
       });
 
@@ -179,30 +184,31 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
         _errMess.categoryId = "Mã này đã tồn tại";
         isCheck = false;
       }
-
-      let _subErr = [];
-      if (errMessage.subCategories) {
-        _subErr = [...errMessage.subCategories];
-      }
-      for (let i = 0; i < listSub.length; i++) {
-        if (!listSub[i].id) {
-          _subErr[i].id = "Không được bỏ trống";
-          isCheck = false;
-        } else {
-          let res = await cateApi.findSubById(listSub[i].id);
-          if (res.isSuccess) {
-            _subErr[i].id = "Mã này đã tồn tại";
-            isCheck = false;
-          }
-        }
-        if (!listSub[i].name) {
-          _subErr[i].name = "Không được bỏ trống";
-          isCheck = false;
-        }
-      }
-      _errMess.subCategories = _subErr;
-      setErrMessage(_errMess);
     }
+
+    let _subErr = [];
+    if (errMessage.subCategories) {
+      _subErr = [...errMessage.subCategories];
+    }
+    for (let i = 0; i < listSub.length; i++) {
+      if (!listSub[i].id) {
+        _subErr[i].id = "Không được bỏ trống";
+        isCheck = false;
+      } else if (!listSub[i].isExistOnDB) {
+        let res = await cateApi.findSubById(listSub[i].id);
+        if (res.isSuccess) {
+          _subErr[i].id = "Mã này đã tồn tại";
+          isCheck = false;
+        }
+      }
+      if (!listSub[i].name) {
+        _subErr[i].name = "Không được bỏ trống";
+        isCheck = false;
+      }
+    }
+    _errMess.subCategories = _subErr;
+    setErrMessage(_errMess);
+
     return isCheck;
   }
 
@@ -323,6 +329,7 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                                 _lst[index].id = target.value;
                                 setListSub(_lst);
                               }}
+                              disabled={item.isExistOnDB}
                               style={{
                                 marginRight: "24px",
                               }}

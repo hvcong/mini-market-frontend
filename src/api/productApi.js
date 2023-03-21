@@ -27,12 +27,17 @@ class ProductApi {
   }
 
   findManyById(id) {
-    let url = `product/getId?id=${id}`;
+    let url = `product/likeId?productId=${id}`;
     return axiosClient.get(url);
   }
 
   findOneById(id) {
     let url = `product/getId?id=${id}`;
+    return axiosClient.get(url);
+  }
+
+  findManyByName_priceState(name) {
+    let url = `product/getName?name=${name}`;
     return axiosClient.get(url);
   }
 }

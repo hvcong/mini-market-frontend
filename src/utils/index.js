@@ -60,3 +60,12 @@ export function dmyToYmd(dmy) {
   }
   return "";
 }
+
+export function convertToVND(value) {
+  value = Number(value);
+  return value.toLocaleString("it-IT", { style: "currency", currency: "VND" });
+}
+
+export function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}

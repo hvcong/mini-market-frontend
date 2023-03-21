@@ -536,3 +536,25 @@
     }
   }
 }
+
+// address select
+//address select
+.address_select {
+  border: 1px solid #ddd;
+  padding: 12px;
+  border-radius: 4px;
+  .address_select_title {
+  }
+  .address_select_item {
+    display: flex;
+    padding-top: 12px;
+    padding-left: 12px;
+  }
+  .address_select_item_label {
+    width: 120px;
+  }
+
+  .address_select_item_select {
+    width: 160px;
+  }
+}

@@ -23,30 +23,39 @@ import {
   DownOutlined,
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import ProductDetailModal from "../product/ProductDetailModal";
-import DropSelectColum from "../../components/product/DropSelectColum";
-import ModalCustomer from "../../components/ModalCustomer";
-import ExpandRowRender from "../../components/product/ExpandRowRender";
-import StoreTransationDetailModal from "../../components/StoreTransationDetailModal";
-import productApi from "../../api/productApi";
-import { useDispatch, useSelector } from "react-redux";
-import { setProducts } from "../../store/slices/productSlice";
-import { Navigate, useNavigate } from "react-router-dom";
-import BillCUModal from "../../components/bill/BillCUModal";
+import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { sqlToDDmmYYY } from "./../../utils/index";
+import priceHeaderApi from "./../../api/priceHeaderApi";
+import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
+import DropSelectColum from "./../product/DropSelectColum";
+import PriceCUModal from "./PriceCUModal";
+import StoreTransationDetailModal from "./../StoreTransationDetailModal";
+
 const { Text } = Typography;
 
-const Bill = ({}) => {
-  const product = useSelector((state) => state.product);
+const Price = ({}) => {
+  const { priceHeaders, refresh, count } = useSelector(
+    (state) => state.priceHeader
+  );
   const dispatch = useDispatch();
 
-  const [isShowDetailModal, setIsShowDetailModal] = useState(false);
+  const [modalState, setModalState] = useState({
+    visible: false,
+    type: "",
+    rowSelected: null,
+  });
+
+  const [pageState, setPageState] = useState({
+    page: 1,
+    limit: 10,
+  });
+
   const [
     isShowStoreTransactionDetailModal,
     setIsShowStoreTransactionDetailModal,
   ] = useState(false);
-  const [idSelected, setIdSelected] = useState(null);
   const [idTransactionSelected, setIdTransactionSelected] = useState(null);
-  const [typeOfModal, setTypeOfModal] = useState("update");
   const [allColumns, setAllColumns] = useState([
     {
       title: "Id",
@@ -72,54 +81,66 @@ const Bill = ({}) => {
       fixedShow: true,
     },
     {
+      title: "Mô tả",
+      dataIndex: "description",
+      width: 200,
+      hidden: true,
+      render: () => {
+        return "thông tin chi tiết về bảng giá";
+      },
+    },
+    {
       title: "Ngày bắt đầu",
       dataIndex: "startDate",
+      render: (_, header) => <>{sqlToDDmmYYY(header.startDate)}</>,
     },
 
     {
       title: "Ngày kết thúc",
       dataIndex: "endDate",
+      render: (_, header) => <>{sqlToDDmmYYY(header.endDate)}</>,
     },
     {
       title: "Trạng thái",
-      dataIndex: "active",
-      render: (_, price) => (
-        <Switch
-          checkedChildren="On"
-          unCheckedChildren="Off"
-          defaultChecked={price.acitve}
-        />
+      dataIndex: "state",
+      render: (_, header) => (
+        <>
+          {header.state ? (
+            <div style={{ color: "green" }}>Đang sử dụng</div>
+          ) : (
+            <div style={{ color: "red" }}>Đã ngưng</div>
+          )}
+        </>
       ),
     },
   ]);
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    getPriceHeaders(pageState.page, pageState.limit);
+    return () => {};
+  }, [pageState.page]);
 
   useEffect(() => {
-    getProducts();
-    async function getProducts() {
-      const res = await productApi.getMany();
-      dispatch(setProducts(res.rows));
+    if (refresh) {
+      getPriceHeaders(pageState.page, pageState.limit);
     }
-    return () => {};
-  }, []);
 
-  //table handle render
-  const dataSource = [];
-  for (let i = 1; i <= 10; i++) {
-    dataSource.push({
-      key: i,
-      id: "PR-" + i,
-      title: "Bảng giá mùa xuân",
-      startDate: "10/2/2022",
-      endDate: "23/2/2023",
-      acitve: i % 2 == 0,
-    });
+    return () => {};
+  }, [refresh]);
+
+  async function getPriceHeaders(page, limit) {
+    let res = await priceHeaderApi.getMany(page, limit);
+    if (res.isSuccess) {
+      dispatch(setPriceHeaders(res.headers));
+    }
   }
 
   // pagination handle
   function onChangePageNumber(pageNumber, pageSize) {
-    console.log(pageNumber, ",", pageSize);
+    setPageState({
+      page: pageNumber,
+      limit: pageSize,
+    });
   }
 
   // open storetransactionDetail modal with id
@@ -128,11 +149,12 @@ const Bill = ({}) => {
     setIsShowStoreTransactionDetailModal(true);
   }
 
-  // on click row
   function onRowIdClick(row) {
-    setIdSelected(row.id);
-    setTypeOfModal("update");
-    setIsShowDetailModal(true);
+    setModalState({
+      type: "update",
+      visible: true,
+      rowSelected: row,
+    });
   }
 
   return (
@@ -145,7 +167,7 @@ const Bill = ({}) => {
               margin: 0,
             }}
           >
-            Danh sách hóa đơn{" "}
+            Danh sách bảng giá{" "}
           </Typography.Title>
         </div>
         <div className="btn__item">
@@ -154,7 +176,10 @@ const Bill = ({}) => {
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => {
-              navigate("/bills/create");
+              setModalState({
+                type: "create",
+                visible: true,
+              });
             }}
           >
             Thêm mới
@@ -172,7 +197,7 @@ const Bill = ({}) => {
 
       <Table
         columns={allColumns.filter((col) => !col.hidden)}
-        dataSource={dataSource}
+        dataSource={priceHeaders}
         pagination={false}
         size="small"
         scroll={{
@@ -182,17 +207,15 @@ const Bill = ({}) => {
         className="table"
       />
       <div className="pagination__container">
-        <Pagination onChange={onChangePageNumber} total={100} />
+        <Pagination
+          onChange={onChangePageNumber}
+          total={count}
+          pageSize={10}
+          current={pageState.page}
+          hideOnSinglePage
+        />
       </div>
-      <BillCUModal
-        visible={isShowDetailModal}
-        setVisible={() => {
-          setIsShowDetailModal(false);
-          setIdSelected(null);
-        }}
-        idSelected={idSelected}
-        typeOfModal={typeOfModal}
-      />
+      <PriceCUModal modalState={modalState} setModalState={setModalState} />
 
       <StoreTransationDetailModal
         visible={isShowStoreTransactionDetailModal}
@@ -203,4 +226,4 @@ const Bill = ({}) => {
   );
 };
 
-export default Bill;
+export default Price;

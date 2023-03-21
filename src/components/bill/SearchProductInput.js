@@ -1,47 +1,63 @@
 import { SearchOutlined } from "@ant-design/icons";
-import { Empty, message, Select, Spin, Tag } from "antd";
-import { useState } from "react";
+import {
+  Empty,
+  InputNumber,
+  message,
+  Select,
+  Spin,
+  Tag,
+  Typography,
+} from "antd";
+import { useRef, useState } from "react";
 import productApi from "./../../api/productApi";
 import HighlightedText from "../HighlightedText";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addPriceLine, setPriceLines } from "../../store/slices/priceLineSlice";
+import priceLineApi from "./../../api/priceLineApi";
+import { addOneProductToActiveTab } from "../../store/slices/createBillSlice";
 
 const SearchProductInput = (props) => {
   const dispatch = useDispatch();
+  const { activeKey } = useSelector((state) => state.createBill.tabState);
+  const list =
+    useSelector((state) => state.createBill.listState[activeKey]) || [];
+  const [quantityInput, setQuantityInput] = useState(2);
+  const [productLine, setProductLine] = useState({});
+
+  const quantityRef = useRef();
+  const searchInput = useRef();
 
   const [data, setData] = useState([]);
   const [input, setInput] = useState();
   const [fetching, setFetching] = useState(false);
   const handleSearch = (input) => {
     // fetching data here
-    fetchData(input, setData, setFetching);
+    fetchData(input, setData, setFetching, list);
   };
   const handleChange = async (value) => {
-    let res = await productApi.findOneById(value);
+    let [productId, putId] = value.split("///");
+    let res = await priceLineApi.getOneBy_PUT_id(putId);
     if (res.isSuccess) {
-      message.info("handle more");
-      dispatch(
-        addPriceLine({
-          id: "cong-create",
-          startDate: "",
-          endDate: "",
-          price: 10000,
-          state: true,
-          product: res.product,
-          isCanDelete: true,
-          ProductUnitTypeId: "eeee",
-        })
-      );
+      setInput(res.price.ProductUnitType.Product.name);
+      // setQuantityInput(1);
+      quantityRef.current.select();
+      quantityRef.current.focus();
     }
-    setInput("");
+    setProductLine(res.price);
   };
 
   return (
-    <div>
+    <div
+      style={{
+        display: "flex",
+        justifyItems: "center",
+      }}
+    >
       <Select
+        ref={searchInput}
         showSearch
         value={input}
-        placeholder={props.placeholder}
+        placeholder={"Thêm sản phẩm vào hóa đơn"}
         style={props.style}
         defaultActiveFirstOption={false}
         showArrow={false}
@@ -77,30 +93,68 @@ const SearchProductInput = (props) => {
           left: "-24px",
         }}
       />
+      <InputNumber
+        placeholder="Số lượng"
+        value={quantityInput}
+        onChange={(value) => {
+          setQuantityInput(value);
+        }}
+        onKeyDown={({ nativeEvent }) => {
+          if (nativeEvent.key == "Enter") {
+            dispatch(
+              addOneProductToActiveTab({
+                ...productLine,
+                quantity: quantityInput,
+              })
+            );
+            setInput("");
+            searchInput.current.focus();
+          }
+        }}
+        ref={quantityRef}
+        style={{
+          width: "88px",
+        }}
+      />
     </div>
   );
 };
 
-async function fetchData(input, setData, setFetching) {
+async function fetchData(input, setData, setFetching, list) {
   setFetching(true);
   let products = [];
   let typeFind = "name";
   let res = await productApi.findManyByName(input);
+  console.log(res);
   if (res.isSuccess) {
     products = res.products || [];
   }
 
-  if (products.length == 0) {
-    typeFind = "id";
-    res = await productApi.findManyByName(input);
-    if (res.isSuccess) {
-      products = res.products || [];
-    }
-  }
+  let _listP = [];
 
-  let data = products.map((p) => {
+  products.map((product) => {
+    if (product.ProductUnitTypes) {
+      product.ProductUnitTypes.map((put) => {
+        let isExist = false;
+        list.map((pline) => {
+          if (pline.ProductUnitType.id == put.id) {
+            isExist = true;
+          }
+        });
+
+        if (!isExist) {
+          _listP.push({
+            ...product,
+            put: put,
+          });
+        }
+      });
+    }
+  });
+
+  let data = _listP.map((p, index) => {
     return {
-      value: p.id,
+      value: p.id + "///" + p.put.id,
       label: (
         <div
           style={{
@@ -125,25 +179,15 @@ async function fetchData(input, setData, setFetching) {
               paddingBottom: "12px",
             }}
           >
-            {typeFind == "name" ? (
-              <>
-                <HighlightedText text={p.name} highlightText={input} />
-                <div
-                  style={{
-                    fontSize: "12px",
-                  }}
-                >
-                  {p.id}
-                </div>
-                <div>Tồn kho: 100 || KH đặt: 4</div>
-              </>
-            ) : (
-              <>
-                <div>{p.name}</div>
-                <HighlightedText text={p.id} highlightText={input} />
-                <div>Tồn kho: 100 || KH đặt: 4</div>
-              </>
-            )}
+            <HighlightedText text={p.name} highlightText={input} />
+            <div
+              style={{
+                fontSize: "12px",
+              }}
+            >
+              {p.id}
+            </div>
+            <div> Tồn kho: {p.quantity} || KH đặt: 4</div>
           </div>
           <div
             style={{
@@ -152,7 +196,10 @@ async function fetchData(input, setData, setFetching) {
               right: 0,
             }}
           >
-            <Tag color="gold">Lon</Tag>
+            <Typography.Title level={5} type="success">
+              <Tag color="gold">{p.put.UnitType.name}</Tag>
+              {p.put.Prices[0].price}
+            </Typography.Title>
           </div>
         </div>
       ),

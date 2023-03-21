@@ -45,14 +45,15 @@ const ExpandRowRender = ({ rowData, modalState, setModalState }) => {
         title: "Trạng thái",
         dataIndex: "state",
         key: "state",
-        width: 80,
+        width: 120,
         render: (_, subCate) => (
-          <Switch
-            checkedChildren="On"
-            unCheckedChildren="Off"
-            checked={subCate.state}
-            disabled
-          />
+          <>
+            {subCate.state ? (
+              <div style={{ color: "green" }}>Đang sử dụng</div>
+            ) : (
+              <div style={{ color: "red" }}>Đã ngưng</div>
+            )}
+          </>
         ),
       },
     ];

@@ -24,6 +24,7 @@ const Sidenav = () => {
     getItem("Sản phẩm", "sub1", <AppstoreOutlined />, [
       getItem(<NavLink to="products">Danh sách</NavLink>, "products"),
       getItem(<NavLink to="category">Nhóm sản phẩm</NavLink>, "category"),
+      getItem(<NavLink to="unitType">Đơn vị tính</NavLink>, "unitTypes"),
     ]),
     getItem(
       <NavLink to="prices">Bảng giá</NavLink>,
@@ -32,19 +33,32 @@ const Sidenav = () => {
     ),
     getItem("Giao dịch", "sub2", <FileDoneOutlined />, [
       getItem(<NavLink to="bills">Hóa đơn</NavLink>, "bills"),
-      getItem(<NavLink to="returns">Trả hàng</NavLink>, "returns"),
-      getItem(<NavLink to="storage">Nhập kho</NavLink>, "storage"),
+      getItem(<NavLink to="">Trả hàng</NavLink>, "returns"),
+    ]),
+    getItem("Kho", "store", <FileDoneOutlined />, [
+      getItem(
+        <NavLink to="store_change">Biến động kho</NavLink>,
+        "store_change"
+      ),
+      getItem(<NavLink to="store_check">Kiểm kê kho</NavLink>, "store_cal"),
     ]),
     getItem(
-      <NavLink to="statistic">Thống kê</NavLink>,
+      <NavLink to="promotion">Khuyến mãi</NavLink>,
+      "promotion",
+      <FileDoneOutlined />
+    ),
+    getItem(
+      <NavLink to="">Thống kê</NavLink>,
       "statistic",
       <FileDoneOutlined />
     ),
-    getItem(
-      <NavLink to="customers">Khách hàng</NavLink>,
-      "customers",
-      <FileDoneOutlined />
-    ),
+    getItem("Khách hàng", "customer", <FileDoneOutlined />, [
+      getItem(<NavLink to="customers">Danh sách</NavLink>, "list_customer"),
+      getItem(
+        <NavLink to="customer_group">Nhóm khách hàng</NavLink>,
+        "cus_group"
+      ),
+    ]),
     getItem(
       <NavLink to="employee">Nhân viên</NavLink>,
       "employee",
@@ -63,6 +77,7 @@ const Sidenav = () => {
         height: "100%",
         position: "fixed",
         width: "200px",
+        overflowY: "auto",
       }}
       className="sidenav"
     >
