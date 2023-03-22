@@ -24,6 +24,10 @@ import ModalCustomer from "../ModalCustomer";
 import unitTypeApi from "./../../api/unitTypeApi";
 import CustomerGroupSelect from "../customerGroup/CustomerGroupSelect";
 import AddressSelectAll from "../AddressSelectAll";
+import addressApi from "./../../api/addressApi";
+import userApi from "../../api/userApi";
+import { useDispatch } from "react-redux";
+import { setRefreshCustomer } from "../../store/slices/customerSlice";
 
 const initFormState = {
   id: "",
@@ -50,12 +54,13 @@ const initErrMessage = {
     cityId: "",
     districtId: "",
     wardId: "",
-    home: "",
+    homeAddress: "",
   },
 };
 
 const CustomerCUModal = ({ modalState, setModalState }) => {
   let hideLoading = null;
+  const dispatch = useDispatch();
 
   const [formState, setFormState] = useState(initFormState);
   const [errMessage, setErrMessage] = useState(initErrMessage);
@@ -70,10 +75,46 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
     id,
   } = formState;
 
+  useEffect(() => {
+    let { visible, rowSelected, type } = modalState;
+    if (visible && rowSelected && type) {
+      let {
+        firstName,
+        lastName,
+        id,
+        email,
+        phonenumber,
+        HomeAddress,
+        TypeCustomerId,
+      } = rowSelected;
+
+      let _address = {};
+      if (HomeAddress) {
+        _address.homeAddress = HomeAddress.homeAddress;
+        _address.wardId = HomeAddress.Ward.id;
+        _address.districtId = HomeAddress.Ward.District.id;
+        _address.cityId = HomeAddress.Ward.District.City.id;
+      }
+
+      setFormState({
+        firstName,
+        lastName,
+        id,
+        email,
+        phonenumber,
+        address: _address,
+        typeCustomerId: TypeCustomerId,
+      });
+    }
+
+    return () => {};
+  }, [modalState]);
+
   function closeModal() {
     setModalState({
       visible: false,
     });
+    clearModal();
   }
 
   function clearModal() {
@@ -82,12 +123,102 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
   }
 
   async function onSubmit(type, isClose) {
+    setErrMessage(initErrMessage);
+    let formData = {
+      firstName,
+      lastName,
+      phonenumber,
+      email,
+      typeCustomerId,
+      homeAddressId: "",
+    };
+
     if (await checkData()) {
+      // create home address
+      let res = await addressApi.addHomeAddress({
+        homeAddress: address.homeAddress,
+        wardId: address.wardId,
+      });
+
+      if (res.isSuccess) {
+        let homeAddressId = res.home.id;
+        formData.homeAddressId = homeAddressId;
+
+        if (type == "create") {
+          res = await userApi.addOneCustomer(formData);
+          if (res.isSuccess) {
+            message.info("Thêm mới khách hàng thành công");
+            dispatch(setRefreshCustomer());
+            if (isClose) {
+              closeModal();
+            } else {
+              clearModal();
+            }
+          } else {
+            //create error
+            message.error("Có lỗi xảy ra, vui lòng thử lại!");
+          }
+        } else {
+          res = await userApi.updateOneCustomer(formData);
+          if (res.isSuccess) {
+            message.info("Cập nhật thông tin thành công");
+            dispatch(setRefreshCustomer());
+            closeModal();
+          } else {
+            // update error
+            message.error("Có lỗi xảy ra, vui lòng thử lại!");
+          }
+        }
+      } else {
+        message.error("Địa chỉ không hợp lệ, vui lòng thử lại!");
+      }
     }
 
     async function checkData() {
       let isCheck = true;
-      let _errMess = {};
+      let _errMess = {
+        address: {},
+      };
+
+      if (!firstName) {
+        _errMess.firstName = "Không được bỏ trống!";
+        isCheck = false;
+      }
+
+      if (!lastName) {
+        _errMess.lastName = "Không được bỏ trống!";
+        isCheck = false;
+      }
+
+      if (!phonenumber) {
+        _errMess.phonenumber = "Không được bỏ trống!";
+        isCheck = false;
+      }
+
+      if (!typeCustomerId) {
+        _errMess.typeCustomerId = "Không được bỏ trống!";
+        isCheck = false;
+      }
+
+      if (!address.cityId) {
+        _errMess.address.cityId = "Không được bỏ trống!";
+        isCheck = false;
+      }
+
+      if (!address.districtId) {
+        _errMess.address.districtId = "Không được bỏ trống!";
+        isCheck = false;
+      }
+
+      if (!address.wardId) {
+        _errMess.address.wardId = "Không được bỏ trống!";
+        isCheck = false;
+      }
+
+      if (!address.homeAddress) {
+        _errMess.address.homeAddress = "Không được bỏ trống!";
+        isCheck = false;
+      }
 
       setErrMessage(_errMess);
       return isCheck;
@@ -138,7 +269,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                           firstName: target.value,
                         });
                       }}
-                      state={errMessage.firstName && "error"}
+                      status={errMessage.firstName && "error"}
                     />
                     <div className="customer_form_input_err">
                       {errMessage.firstName}
@@ -158,7 +289,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                           lastName: target.value,
                         });
                       }}
-                      state={errMessage.lastName && "error"}
+                      status={errMessage.lastName && "error"}
                     />
                     <div className="customer_form_input_err">
                       {errMessage.lastName}
@@ -178,7 +309,8 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                           phonenumber: target.value,
                         });
                       }}
-                      state={errMessage.phonenumber && "error"}
+                      disabled={modalState.type == "update"}
+                      status={errMessage.phonenumber && "error"}
                     />
                     <div className="customer_form_input_err">
                       {errMessage.phonenumber}
@@ -198,7 +330,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                           email: target.value,
                         });
                       }}
-                      state={errMessage.email && "error"}
+                      status={errMessage.email && "error"}
                     />
                     <div className="customer_form_input_err">
                       {errMessage.email}
@@ -208,7 +340,20 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                 <div className="customer_form_group">
                   <div className="customer_form_label">Nhóm khách hàng</div>
                   <div className="customer_form_input_wrap">
-                    <CustomerGroupSelect style={{ width: 200 }} />
+                    <CustomerGroupSelect
+                      style={{ width: 200 }}
+                      onChange={(value) => {
+                        setFormState({
+                          ...formState,
+                          typeCustomerId: value,
+                        });
+                      }}
+                      value={typeCustomerId}
+                      status={errMessage.typeCustomerId && "error"}
+                    />
+                    <div className="customer_form_input_err">
+                      {errMessage.typeCustomerId}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -221,6 +366,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                       address,
                     });
                   }}
+                  errMess={errMessage.address}
                 />
               </div>
             </div>

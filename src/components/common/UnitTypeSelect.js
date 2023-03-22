@@ -9,6 +9,7 @@ const UnitTypeSelect = ({
   setUTselectedId,
   dataTable,
   status,
+  ...props
 }) => {
   const [defaultValue, setDefaultValue] = useState("--Đơn vị tính--");
   const handleChange = (value) => {
@@ -40,6 +41,7 @@ const UnitTypeSelect = ({
   return (
     <>
       <Select
+        {...props}
         defaultValue={defaultValue}
         style={style}
         value={utSelectedId || defaultValue}

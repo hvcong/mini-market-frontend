@@ -29,7 +29,7 @@ import priceHeaderApi from "../../api/priceHeaderApi";
 import DropSelectColum from "../product/DropSelectColum";
 import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
 import CustomerGroupCuModal from "./CustomerGroupCUModal";
-import userApi from "./../../api/userApi";
+import userApi from "../../api/userApi";
 import { setCustomers } from "../../store/slices/customerSlice";
 import { setCustomerTypes } from "../../store/slices/customerTypeSlice";
 

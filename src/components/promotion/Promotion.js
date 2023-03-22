@@ -22,6 +22,7 @@ import {
   StopOutlined,
   DownOutlined,
 } from "@ant-design/icons";
+import "../../assets/styles/promotion.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { sqlToDDmmYYY } from "./../../utils/index";
@@ -29,13 +30,16 @@ import priceHeaderApi from "./../../api/priceHeaderApi";
 import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
 import DropSelectColum from "./../product/DropSelectColum";
 import PriceCUModal from "./../price/PriceCUModal";
-import StoreTransationDetailModal from "./../StoreTransationDetailModal";
+import PromotionHeaderModal from "./PromotionHeaderModal";
+import promotionApi from "./../../api/promotionApi";
+import { setPromotionHeaders } from "../../store/slices/promotionHeaderSlice";
 
 const { Text } = Typography;
 
 const Promotion = ({}) => {
-  const { priceHeaders, refresh, count } = useSelector(
-    (state) => state.priceHeader
+  let hideLoading = null;
+  const { promotionHeaders, refresh, count } = useSelector(
+    (state) => state.promotionHeader
   );
   const dispatch = useDispatch();
 
@@ -50,11 +54,6 @@ const Promotion = ({}) => {
     limit: 10,
   });
 
-  const [
-    isShowStoreTransactionDetailModal,
-    setIsShowStoreTransactionDetailModal,
-  ] = useState(false);
-  const [idTransactionSelected, setIdTransactionSelected] = useState(null);
   const [allColumns, setAllColumns] = useState([
     {
       title: "Mã",
@@ -92,7 +91,7 @@ const Promotion = ({}) => {
     },
     {
       title: "Mô tả",
-      dataIndex: "description",
+      dataIndex: "discription",
       hidden: true,
     },
     {
@@ -118,23 +117,33 @@ const Promotion = ({}) => {
   ]);
 
   useEffect(() => {
-    getPriceHeaders(pageState.page, pageState.limit);
+    getPromotionHeaders(pageState.page, pageState.limit);
     return () => {};
   }, [pageState.page]);
 
   useEffect(() => {
     if (refresh) {
-      getPriceHeaders(pageState.page, pageState.limit);
+      getPromotionHeaders(pageState.page, pageState.limit);
     }
 
     return () => {};
   }, [refresh]);
 
-  async function getPriceHeaders(page, limit) {
-    let res = await priceHeaderApi.getMany(page, limit);
+  useEffect(() => {
+    return () => {
+      if (hideLoading) {
+        hideLoading();
+      }
+    };
+  }, []);
+
+  async function getPromotionHeaders(page, limit) {
+    hideLoading = message.loading("Tải dữ liệu chương trình khuyến mãi...", 0);
+    let res = await promotionApi.getLimitHeader(page, limit);
     if (res.isSuccess) {
-      dispatch(setPriceHeaders(res.headers));
+      dispatch(setPromotionHeaders(res.promotions));
     }
+    hideLoading();
   }
 
   // pagination handle
@@ -143,12 +152,6 @@ const Promotion = ({}) => {
       page: pageNumber,
       limit: pageSize,
     });
-  }
-
-  // open storetransactionDetail modal with id
-  function openStoreTrDetailModal(id) {
-    setIdTransactionSelected(id);
-    setIsShowStoreTransactionDetailModal(true);
   }
 
   function onRowIdClick(row) {
@@ -160,7 +163,7 @@ const Promotion = ({}) => {
   }
 
   return (
-    <div className="products">
+    <div className="products promotion">
       <div className="table__header">
         <div className="left">
           <Typography.Title
@@ -199,7 +202,7 @@ const Promotion = ({}) => {
 
       <Table
         columns={allColumns.filter((col) => !col.hidden)}
-        dataSource={priceHeaders}
+        dataSource={promotionHeaders}
         pagination={false}
         size="small"
         scroll={{
@@ -217,12 +220,9 @@ const Promotion = ({}) => {
           hideOnSinglePage
         />
       </div>
-      <PriceCUModal modalState={modalState} setModalState={setModalState} />
-
-      <StoreTransationDetailModal
-        visible={isShowStoreTransactionDetailModal}
-        setVisible={setIsShowStoreTransactionDetailModal}
-        idTransactionSelected={idTransactionSelected}
+      <PromotionHeaderModal
+        modalState={modalState}
+        setModalState={setModalState}
       />
     </div>
   );

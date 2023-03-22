@@ -6,8 +6,10 @@ import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 import App from "./views/App";
 import { store } from "./app/store";
+import { uid } from "./utils";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
+
 root.render(
   <React.StrictMode>
     <Provider store={store}>

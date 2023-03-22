@@ -23,7 +23,6 @@ import {
 import ModalCustomer from "../ModalCustomer";
 
 import DropSelectColum from "../product/DropSelectColum";
-import SearchProduct from "./SearchProduct";
 import UnitTypeSelect from "../common/UnitTypeSelect";
 import { DeleteOutlined } from "@ant-design/icons";
 import { PlusOutlined } from "@ant-design/icons";
@@ -31,8 +30,8 @@ import ProductIdIInputSearchSelect from "../common/ProductIdIInputSearchSelect";
 import { uid } from "../../utils";
 import productApi from "../../api/productApi";
 import unitTypeApi from "./../../api/unitTypeApi";
-
-const initFormState = {};
+import { useSelector } from "react-redux";
+import storeApi from "./../../api/storeApi";
 
 const initErrMessage = {
   // rowId: {
@@ -62,10 +61,9 @@ const StoreCUModal = ({ modalState, setModalState }) => {
   const [allColumns, setAllColumns] = useState([]);
   const [dataTable, setDataTable] = useState(initDataTable);
   const [errMessage, setErrMessage] = useState(initErrMessage);
+  const { account } = useSelector((state) => state.user);
 
   useEffect(() => {
-    console.log(errMessage);
-
     let _allColumns = [
       {
         title: "",
@@ -160,6 +158,8 @@ const StoreCUModal = ({ modalState, setModalState }) => {
                     errMessage[rowData.id].utSelectedId &&
                     "error"
                   }
+                  value={rowData.utSelectedId}
+                  disabled={!rowData.product}
                 />
                 <div className="err_message">
                   {errMessage[rowData.id] &&
@@ -221,21 +221,30 @@ const StoreCUModal = ({ modalState, setModalState }) => {
   }
 
   async function addProductToRow(productId, index) {
-    let product;
-    let listUTs;
-    let res = await productApi.findById(productId);
-    if (res.isSuccess) {
-      product = res.product;
-    }
-    let res2 = await unitTypeApi.findAllByProductId(productId);
-    if (res2.isSuccess) {
-      listUTs = res2.unitTypes;
-    }
+    if (productId) {
+      let product;
+      let listUTs;
+      let res = await productApi.findById(productId);
+      if (res.isSuccess) {
+        product = res.product;
+      }
+      let res2 = await unitTypeApi.findAllByProductId(productId);
+      if (res2.isSuccess) {
+        listUTs = res2.unitTypes;
+      }
 
-    let _dataTable = [...dataTable];
-    _dataTable[index].product = product;
-    _dataTable[index].listUTs = listUTs;
-    setDataTable(_dataTable);
+      let _dataTable = [...dataTable];
+      _dataTable[index].product = product;
+      _dataTable[index].listUTs = listUTs;
+      setDataTable(_dataTable);
+    } else {
+      let _dataTable = [...dataTable];
+      _dataTable[index].product = "";
+      _dataTable[index].listUTs = [];
+      _dataTable[index].utSelectedId = "";
+
+      setDataTable(_dataTable);
+    }
   }
 
   function setUTselectedId(utId, index) {
@@ -251,18 +260,53 @@ const StoreCUModal = ({ modalState, setModalState }) => {
   }
 
   async function onSubmit(type, isClose) {
-    let _formData = {
-      data: [
-        {
-          // "quantity": 100,
-          // "productId": "ps",
-          // "type":"Nhập kho",
-          // "employeeId": 1
-        },
-      ],
-    };
     if (checkData()) {
+      // message.info("oke");
+    }
+
+    let _data = {
+      // productId:quantity
+    };
+
+    dataTable.map((item) => {
+      if (item.isLastRow) {
+        return;
+      } else {
+        let quantity = item.quantity;
+        let productId = item.product.id;
+        let utList = item.listUTs;
+        let utSelectedId = item.utSelectedId;
+        let convertionQuantity =
+          utList.filter((ut) => ut.id == utSelectedId)[0]?.convertionQuantity ||
+          0;
+
+        if (_data[productId]) {
+          _data[productId] += quantity * convertionQuantity;
+        } else {
+          _data[productId] = 0;
+          _data[productId] += quantity * convertionQuantity;
+        }
+      }
+    });
+
+    let productIds = Object.keys(_data);
+
+    let formData = {
+      data: productIds.map((productId) => ({
+        quantity: _data[productId],
+        productId,
+        type: "Nhập kho",
+        employeeId: account?.id,
+      })),
+    };
+
+    console.log(formData);
+    let res = await storeApi.addMany(formData);
+    console.log(res);
+    if (res.isSuccess) {
       message.info("oke");
+    } else {
+      message.error("error");
     }
 
     function checkData() {

@@ -14,6 +14,11 @@ class AddressApi {
     let url = `ward/get`;
     return axiosClient.get(url);
   }
+
+  addHomeAddress(formData) {
+    let url = "/home/add";
+    return axiosClient.post(url, formData);
+  }
 }
 
 const addressApi = new AddressApi();

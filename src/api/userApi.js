@@ -9,6 +9,17 @@ class UserApi {
     let url = `user/get?_page=${page}&_limit=${limit}`;
     return axiosClient.get(url);
   }
+
+  addOneCustomer(formData) {
+    let url = `/user/add`;
+    return axiosClient.post(url, formData);
+  }
+
+  updateOneCustomer(formData) {
+    let url = `user/update`;
+    return axiosClient.put(url, formData);
+  }
+
   //// employee
   getLimitEmployees(page = 1, limit = 10) {
     let url = `employee/get?_page=${page}&_limit=${limit}`;

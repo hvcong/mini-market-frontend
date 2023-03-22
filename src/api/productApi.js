@@ -1,7 +1,7 @@
 import axiosClient from "./axiosClient";
 
 class ProductApi {
-  getMany(page = 0, limit = 10) {
+  getMany(page = 1, limit = 10) {
     let url = `product/get?_page=${page}&_limit=${limit}`;
     return axiosClient.get(url);
   }

@@ -36,9 +36,7 @@ import { setCustomers } from "../../store/slices/customerSlice";
 const { Text } = Typography;
 
 const Customer = ({}) => {
-  const { customers, refresh, count } = useSelector(
-    (state) => state.priceHeader
-  );
+  const { customers, refresh, count } = useSelector((state) => state.customer);
   const dispatch = useDispatch();
 
   const [modalState, setModalState] = useState({
@@ -54,9 +52,9 @@ const Customer = ({}) => {
 
   const [allColumns, setAllColumns] = useState([
     {
-      title: "Mã khách hàng",
+      title: "Mã KH",
       dataIndex: "id",
-      width: 200,
+      width: 100,
       fixed: "left",
       fixedShow: true,
       render: (_, rowData) => {
@@ -78,9 +76,12 @@ const Customer = ({}) => {
     {
       title: "Tên",
       dataIndex: "name",
-      width: 200,
+      width: 160,
       fixed: "left",
       fixedShow: true,
+      render: (_, rowData) => {
+        return rowData.firstName + " " + rowData.lastName;
+      },
     },
     {
       title: "Số điện thoại",
@@ -93,11 +94,26 @@ const Customer = ({}) => {
     },
     {
       title: "Địa chỉ",
+      width: 260,
       dataIndex: "address",
+      render: (_, rowData) => {
+        if (rowData.HomeAddress) {
+          let _addr = rowData.HomeAddress.homeAddress;
+          _addr += " " + rowData.HomeAddress.Ward.name;
+          _addr += " " + rowData.HomeAddress.Ward.District.name;
+          _addr += " " + rowData.HomeAddress.Ward.District.City.name;
+          return _addr;
+        }
+        return "";
+      },
     },
     {
       title: "Nhóm khách hàng",
+      width: 200,
       dataIndex: "groupId",
+      render: (_, rowData) => {
+        return rowData.TypeCustomer.name;
+      },
     },
   ]);
 
@@ -116,6 +132,7 @@ const Customer = ({}) => {
 
   async function getCustomers(page, limit) {
     let res = await userApi.getLimitCustomers(page, limit);
+    console.log(res);
     if (res.isSuccess) {
       dispatch(setCustomers(res.customers));
     }
@@ -173,7 +190,7 @@ const Customer = ({}) => {
         pagination={false}
         size="small"
         scroll={{
-          x: allColumns.filter((item) => !item.hidden).length * 150,
+          x: allColumns.filter((item) => !item.hidden).length * 180,
           y: window.innerHeight * 0.66,
         }}
         className="table"

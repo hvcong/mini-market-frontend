@@ -134,7 +134,7 @@ const AdminProducts = ({}) => {
   async function getProducts(page, limit) {
     let hidingLoading = message.loading("Tải dữ liệu sản phẩm...");
     const res = await productApi.getMany(page, limit);
-    dispatch(setProducts(res));
+    dispatch(setProducts(res.products));
     hidingLoading();
   }
 

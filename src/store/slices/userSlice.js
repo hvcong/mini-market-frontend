@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initState = {
   account: {
-    id: 2,
+    id: 1,
     name: "But",
     phonenumber: "0356267138",
   },

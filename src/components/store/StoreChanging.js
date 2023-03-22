@@ -28,13 +28,17 @@ import priceHeaderApi from "./../../api/priceHeaderApi";
 import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
 import DropSelectColum from "./../product/DropSelectColum";
 import StoreCUModal from "./StoreCUModal";
+import storeApi from "./../../api/storeApi";
+import { setStoreTrans } from "../../store/slices/storeTranSlice";
+import { antdToDmy, sqlToDDmmYYY } from "../../utils";
 
 const { Text } = Typography;
 
 const StoreChanging = ({}) => {
-  const { priceHeaders, refresh, count } = useSelector(
-    (state) => state.priceHeader
+  const { storeTrans, refresh, count } = useSelector(
+    (state) => state.storeTran
   );
+  console.log(storeTrans);
   const dispatch = useDispatch();
 
   const [modalState, setModalState] = useState({
@@ -48,11 +52,6 @@ const StoreChanging = ({}) => {
     limit: 10,
   });
 
-  const [
-    isShowStoreTransactionDetailModal,
-    setIsShowStoreTransactionDetailModal,
-  ] = useState(false);
-  const [idTransactionSelected, setIdTransactionSelected] = useState(null);
   const [allColumns, setAllColumns] = useState([
     {
       title: "Mã",
@@ -60,57 +59,52 @@ const StoreChanging = ({}) => {
       width: 100,
       fixed: "left",
       fixedShow: true,
-      render: (_, row) => (
-        <Typography.Link
-          onClick={() => {
-            onRowIdClick(row);
-          }}
-        >
-          {row.id}
-        </Typography.Link>
-      ),
+      render: (_, row) => <Typography.Link>{row.id}</Typography.Link>,
     },
     {
       title: "Mã sản phẩm",
-      dataIndex: "availableBudget",
+      dataIndex: "productId",
     },
     {
       title: "Phương thức",
-      dataIndex: "title",
+      dataIndex: "type",
     },
     {
       title: "Số lượng biến động",
-      dataIndex: "availableBudget",
+      dataIndex: "quantity",
     },
     {
       width: 200,
       title: "Thời gian",
-      dataIndex: "startDate",
+      dataIndex: "createAt",
+      render: (_, rowData) => {
+        return sqlToDDmmYYY(rowData.createAt);
+      },
     },
 
     {
       title: "Mã nhân viên",
-      dataIndex: "availableBudget",
+      dataIndex: "EmployeeId",
     },
   ]);
 
   useEffect(() => {
-    getPriceHeaders(pageState.page, pageState.limit);
+    getStoreTransactions(pageState.page, pageState.limit);
     return () => {};
   }, [pageState.page]);
 
   useEffect(() => {
     if (refresh) {
-      getPriceHeaders(pageState.page, pageState.limit);
+      getStoreTransactions(pageState.page, pageState.limit);
     }
 
     return () => {};
   }, [refresh]);
 
-  async function getPriceHeaders(page, limit) {
-    let res = await priceHeaderApi.getMany(page, limit);
+  async function getStoreTransactions(page, limit) {
+    let res = await storeApi.getLimitStoreTransactions(page, limit);
     if (res.isSuccess) {
-      dispatch(setPriceHeaders(res.headers));
+      dispatch(setStoreTrans(res.transactions));
     }
   }
 
@@ -119,20 +113,6 @@ const StoreChanging = ({}) => {
     setPageState({
       page: pageNumber,
       limit: pageSize,
-    });
-  }
-
-  // open storetransactionDetail modal with id
-  function openStoreTrDetailModal(id) {
-    setIdTransactionSelected(id);
-    setIsShowStoreTransactionDetailModal(true);
-  }
-
-  function onRowIdClick(row) {
-    setModalState({
-      type: "update",
-      visible: true,
-      rowSelected: row,
     });
   }
 
@@ -176,7 +156,7 @@ const StoreChanging = ({}) => {
 
       <Table
         columns={allColumns.filter((col) => !col.hidden)}
-        dataSource={priceHeaders}
+        dataSource={storeTrans}
         pagination={false}
         size="small"
         scroll={{

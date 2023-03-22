@@ -20,27 +20,25 @@ const CustomerGroupSelect = ({ ...props }) => {
   }
 
   return (
-    <>
-      <Select
-        {...props}
-        showSearch
-        optionFilterProp="children"
-        filterOption={(input, option) => (option?.label ?? "").includes(input)}
-        filterSort={(optionA, optionB) =>
-          (optionA?.label ?? "")
-            .toLowerCase()
-            .localeCompare((optionB?.label ?? "").toLowerCase())
-        }
-        options={(listType || []).map((item) => {
-          return {
-            value: item.id,
-            label: item.name,
-          };
-        })}
-        size="small"
-        allowClear
-      />
-    </>
+    <Select
+      {...props}
+      showSearch
+      optionFilterProp="children"
+      filterOption={(input, option) => (option?.label ?? "").includes(input)}
+      filterSort={(optionA, optionB) =>
+        (optionA?.label ?? "")
+          .toLowerCase()
+          .localeCompare((optionB?.label ?? "").toLowerCase())
+      }
+      options={(listType || []).map((item) => {
+        return {
+          value: item.id,
+          label: item.name,
+        };
+      })}
+      size="small"
+      allowClear
+    />
   );
 };
 

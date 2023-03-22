@@ -1,0 +1,121 @@
+.promotion_header_modal {
+  .promotion_header_form {
+  }
+  .promotion_header_form_top {
+    font-size: 13px;
+    display: flex;
+    justify-content: space-around;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 0;
+  }
+  .promotion_header_form_left {
+    padding: 0 46px 0 24px;
+  }
+  .promotion_header_form_right {
+    .promotion_header_form_label {
+      width: 130px;
+    }
+    .promotion_header_form_input {
+      width: 500px;
+    }
+  }
+  .product_header_form_group_wrap {
+    display: flex;
+  }
+  .promotion_header_form_group {
+    display: flex;
+    padding-top: 12px;
+  }
+  .promotion_header_form_label {
+    width: 120px;
+  }
+  .promotion_header_form_input_wrap {
+  }
+  .promotion_header_form_input {
+    width: 220px;
+  }
+
+  .promotion_header_form_input_err {
+    font-size: 12px;
+    color: red;
+  }
+  .promotion_header_form_date {
+    width: 220px;
+  }
+
+  .promotion_header_form_input_number {
+    width: 100px;
+  }
+
+  .promotion_header_form_bottom {
+    margin-top: 4px;
+  }
+}
+
+.promotion_line_modal {
+  .promotion_line_form {
+    font-size: 13px;
+    .promotion_line_form_top {
+      display: flex;
+    }
+    .promotion_line_form_left {
+    }
+    .promotion_line_form_group {
+      display: flex;
+      padding-bottom: 12px;
+    }
+    .promotion_line_form_label {
+      width: 120px;
+    }
+    .promotion_line_form_input_wrap {
+    }
+    .promotion_line_form_input {
+      width: 240px;
+    }
+    .promotion_line_form_input_err {
+      font-size: 12px;
+      padding-top: 2px;
+      color: red;
+    }
+    .promotion_line_form_right {
+      margin-left: 100px;
+      flex: 1;
+      .promotion_line_form_group {
+        display: flex;
+        padding-bottom: 12px;
+        flex: 1;
+      }
+
+      .promotion_line_form_label {
+        width: 120px;
+      }
+      .promotion_line_form_input_wrap {
+        flex: 1;
+      }
+      .promotion_line_form_input {
+        width: 100%;
+      }
+    }
+
+    .promotion_line_form_bottom_container {
+      border: 1px solid #ddd;
+      padding: 4px 12px 12px 12px;
+      border-radius: 4px;
+      margin: 0 -12px 0;
+      margin-right: 0;
+    }
+
+    .promotion_line_form_bottom_title {
+      margin-bottom: 12px;
+    }
+
+    .promotion_line_form_bottom {
+      display: flex;
+    }
+
+    .promotion_line_form_bottom_right {
+      margin-left: 100px;
+    }
+  }
+}

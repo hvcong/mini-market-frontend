@@ -2,72 +2,88 @@ import React from "react";
 import AddressSelectItem from "./AddressSelectItem";
 import { Input } from "antd";
 
-const AddressSelectAll = ({ address, setAddress }) => {
+const AddressSelectAll = ({ address, setAddress, errMess }) => {
   return (
     <div className="address_select">
       <div className="address_select_title">Địa chỉ</div>
       <div className="address_select_item">
         <div className="address_select_item_label">Tỉnh/Thành phố</div>
-        <AddressSelectItem
-          style={{ width: 170 }}
-          placeholder="--- Tỉnh/Thành phố ---"
-          type="city"
-          setAddressItem={(value) => {
-            setAddress({
-              cityId: value,
-            });
-          }}
-          value={address.cityId}
-        />
+        <div className="address_select_input_wrap">
+          <AddressSelectItem
+            style={{ width: 170 }}
+            placeholder="--- Tỉnh/Thành phố ---"
+            type="city"
+            setAddressItem={(value) => {
+              setAddress({
+                cityId: value,
+              });
+            }}
+            value={address.cityId}
+            status={errMess.cityId && "error"}
+          />
+          <div className="customer_form_input_err">{errMess.cityId}</div>
+        </div>
       </div>
       <div className="address_select_item">
         <div className="address_select_item_label">Quận/Huyện</div>
-        <AddressSelectItem
-          style={{ width: 170 }}
-          placeholder="--- Quận/Huyện ---"
-          type="district"
-          cityId={address.cityId}
-          setAddressItem={(value) => {
-            setAddress({
-              cityId: address.cityId,
-              districtId: value,
-            });
-          }}
-          value={address.districtId}
-        />
+        <div className="address_select_input_wrap">
+          <AddressSelectItem
+            style={{ width: 170 }}
+            placeholder="--- Quận/Huyện ---"
+            type="district"
+            cityId={address.cityId}
+            setAddressItem={(value) => {
+              setAddress({
+                cityId: address.cityId,
+                districtId: value,
+              });
+            }}
+            value={address.districtId}
+            status={errMess.districtId && "error"}
+          />
+          <div className="customer_form_input_err">{errMess.districtId}</div>
+        </div>
       </div>
       <div className="address_select_item">
         <div className="address_select_item_label">Phường/Xã</div>
-        <AddressSelectItem
-          style={{ width: 170 }}
-          placeholder="--- Phường/Xã ---"
-          type="ward"
-          districtId={address.districtId}
-          cityId={address.cityId}
-          setAddressItem={(value) => {
-            setAddress({
-              cityId: address.cityId,
-              districtId: address.districtId,
-              wardId: value,
-            });
-          }}
-          value={address.wardId}
-        />
+        <div className="address_select_input_wrap">
+          <AddressSelectItem
+            style={{ width: 170 }}
+            placeholder="--- Phường/Xã ---"
+            type="ward"
+            districtId={address.districtId}
+            cityId={address.cityId}
+            setAddressItem={(value) => {
+              setAddress({
+                cityId: address.cityId,
+                districtId: address.districtId,
+                wardId: value,
+              });
+            }}
+            value={address.wardId}
+            status={errMess.wardId && "error"}
+          />
+          <div className="customer_form_input_err">{errMess.wardId}</div>
+        </div>
       </div>
       <div className="address_select_item">
         <div className="address_select_item_label">Số nhà</div>
-        <Input
-          style={{ width: 170 }}
-          placeholder="vd: 06"
-          size="small"
-          value={address.home}
-          onChange={({ target }) => {
-            setAddress({
-              ...address,
-              home: target.value,
-            });
-          }}
-        />
+        <div className="address_select_input_wrap">
+          <Input
+            style={{ width: 170 }}
+            placeholder="vd: 06"
+            size="small"
+            value={address.homeAddress}
+            onChange={({ target }) => {
+              setAddress({
+                ...address,
+                homeAddress: target.value,
+              });
+            }}
+            status={errMess.homeAddress && "error"}
+          />
+          <div className="customer_form_input_err">{errMess.homeAddress}</div>
+        </div>
       </div>
     </div>
   );
