@@ -6,7 +6,7 @@ import {
   addOneProductToActiveTab,
   removeOneProductLine,
   updateQuantityOneProduct,
-} from "../../store/slices/createBillSlice";
+} from "../../../store/slices/createBillSlice";
 const ListProductItem = ({ data, index }) => {
   const dispatch = useDispatch();
   return (

@@ -10,6 +10,12 @@ class StoreApi {
     let url = `store/get?_page=${page}&_limit=${limit}`;
     return axiosClient.get(url);
   }
+
+  // ticket store
+  getLimitTiket(page = 1, limit = 10) {
+    let url = `ticket/get?_page=${page}&_limit=${limit}`;
+    return axiosClient.get(url);
+  }
 }
 
 const storeApi = new StoreApi();

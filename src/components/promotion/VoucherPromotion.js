@@ -1,5 +1,5 @@
 import React from "react";
-import { Input } from "antd";
+import { Input, InputNumber } from "antd";
 import { Typography } from "antd";
 
 const VoucherPromotion = ({
@@ -37,17 +37,15 @@ const VoucherPromotion = ({
           <div className="promotion_line_form_group">
             <div className="promotion_line_form_label">Số tiền chiết khấu</div>
             <div className="promotion_line_form_input_wrap">
-              <Input
+              <InputNumber
                 className="promotion_line_form_input"
                 size="small"
                 value={formState.discountMoney}
                 onChange={(value) => {
-                  if (value) {
-                    setFormState({
-                      ...formState,
-                      discountMoney: value,
-                    });
-                  }
+                  setFormState({
+                    ...formState,
+                    discountMoney: value,
+                  });
                 }}
                 min={0}
                 status={errMessage.discountMoney && "error"}
@@ -62,19 +60,17 @@ const VoucherPromotion = ({
           <div className="promotion_line_form_group">
             <div className="promotion_line_form_label">Số % chiết khấu</div>
             <div className="promotion_line_form_input_wrap">
-              <Input
+              <InputNumber
                 className="promotion_line_form_input"
                 size="small"
                 value={formState.discountRate}
                 onChange={(value) => {
-                  if (value) {
-                    setFormState({
-                      ...formState,
-                      discountRate: value,
-                    });
-                  }
+                  setFormState({
+                    ...formState,
+                    discountRate: value,
+                  });
                 }}
-                min={1}
+                min={0}
                 status={errMessage.discountRate && "error"}
               />
               <div className="promotion_line_form_input_err">
@@ -87,7 +83,7 @@ const VoucherPromotion = ({
               Số tiền chiết khấu tối đa
             </div>
             <div className="promotion_line_form_input_wrap">
-              <Input
+              <InputNumber
                 className="promotion_line_form_input"
                 size="small"
                 value={formState.maxDiscountMoney}

@@ -22,6 +22,7 @@ import {
   StopOutlined,
   DownOutlined,
 } from "@ant-design/icons";
+import "../../assets/styles/priceLine.scss";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
@@ -30,7 +31,6 @@ import priceHeaderApi from "./../../api/priceHeaderApi";
 import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
 import DropSelectColum from "./../product/DropSelectColum";
 import PriceCUModal from "./PriceCUModal";
-import StoreTransationDetailModal from "./../StoreTransationDetailModal";
 
 const { Text } = Typography;
 
@@ -51,11 +51,6 @@ const Price = ({}) => {
     limit: 10,
   });
 
-  const [
-    isShowStoreTransactionDetailModal,
-    setIsShowStoreTransactionDetailModal,
-  ] = useState(false);
-  const [idTransactionSelected, setIdTransactionSelected] = useState(null);
   const [allColumns, setAllColumns] = useState([
     {
       title: "Id",
@@ -143,12 +138,6 @@ const Price = ({}) => {
     });
   }
 
-  // open storetransactionDetail modal with id
-  function openStoreTrDetailModal(id) {
-    setIdTransactionSelected(id);
-    setIsShowStoreTransactionDetailModal(true);
-  }
-
   function onRowIdClick(row) {
     setModalState({
       type: "update",
@@ -193,8 +182,6 @@ const Price = ({}) => {
         </div>
       </div>
 
-      {/* table */}
-
       <Table
         columns={allColumns.filter((col) => !col.hidden)}
         dataSource={priceHeaders}
@@ -216,12 +203,6 @@ const Price = ({}) => {
         />
       </div>
       <PriceCUModal modalState={modalState} setModalState={setModalState} />
-
-      <StoreTransationDetailModal
-        visible={isShowStoreTransactionDetailModal}
-        setVisible={setIsShowStoreTransactionDetailModal}
-        idTransactionSelected={idTransactionSelected}
-      />
     </div>
   );
 };

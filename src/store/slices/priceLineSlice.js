@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initState = {
   priceLines: [],
+  refresh: false,
 };
 
 export const priceLineSlice = createSlice({
@@ -10,6 +11,11 @@ export const priceLineSlice = createSlice({
   reducers: {
     setPriceLines: (state, action) => {
       state.priceLines = action.payload;
+      state.refresh = false;
+    },
+
+    setRefreshPriceLines: (state, action) => {
+      state.refresh = true;
     },
     addPriceLine: (state, action) => {
       state.priceLines.unshift(action.payload);
@@ -39,6 +45,7 @@ export const priceLineSlice = createSlice({
 
 export const {
   setPriceLines,
+  setRefreshPriceLines,
   addPriceLine,
   removePriceLineByProductId,
   removeAllPriceLines,

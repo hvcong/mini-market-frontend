@@ -3,14 +3,14 @@ import { message, Table, Typography } from "antd";
 import { Button } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import DropSelectColum from "../product/DropSelectColum";
-import PromotionLineModal from "./PromotionLineModal";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import promotionApi from "./../../api/promotionApi";
 import { setPromotionLines } from "../../store/slices/promotionLineSlice";
 import { sqlToDDmmYYY } from "./../../utils/index";
+import PromotionLineModal from "./../promotion/PromotionLineModal";
 
-const PromotionLineTable = ({ promotionHeaderId }) => {
+const BillLineTable = ({ promotionHeaderId }) => {
   let hideLoading = null;
   const { promotionLines, refresh, count } = useSelector(
     (state) => state.promotionLine
@@ -27,9 +27,7 @@ const PromotionLineTable = ({ promotionHeaderId }) => {
       fixed: "left",
       fixedShow: true,
       render: (_, row) => (
-        <Typography.Link onClick={() => onClickRowId(row)}>
-          {row.id}
-        </Typography.Link>
+        <Typography.Link onClick={onClickRowId}>{row.id}</Typography.Link>
       ),
     },
     {
@@ -42,7 +40,6 @@ const PromotionLineTable = ({ promotionHeaderId }) => {
       dataIndex: "",
       width: 200,
       render: (_, rowData) => {
-        console.log(rowData);
         if (rowData && rowData.type == "PP") {
           return "Tặng sản phẩm";
         }
@@ -97,9 +94,7 @@ const PromotionLineTable = ({ promotionHeaderId }) => {
   ]);
 
   useEffect(() => {
-    if (promotionHeaderId) {
-      getAllPromotionLines(promotionHeaderId);
-    }
+    getAllPromotionLines(promotionHeaderId);
     return () => {};
   }, [promotionHeaderId]);
 
@@ -153,6 +148,7 @@ const PromotionLineTable = ({ promotionHeaderId }) => {
       });
 
       dispatch(setPromotionLines(_listLines));
+      console.log(_listLines);
     }
 
     hideLoading();
@@ -218,4 +214,4 @@ const PromotionLineTable = ({ promotionHeaderId }) => {
   );
 };
 
-export default PromotionLineTable;
+export default BillLineTable;

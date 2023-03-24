@@ -81,13 +81,23 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
     const { type, rowSelected, visible } = modalState;
 
     if (type == "update" && rowSelected && visible) {
-      setFormState({
-        ...rowSelected,
-      });
+      getOneHeaderById(rowSelected.id);
     }
 
     return () => {};
   }, [modalState]);
+
+  async function getOneHeaderById(id) {
+    let res = await promotionApi.getOneHeaderById(id);
+    if (res.isSuccess && res.promotion) {
+      setFormState({
+        ...res.promotion,
+        customerTypeIds: res.promotion.TypeCustomers.map((item) => {
+          return item.id;
+        }),
+      });
+    }
+  }
 
   async function onSubmit(type, isClose) {
     setErrMessage({});
@@ -100,6 +110,11 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
       budget,
       state,
       image,
+      customerIds: customerTypeIds.map((item) => {
+        return {
+          id: item,
+        };
+      }),
     };
 
     if (await checkData()) {
@@ -128,14 +143,16 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
         }
       } else {
         // update
-        hideLoading = message.loading("Đang cập nhật...", 0);
-        res = await promotionApi.updateOneHeader(id, {
+
+        formData = {
           title,
           state,
           description,
           startDate,
           endDate,
-        });
+        };
+        hideLoading = message.loading("Đang cập nhật...", 0);
+        res = await promotionApi.updateOneHeader(id, formData);
 
         if (res.isSuccess) {
           hideLoading();
@@ -144,6 +161,10 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
           dispatch(setRefreshPromotionLines());
         }
       }
+    }
+
+    if (hideLoading) {
+      hideLoading();
     }
 
     async function checkData() {
@@ -356,6 +377,7 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
                             customerTypeIds: value,
                           });
                         }}
+                        disabled={modalState.type == "update"}
                         status={errMessage.customerTypeIds && "error"}
                       />
 
@@ -413,9 +435,12 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
                   </div>
                 </div>
               </div>
+
               {modalState.type == "update" && (
                 <PromotionLineTable
-                  promotionHeaderId={modalState.rowSelected.id}
+                  promotionHeaderId={
+                    modalState.rowSelected && modalState.rowSelected.id
+                  }
                 />
               )}
             </div>

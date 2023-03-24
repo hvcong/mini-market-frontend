@@ -63,7 +63,7 @@ const StoreChanging = ({}) => {
     },
     {
       title: "Mã sản phẩm",
-      dataIndex: "productId",
+      dataIndex: "ProductId",
     },
     {
       title: "Phương thức",

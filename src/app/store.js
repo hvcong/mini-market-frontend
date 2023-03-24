@@ -10,8 +10,10 @@ import unitTypeReducer from "../store/slices/unitTypeSlice";
 import employeeReducer from "../store/slices/employeeSlice";
 import customerTypeReducer from "../store/slices/customerTypeSlice";
 import storeTranReducer from "../store/slices/storeTranSlice";
+import storeTicketReducer from "../store/slices/storeTicketSlice";
 import promotionHeaderReducer from "../store/slices/promotionHeaderSlice";
 import promotionLineReducer from "../store/slices/promotionLineSlice";
+import billReducer from "../store/slices/billSlice";
 
 const rootReducer = {
   product: productReducer,
@@ -25,8 +27,10 @@ const rootReducer = {
   employee: employeeReducer,
   customerType: customerTypeReducer,
   storeTran: storeTranReducer,
+  storeTicket: storeTicketReducer,
   promotionHeader: promotionHeaderReducer,
   promotionLine: promotionLineReducer,
+  bill: billReducer,
 };
 
 export const store = configureStore({

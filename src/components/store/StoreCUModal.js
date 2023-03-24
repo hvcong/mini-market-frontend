@@ -30,16 +30,10 @@ import ProductIdIInputSearchSelect from "../common/ProductIdIInputSearchSelect";
 import { uid } from "../../utils";
 import productApi from "../../api/productApi";
 import unitTypeApi from "./../../api/unitTypeApi";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import storeApi from "./../../api/storeApi";
-
-const initErrMessage = {
-  // rowId: {
-  //   product: "",
-  //   quantity: "",
-  //   utSelectedId: "",
-  // },
-};
+import UnitTypeSelectByProductId from "../promotion/UnitTypeSelectByProductId";
+import { setRefreshStoreTrans } from "../../store/slices/storeTranSlice";
 
 const lastItemOfTable = {
   isLastRow: true,
@@ -54,10 +48,20 @@ const initDataTable = [
   // }
   lastItemOfTable,
 ];
+const initErrMessage = {
+  // rowId: {
+  //   product: "",
+  //   quantity: "",
+  //   utSelectedId: "",
+  // },
+};
 
 const ddMMyyyy = "DD/MM/YYYY";
 
 const StoreCUModal = ({ modalState, setModalState }) => {
+  let hideLoading = null;
+  const dispatch = useDispatch();
+
   const [allColumns, setAllColumns] = useState([]);
   const [dataTable, setDataTable] = useState(initDataTable);
   const [errMessage, setErrMessage] = useState(initErrMessage);
@@ -110,16 +114,30 @@ const StoreCUModal = ({ modalState, setModalState }) => {
         render: (_, rowData, index) => {
           if (rowData.isLastRow) {
             return null;
+          } else {
+            return (
+              <div class>
+                <ProductIdIInputSearchSelect
+                  value={rowData.product && rowData.product.id}
+                  onChange={(productId) => {
+                    addProductToRow(productId, index);
+                  }}
+                  style={{
+                    width: 180,
+                  }}
+                  size="small"
+                  status={
+                    errMessage[rowData.id] &&
+                    errMessage[rowData.id].product &&
+                    "error"
+                  }
+                />
+                <div className="store_changing_err">
+                  {errMessage[rowData.id] && errMessage[rowData.id].product}
+                </div>
+              </div>
+            );
           }
-          return (
-            <ProductIdIInputSearchSelect
-              addProductToRow={addProductToRow}
-              index={index}
-              style={{
-                width: 180,
-              }}
-            />
-          );
         },
       },
       {
@@ -144,24 +162,30 @@ const StoreCUModal = ({ modalState, setModalState }) => {
           } else {
             return (
               <>
-                <UnitTypeSelect
+                <UnitTypeSelectByProductId
                   style={{
                     width: 160,
                   }}
-                  listUTs={rowData.listUTs}
-                  utSelectedId={rowData.utSelectedId}
-                  setUTselectedId={setUTselectedId}
-                  index={index}
-                  dataTable={dataTable}
+                  onChange={(value) => {
+                    if (value) {
+                      setUTselectedId(value, index);
+                    }
+                  }}
+                  productId={rowData.product && rowData.product.id}
                   status={
                     errMessage[rowData.id] &&
                     errMessage[rowData.id].utSelectedId &&
                     "error"
                   }
+                  disabledValues={
+                    rowData.product &&
+                    disableListValuesUTSelect(rowData.product.id)
+                  }
                   value={rowData.utSelectedId}
-                  disabled={!rowData.product}
+                  disabled={!(rowData.product && rowData.product.id)}
+                  size="small"
                 />
-                <div className="err_message">
+                <div className="store_changing_err">
                   {errMessage[rowData.id] &&
                     errMessage[rowData.id].utSelectedId}{" "}
                 </div>
@@ -179,15 +203,26 @@ const StoreCUModal = ({ modalState, setModalState }) => {
             return null;
           } else {
             return (
-              <InputNumber
-                value={rowData.quantity}
-                onChange={(value) => {
-                  if (value) {
-                    setQuantity(value, index);
+              <div>
+                <InputNumber
+                  value={rowData.quantity}
+                  onChange={(value) => {
+                    if (value) {
+                      setQuantity(value, index);
+                    }
+                  }}
+                  min={1}
+                  size="small"
+                  status={
+                    errMessage[rowData.id] &&
+                    errMessage[rowData.id].quantity &&
+                    "error"
                   }
-                }}
-                min={1}
-              />
+                />
+                <div className="store_changing_err">
+                  {errMessage[rowData.id] && errMessage[rowData.id].quantity}
+                </div>
+              </div>
             );
           }
         },
@@ -197,7 +232,20 @@ const StoreCUModal = ({ modalState, setModalState }) => {
     setAllColumns(_allColumns);
 
     return () => {};
-  }, [dataTable]);
+  }, [dataTable, errMessage]);
+
+  function disableListValuesUTSelect(productId) {
+    let list = [];
+
+    dataTable.map((item) => {
+      if (!item.isLastRow) {
+        if (item.product && item.product.id == productId) {
+          list.push(item.utSelectedId);
+        }
+      }
+    });
+    return list;
+  }
 
   function onAddNewRow() {
     let _dataTable = [...dataTable];
@@ -261,59 +309,113 @@ const StoreCUModal = ({ modalState, setModalState }) => {
 
   async function onSubmit(type, isClose) {
     if (checkData()) {
-      // message.info("oke");
-    }
+      let _data = {
+        // productId:quantity
+      };
 
-    let _data = {
-      // productId:quantity
-    };
-
-    dataTable.map((item) => {
-      if (item.isLastRow) {
-        return;
-      } else {
-        let quantity = item.quantity;
-        let productId = item.product.id;
-        let utList = item.listUTs;
-        let utSelectedId = item.utSelectedId;
-        let convertionQuantity =
-          utList.filter((ut) => ut.id == utSelectedId)[0]?.convertionQuantity ||
-          0;
-
-        if (_data[productId]) {
-          _data[productId] += quantity * convertionQuantity;
+      dataTable.map((item) => {
+        if (item.isLastRow) {
+          return;
         } else {
-          _data[productId] = 0;
-          _data[productId] += quantity * convertionQuantity;
+          let quantity = item.quantity;
+          let productId = item.product.id;
+          let utList = item.listUTs;
+          let utSelectedId = item.utSelectedId;
+          let convertionQuantity =
+            utList.filter((ut) => ut.id == utSelectedId)[0]
+              ?.convertionQuantity || 0;
+
+          if (_data[productId]) {
+            _data[productId] += quantity * convertionQuantity;
+          } else {
+            _data[productId] = 0;
+            _data[productId] += quantity * convertionQuantity;
+          }
         }
+      });
+
+      let productIds = Object.keys(_data);
+
+      let formData = {
+        data: productIds.map((productId) => ({
+          quantity: _data[productId],
+          productId,
+          type: "Nhập kho",
+          employeeId: account?.id,
+        })),
+      };
+
+      hideLoading = message.loading("Đang cập nhật kho...", 0);
+      let res = await storeApi.addMany(formData);
+      if (res.isSuccess) {
+        message.info("Nhập kho thành công");
+        dispatch(setRefreshStoreTrans());
+
+        if (isClose) {
+          closeModal();
+        } else {
+          clearModal();
+        }
+      } else {
+        message.error("Có lỗi xảy ra, vui lòng thử lại");
       }
-    });
-
-    let productIds = Object.keys(_data);
-
-    let formData = {
-      data: productIds.map((productId) => ({
-        quantity: _data[productId],
-        productId,
-        type: "Nhập kho",
-        employeeId: account?.id,
-      })),
-    };
-
-    console.log(formData);
-    let res = await storeApi.addMany(formData);
-    console.log(res);
-    if (res.isSuccess) {
-      message.info("oke");
-    } else {
-      message.error("error");
     }
 
+    if (hideLoading) {
+      hideLoading();
+    }
     function checkData() {
       let isCheck = true;
+      let _errMess = { ...errMessage };
+      Object.keys(errMessage).map((key) => {
+        _errMess[key] = {};
+      });
+      setErrMessage(_errMess);
+
+      if (dataTable.length == 1) {
+        isCheck = false;
+        message.warning("Vui lòng thêm các dòng nhập kho!");
+      } else {
+        dataTable.map((row) => {
+          if (!row.isLastRow) {
+            if (!row.product) {
+              _errMess[row.id].product = "Không được bỏ trống!";
+            }
+
+            if (!row.utSelectedId) {
+              _errMess[row.id].utSelectedId = "Không được bỏ trống!";
+            }
+
+            if (!row.quantity) {
+              _errMess[row.id].quantity = "Không được bỏ trống!";
+            }
+          }
+        });
+      }
+
+      Object.keys(_errMess).map((key) => {
+        if (_errMess[key]) {
+          if (Object.keys(_errMess[key]).length != 0) {
+            isCheck = false;
+          }
+        }
+      });
+      setErrMessage(_errMess);
 
       return isCheck;
     }
+  }
+
+  function closeModal() {
+    setModalState({
+      visible: false,
+    });
+    clearModal();
+  }
+
+  function clearModal() {
+    setDataTable(initDataTable);
+    setErrMessage({});
   }
 
   return (
@@ -336,14 +438,6 @@ const StoreCUModal = ({ modalState, setModalState }) => {
                 >
                   Danh sách sản phẩm{" "}
                 </Typography.Title>
-                {/* <div className="search__container">
-                  <SearchProduct
-                    placeholder="Tìm kiếm sản phẩm"
-                    style={{
-                      width: "280px",
-                    }}
-                  />
-                </div> */}
               </div>
 
               <div className="btn__item">

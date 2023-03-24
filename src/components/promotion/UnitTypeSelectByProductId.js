@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import unitTypeApi from "./../../api/unitTypeApi";
 
-const UnitTypeSelectByProductId = ({ productId, ...props }) => {
+const UnitTypeSelectByProductId = ({ disabledValues, productId, ...props }) => {
   const [loading, setLoading] = useState(false);
   const [listUTs, setListUTs] = useState([]);
 
@@ -25,15 +25,22 @@ const UnitTypeSelectByProductId = ({ productId, ...props }) => {
 
   return (
     <Select
+      disabled={!productId}
       {...props}
       loading={loading}
       options={listUTs.map((ut) => {
+        let isDisabled = false;
+        (disabledValues || []).map((value) => {
+          if (value == ut.id) {
+            isDisabled = true;
+          }
+        });
         return {
           value: ut.id,
           label: ut.name,
+          disabled: isDisabled,
         };
       })}
-      disabled={!productId}
     />
   );
 };

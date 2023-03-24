@@ -13,7 +13,6 @@ import CustomerGroup from "./../components/customerGroup/CustomerGroup";
 import Employee from "./../components/employee/Employee";
 import Customer from "./../components/customer/Customer";
 import Category from "./../components/category/Category";
-import CreateBill from "./../components/bill/CreateBill";
 
 function App() {
   return (
@@ -39,7 +38,7 @@ function App() {
           <Route path="customer_group" element={<CustomerGroup />} />
           <Route path="employee" element={<Employee />} />
         </Route>
-        <Route path="bills/create" element={<CreateBill />} />
+        {/* <Route path="bills/create" element={<CreateBill />} /> */}
       </Routes>
     </ConfigProvider>
   );

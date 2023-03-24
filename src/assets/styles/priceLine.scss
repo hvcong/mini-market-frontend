@@ -1,0 +1,27 @@
+.price_line_modal {
+  .price_line_form {
+    font-size: 13px;
+  }
+
+  .price_line_form_group {
+    display: flex;
+    padding-bottom: 12px;
+  }
+
+  .price_line_form_label {
+    width: 100px;
+  }
+
+  .price_line_form_input_wrap {
+  }
+
+  .price_line_form_input {
+    width: 200px;
+  }
+
+  .price_line_form_input_err {
+    font-size: 12px;
+    color: red;
+    padding-top: 2px;
+  }
+}

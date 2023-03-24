@@ -2,7 +2,7 @@ import { DeleteOutlined, MoreOutlined } from "@ant-design/icons";
 import React from "react";
 import ListProductItem from "./ListProductItem";
 import { useDispatch, useSelector } from "react-redux";
-import { addOneProductToActiveTab } from "../../store/slices/createBillSlice";
+import { addOneProductToActiveTab } from "../../../store/slices/createBillSlice";
 import { Empty, message } from "antd";
 
 const ListProduct = () => {

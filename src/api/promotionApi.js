@@ -16,7 +16,7 @@ class PromotionApi {
   }
 
   updateOneHeader(id, formData) {
-    let url = `promotion/update/${id}`;
+    let url = `promotion/update?id=${id}`;
     return axiosClient.put(url, formData);
   }
 
@@ -29,6 +29,16 @@ class PromotionApi {
   // line DRP
   addOneDRP(formData) {
     let url = `discount/add`;
+    return axiosClient.post(url, formData);
+  }
+
+  addOneMP(formData) {
+    let url = `moneyPromotion/add`;
+    return axiosClient.post(url, formData);
+  }
+
+  addOneV(formData) {
+    let url = `voucher`;
     return axiosClient.post(url, formData);
   }
 }

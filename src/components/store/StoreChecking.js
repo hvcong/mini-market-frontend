@@ -31,12 +31,15 @@ import PriceCUModal from "../price/PriceCUModal";
 import StoreTransationDetailModal from "../StoreTransationDetailModal";
 import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
 import StoreCUModal from "./StoreCUModal";
+import storeApi from "../../api/storeApi";
+import { setStoreTickets } from "../../store/slices/storeTicketSlice";
+import StoreCheckingModal from "./StoreCheckingModal";
 
 const { Text } = Typography;
 
 const StoreChecking = ({}) => {
-  const { priceHeaders, refresh, count } = useSelector(
-    (state) => state.priceHeader
+  const { storeTickets, refresh, count } = useSelector(
+    (state) => state.storeTicket
   );
   const dispatch = useDispatch();
 
@@ -75,48 +78,71 @@ const StoreChecking = ({}) => {
     },
     {
       title: "Mã sản phẩm",
-      dataIndex: "availableBudget",
+      dataIndex: "ProductId",
     },
     {
       title: "Mã nhân viên",
-      dataIndex: "title",
+      dataIndex: "EmployeeId",
+      render: (_, rowData) => {
+        if (rowData) {
+          return <Typography.Link>{rowData.EmployeeId}</Typography.Link>;
+        }
+      },
+    },
+    {
+      title: "Tên nhân viên",
+      hidden: true,
+      render: (_, rowData) => {
+        if (rowData) {
+          return rowData.Employee.name;
+        }
+      },
+    },
+    {
+      title: "Số lượng báo cáo",
+      dataIndex: "reportQty",
     },
     {
       title: "Số lượng thực tế",
-      dataIndex: "availableBudget",
+      dataIndex: "realQty",
     },
     {
       title: "Số lượng biến động",
       dataIndex: "availableBudget",
+      render: (_, rowData) => {
+        if (rowData) {
+          return rowData.reportQty - rowData.realQty;
+        }
+      },
     },
     {
       width: 200,
       title: "Thời gian kiểm",
-      dataIndex: "startDate",
+      dataIndex: "createAt",
     },
     {
       title: "Ghi chú",
-      dataIndex: "availableBudget",
+      dataIndex: "note",
     },
   ]);
 
   useEffect(() => {
-    getPriceHeaders(pageState.page, pageState.limit);
+    getTicketStores(pageState.page, pageState.limit);
     return () => {};
   }, [pageState.page]);
 
   useEffect(() => {
     if (refresh) {
-      getPriceHeaders(pageState.page, pageState.limit);
+      getTicketStores(pageState.page, pageState.limit);
     }
 
     return () => {};
   }, [refresh]);
 
-  async function getPriceHeaders(page, limit) {
-    let res = await priceHeaderApi.getMany(page, limit);
+  async function getTicketStores(page, limit) {
+    let res = await storeApi.getLimitTiket(page, limit);
     if (res.isSuccess) {
-      dispatch(setPriceHeaders(res.headers));
+      dispatch(setStoreTickets(res.tickets));
     }
   }
 
@@ -182,7 +208,7 @@ const StoreChecking = ({}) => {
 
       <Table
         columns={allColumns.filter((col) => !col.hidden)}
-        dataSource={priceHeaders}
+        dataSource={storeTickets}
         pagination={false}
         size="small"
         scroll={{
@@ -200,7 +226,10 @@ const StoreChecking = ({}) => {
           hideOnSinglePage
         />
       </div>
-      <StoreCUModal modalState={modalState} setModalState={setModalState} />
+      <StoreCheckingModal
+        modalState={modalState}
+        setModalState={setModalState}
+      />
     </div>
   );
 };

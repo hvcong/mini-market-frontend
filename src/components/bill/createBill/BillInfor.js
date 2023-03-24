@@ -4,13 +4,13 @@ import React, { useEffect, useState } from "react";
 import CustomerSelect from "./CustomerSelect";
 import EmployeeSelect from "./EmployeeSelect";
 import { useDispatch, useSelector } from "react-redux";
-import { convertToVND } from "./../../utils/index";
-import billApi from "./../../api/billApi";
+import { convertToVND } from "../../../utils/index";
+import billApi from "../../../api/billApi";
 import {
   addOneProductToActiveTab,
   clearOneTab,
   removeAllProductOnActiveTab,
-} from "../../store/slices/createBillSlice";
+} from "../../../store/slices/createBillSlice";
 
 const BillInfor = () => {
   const { account, isLogged } = useSelector((state) => state.user);

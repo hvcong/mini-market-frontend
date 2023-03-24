@@ -10,8 +10,9 @@ const DatePickerCustom = ({ onChangeDate, value, ...props }) => {
       {...props}
       // disabled={[false, true]}
       onChange={(value, strings) => {
-        console.log(strings);
-        onChangeDate(strings);
+        if (strings && strings.length > 1) {
+          onChangeDate(strings);
+        }
       }}
       value={
         value &&

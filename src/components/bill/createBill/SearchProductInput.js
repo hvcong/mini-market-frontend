@@ -9,12 +9,15 @@ import {
   Typography,
 } from "antd";
 import { useRef, useState } from "react";
-import productApi from "./../../api/productApi";
-import HighlightedText from "../HighlightedText";
+import productApi from "../../../api/productApi";
+import HighlightedText from "../../HighlightedText";
 import { useDispatch, useSelector } from "react-redux";
-import { addPriceLine, setPriceLines } from "../../store/slices/priceLineSlice";
-import priceLineApi from "./../../api/priceLineApi";
-import { addOneProductToActiveTab } from "../../store/slices/createBillSlice";
+import {
+  addPriceLine,
+  setPriceLines,
+} from "../../../store/slices/priceLineSlice";
+import priceLineApi from "../../../api/priceLineApi";
+import { addOneProductToActiveTab } from "../../../store/slices/createBillSlice";
 
 const SearchProductInput = (props) => {
   const dispatch = useDispatch();

@@ -1,11 +1,11 @@
 import { Empty, Select, Spin } from "antd";
 import { useEffect, useState } from "react";
-import userApi from "./../../api/userApi";
+import userApi from "../../../api/userApi";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addTab,
   onChangeCustomerPhone,
-} from "../../store/slices/createBillSlice";
+} from "../../../store/slices/createBillSlice";
 
 const CustomerSelect = () => {
   const { activeKey } = useSelector((state) => state.createBill.tabState);

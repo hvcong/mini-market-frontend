@@ -21,34 +21,40 @@ import {
   HolderOutlined,
   StopOutlined,
   DownOutlined,
+  RedoOutlined,
 } from "@ant-design/icons";
+import "../../assets/styles/promotion.scss";
+import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import productApi from "./../../api/productApi";
-import { setProducts } from "../../store/slices/productSlice";
+import { sqlToDDmmYYY } from "./../../utils/index";
 import DropSelectColum from "./../product/DropSelectColum";
+import promotionApi from "./../../api/promotionApi";
+import { setPromotionHeaders } from "../../store/slices/promotionHeaderSlice";
 import BillCUModal from "./BillCUModal";
-import StoreTransationDetailModal from "./../StoreTransationDetailModal";
+import billApi from "./../../api/billApi";
+import { setBills } from "../../store/slices/billSlice";
 
 const { Text } = Typography;
 
 const Bill = ({}) => {
-  const product = useSelector((state) => state.product);
+  let hideLoading = null;
+  const { bills, refresh, count } = useSelector((state) => state.bill);
   const dispatch = useDispatch();
 
-  const [isShowDetailModal, setIsShowDetailModal] = useState(false);
-  const [
-    isShowStoreTransactionDetailModal,
-    setIsShowStoreTransactionDetailModal,
-  ] = useState(false);
-  const [idSelected, setIdSelected] = useState(null);
-  const [idTransactionSelected, setIdTransactionSelected] = useState(null);
-  const [typeOfModal, setTypeOfModal] = useState("update");
+  const [modalState, setModalState] = useState({
+    visible: false,
+    type: "",
+    rowSelected: null,
+  });
+
+  const [pageState, setPageState] = useState({
+    page: 1,
+    limit: 10,
+  });
+
   const [allColumns, setAllColumns] = useState([
     {
-      title: "Id",
+      title: "Mã hóa đơn",
       dataIndex: "id",
       width: 100,
       fixed: "left",
@@ -64,78 +70,98 @@ const Bill = ({}) => {
       ),
     },
     {
-      title: "Tên",
-      dataIndex: "title",
-      width: 200,
-      fixed: "left",
-      fixedShow: true,
-    },
-    {
-      title: "Ngày bắt đầu",
-      dataIndex: "startDate",
+      title: "Ngày tạo",
+      dataIndex: "orderDate",
     },
 
     {
-      title: "Ngày kết thúc",
-      dataIndex: "endDate",
+      title: "Tổng tiền",
+      dataIndex: "cost",
     },
     {
-      title: "Trạng thái",
-      dataIndex: "active",
-      render: (_, price) => (
-        <Switch
-          checkedChildren="On"
-          unCheckedChildren="Off"
-          defaultChecked={price.acitve}
-        />
-      ),
+      title: "Mã nhân viên",
+      dataIndex: "EmployeeId",
+      render: (EmployeeId, rowData) => {
+        return <Typography.Link>{EmployeeId}</Typography.Link>;
+      },
+    },
+    {
+      title: "Mã khách hàng",
+      dataIndex: "CustomerId",
+      render: (CustomerId, rowData) => {
+        return <Typography.Link>{CustomerId}</Typography.Link>;
+      },
+    },
+    {
+      title: "Xử lí",
+      width: 100,
+      fixed: "right",
+      render: (_, rowData) => {
+        return (
+          <Button size="small" danger icon={<RedoOutlined />}>
+            Trả hàng
+          </Button>
+        );
+      },
     },
   ]);
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    getBills(pageState.page, pageState.limit);
+    return () => {};
+  }, [pageState.page]);
 
   useEffect(() => {
-    getProducts();
-    async function getProducts() {
-      const res = await productApi.getMany();
-      dispatch(setProducts(res.rows));
+    if (refresh) {
+      getBills(pageState.page, pageState.limit);
     }
+
     return () => {};
+  }, [refresh]);
+
+  useEffect(() => {
+    return () => {
+      if (hideLoading) {
+        hideLoading();
+      }
+    };
   }, []);
 
-  //table handle render
-  const dataSource = [];
-  // for (let i = 1; i <= 10; i++) {
-  //   dataSource.push({
-  //     key: i,
-  //     id: "PR-" + i,
-  //     title: "Bảng giá mùa xuân",
-  //     startDate: "10/2/2022",
-  //     endDate: "23/2/2023",
-  //     acitve: i % 2 == 0,
-  //   });
-  // }
+  async function getBills(page, limit) {
+    hideLoading = message.loading("Tải dữ liệu hóa đơn...", 0);
+    let res = await billApi.getLimitBill(page, limit);
+    if (res.isSuccess) {
+      dispatch(setBills(res.bills));
+    }
+    hideLoading();
+  }
 
   // pagination handle
   function onChangePageNumber(pageNumber, pageSize) {
-    console.log(pageNumber, ",", pageSize);
+    setPageState({
+      page: pageNumber,
+      limit: pageSize,
+    });
   }
 
-  // open storetransactionDetail modal with id
-  function openStoreTrDetailModal(id) {
-    setIdTransactionSelected(id);
-    setIsShowStoreTransactionDetailModal(true);
-  }
-
-  // on click row
   function onRowIdClick(row) {
-    setIdSelected(row.id);
-    setTypeOfModal("update");
-    setIsShowDetailModal(true);
+    setModalState({
+      type: "update",
+      visible: true,
+      rowSelected: row,
+    });
   }
+
+  useEffect(() => {
+    return () => {
+      if (hideLoading) {
+        hideLoading();
+      }
+    };
+  }, []);
 
   return (
-    <div className="products">
+    <div className="products promotion">
       <div className="table__header">
         <div className="left">
           <Typography.Title
@@ -153,7 +179,10 @@ const Bill = ({}) => {
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => {
-              navigate("/bills/create");
+              setModalState({
+                type: "create",
+                visible: true,
+              });
             }}
           >
             Thêm mới
@@ -171,7 +200,7 @@ const Bill = ({}) => {
 
       <Table
         columns={allColumns.filter((col) => !col.hidden)}
-        dataSource={dataSource}
+        dataSource={bills}
         pagination={false}
         size="small"
         scroll={{
@@ -181,23 +210,15 @@ const Bill = ({}) => {
         className="table"
       />
       <div className="pagination__container">
-        {/* <Pagination onChange={onChangePageNumber} total={100} /> */}
+        <Pagination
+          onChange={onChangePageNumber}
+          total={count}
+          pageSize={10}
+          current={pageState.page}
+          hideOnSinglePage
+        />
       </div>
-      <BillCUModal
-        visible={isShowDetailModal}
-        setVisible={() => {
-          setIsShowDetailModal(false);
-          setIdSelected(null);
-        }}
-        idSelected={idSelected}
-        typeOfModal={typeOfModal}
-      />
-
-      <StoreTransationDetailModal
-        visible={isShowStoreTransactionDetailModal}
-        setVisible={setIsShowStoreTransactionDetailModal}
-        idTransactionSelected={idTransactionSelected}
-      />
+      <BillCUModal modalState={modalState} setModalState={setModalState} />
     </div>
   );
 };

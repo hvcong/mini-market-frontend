@@ -6,7 +6,7 @@ import {
   addTab,
   removeOneTab,
   setActiveKeyTab,
-} from "../../store/slices/createBillSlice";
+} from "../../../store/slices/createBillSlice";
 
 const TabsCreateBill = () => {
   const { tabState } = useSelector((state) => state.createBill);
