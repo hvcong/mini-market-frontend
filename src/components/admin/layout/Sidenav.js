@@ -33,7 +33,7 @@ const Sidenav = () => {
     ),
     getItem("Giao dịch", "sub2", <FileDoneOutlined />, [
       getItem(<NavLink to="bills">Hóa đơn</NavLink>, "bills"),
-      getItem(<NavLink to="">Trả hàng</NavLink>, "returns"),
+      getItem(<NavLink to="bills_receive">Trả hàng</NavLink>, "returns"),
     ]),
     getItem("Kho", "store", <FileDoneOutlined />, [
       getItem(

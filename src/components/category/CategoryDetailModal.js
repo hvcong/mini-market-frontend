@@ -66,6 +66,7 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
   const [errMessage, setErrMessage] = useState(initErrMessage);
   const [isLoading, setIsLoading] = useState(false);
   const [countDefaultSub, setCountDefaultSub] = useState(0);
+  const idCateInputRef = useRef();
 
   useEffect(() => {
     if (
@@ -104,6 +105,10 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
       });
 
       setListSub(_sublist);
+    }
+
+    if (idCateInputRef.current) {
+      idCateInputRef.current.focus();
     }
 
     return () => {};
@@ -249,6 +254,7 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                   <Text className="label">Mã nhóm</Text>
                   <div className="input_wrap">
                     <Input
+                      ref={idCateInputRef}
                       className="input"
                       placeholder="NL12"
                       size="small"

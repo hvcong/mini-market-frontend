@@ -13,6 +13,7 @@ import CustomerGroup from "./../components/customerGroup/CustomerGroup";
 import Employee from "./../components/employee/Employee";
 import Customer from "./../components/customer/Customer";
 import Category from "./../components/category/Category";
+import ReceiveBill from "../components/receiveBill/ReceiveBill";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="category" element={<Category />} />
           <Route path="prices" element={<Price />} />
           <Route path="bills" element={<Bill />} />
+          <Route path="bills_receive" element={<ReceiveBill />} />
           <Route path="customers" element={<Customer />} />
           <Route path="promotion" element={<Promotion />} />
           <Route path="unitType" element={<UnitType />} />

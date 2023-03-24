@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { message, Table, Typography } from "antd";
 import { Button } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { GiftOutlined, PlusOutlined } from "@ant-design/icons";
 import DropSelectColum from "../product/DropSelectColum";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
@@ -9,150 +9,88 @@ import promotionApi from "./../../api/promotionApi";
 import { setPromotionLines } from "../../store/slices/promotionLineSlice";
 import { sqlToDDmmYYY } from "./../../utils/index";
 import PromotionLineModal from "./../promotion/PromotionLineModal";
+import billApi from "./../../api/billApi";
 
-const BillLineTable = ({ promotionHeaderId }) => {
+const BillLineTable = ({ BillDetails = [], ProductPromotion }) => {
   let hideLoading = null;
-  const { promotionLines, refresh, count } = useSelector(
-    (state) => state.promotionLine
-  );
   const dispatch = useDispatch();
-
   const [modalState, setModalState] = useState({});
+  const [tableData, setTableData] = useState([]);
 
   const [allColumns, setAllColumns] = useState([
     {
-      title: "Mã KM",
-      dataIndex: "id",
-      width: 120,
-      fixed: "left",
-      fixedShow: true,
-      render: (_, row) => (
-        <Typography.Link onClick={onClickRowId}>{row.id}</Typography.Link>
-      ),
-    },
-    {
-      title: "Tên KM",
-      dataIndex: "title",
-      width: 200,
-    },
-    {
-      title: "Loại KM",
-      dataIndex: "",
-      width: 200,
-      render: (_, rowData) => {
-        if (rowData && rowData.type == "PP") {
-          return "Tặng sản phẩm";
-        }
-        if (rowData && rowData.type == "V") {
-          return "Phiếu giảm giá";
-        }
-        if (rowData && rowData.type == "MP") {
-          return "Chiếu khấu theo hóa đơn";
-        }
-        if (rowData && rowData.type == "DRP") {
-          return "Chiết khấu trên sản phẩm";
-        }
+      title: "Loại",
+      dataIndex: "isGift",
+      width: 64,
+      render: (isGift) => {
+        return !isGift ? (
+          <GiftOutlined
+            style={{
+              fontSize: "20px",
+              color: "palevioletred",
+              cursor: "pointer",
+            }}
+          />
+        ) : (
+          ""
+        );
       },
     },
     {
-      title: "Mô tả",
-      dataIndex: "description",
+      title: "Mã sản phẩm",
+      dataIndex: "productId",
       width: 200,
+      render: (productId) => {
+        return <Typography.Link>{productId}</Typography.Link>;
+      },
     },
     {
-      title: "Ngày bắt đầu",
-      dataIndex: "startDate",
-      render: (_, rowData) => {
-        if (rowData) {
-          return sqlToDDmmYYY(rowData.startDate);
-        }
+      title: "Mã vị tính",
+      dataIndex: "utId",
+      render: (utId) => {
+        return <Typography.Link>{utId}</Typography.Link>;
       },
     },
 
     {
-      title: "Ngày kết thúc",
-      dataIndex: "endDate",
-      render: (_, rowData) => {
-        if (rowData) {
-          return sqlToDDmmYYY(rowData.endDate);
-        }
+      title: "Số lượng",
+      dataIndex: "quantity",
+      render: (quantity) => {
+        return quantity;
       },
     },
+
     {
-      title: "Trạng thái",
-      dataIndex: "state",
-      render: (_, rowData) => {
-        if (rowData) {
-          return rowData.state ? (
-            <div style={{ color: "green" }}>Đang hoạt động</div>
-          ) : (
-            <div style={{ color: "red" }}>Đã ngưng</div>
-          );
+      title: "Đơn giá",
+      dataIndex: "price",
+      render: (price, rowData) => {
+        if (!rowData.isGift) {
+          return price;
         }
       },
     },
   ]);
 
   useEffect(() => {
-    getAllPromotionLines(promotionHeaderId);
-    return () => {};
-  }, [promotionHeaderId]);
-
-  useEffect(() => {
-    if (refresh) {
-      getAllPromotionLines(promotionHeaderId);
-    }
-    return () => {};
-  }, [refresh]);
-
-  useEffect(() => {
-    return () => {
-      if (hideLoading) {
-        hideLoading();
-      }
-    };
-  }, []);
-
-  async function getAllPromotionLines(promotionHeaderId) {
-    hideLoading = message.loading("Tải dữ liệu khuyến mãi...", 0);
-    let res = await promotionApi.getOneHeaderById(promotionHeaderId);
-    if (res.isSuccess) {
-      let _listLines = [];
-
-      res.promotion.ProductPromotions.map((item) => {
-        _listLines.push({
-          ...item,
-          type: "PP",
+    if (BillDetails) {
+      let _dataTable = [];
+      BillDetails.map((bLine) => {
+        console.log(bLine);
+        _dataTable.push({
+          id: bLine.id,
+          quantity: bLine.quantity,
+          price: bLine.Price.price,
+          productId: bLine.Price.ProductUnitType.ProductId,
+          utName: bLine.Price.ProductUnitType.UnitType.name,
+          utId: bLine.Price.ProductUnitType.UnitType.id,
         });
       });
 
-      res.promotion.DiscountRateProducts.map((item) => {
-        _listLines.push({
-          ...item,
-          type: "DRP",
-        });
-      });
-
-      res.promotion.MoneyPromotions.map((item) => {
-        _listLines.push({
-          ...item,
-          type: "MP",
-        });
-      });
-
-      res.promotion.Vouchers.map((item) => {
-        _listLines.push({
-          ...item,
-          type: "V",
-        });
-      });
-
-      dispatch(setPromotionLines(_listLines));
-      console.log(_listLines);
+      setTableData(_dataTable);
     }
 
-    hideLoading();
-  }
+    return () => {};
+  }, [BillDetails]);
 
   function onClickRowId(rowData) {
     setModalState({
@@ -167,27 +105,11 @@ const BillLineTable = ({ promotionHeaderId }) => {
       <div className="table__header">
         <div className="left">
           <Typography.Title level={5} style={{}}>
-            Danh sách dòng khuyến mãi{" "}
+            Danh sản phẩm trong hóa đơn{" "}
           </Typography.Title>
         </div>
 
         <div className="btn__item">
-          <Button
-            type="dashed"
-            size="small"
-            icon={<PlusOutlined />}
-            style={{
-              marginRight: "12px",
-            }}
-            onClick={() => {
-              setModalState({
-                type: "create",
-                visible: true,
-              });
-            }}
-          >
-            Thêm mới một dòng
-          </Button>
           <DropSelectColum
             allColumns={allColumns}
             setAllColumns={setAllColumns}
@@ -196,7 +118,7 @@ const BillLineTable = ({ promotionHeaderId }) => {
       </div>
       <Table
         columns={allColumns.filter((col) => !col.hidden)}
-        dataSource={promotionLines}
+        dataSource={tableData}
         pagination={false}
         size="small"
         scroll={{
@@ -204,11 +126,6 @@ const BillLineTable = ({ promotionHeaderId }) => {
           y: window.innerHeight * 0.5,
         }}
         className="table"
-      />
-      <PromotionLineModal
-        modalState={modalState}
-        setModalState={setModalState}
-        promotionHeaderId={promotionHeaderId}
       />
     </div>
   );

@@ -21,9 +21,10 @@ import {
   message,
 } from "antd";
 import ModalCustomer from "../ModalCustomer";
-import unitTypeApi from "./../../api/unitTypeApi";
-import { useDispatch } from "react-redux";
+import unitTypeApi from "../../api/unitTypeApi";
+import { useDispatch, useSelector } from "react-redux";
 import { setRefreshUnitType } from "../../store/slices/unitTypeSlice";
+import { setOpen } from "../../store/slices/modalSlice";
 
 const initFormState = {
   id: "",
@@ -36,40 +37,63 @@ const initErrMessage = {
   convertionQuantity: "",
 };
 
-const UnitTypeCUModal = ({ modalState, setModalState }) => {
+const UnitTypeCUModal = () => {
   let hideLoading = null;
   const dispatch = useDispatch();
+  const modalState = useSelector(
+    (state) => state.modal.modals["UnitTypeCUModal"]
+  );
+
   const [formState, setFormState] = useState(initFormState);
   const [errMessage, setErrMessage] = useState(initErrMessage);
+  const idInputRef = useRef();
 
   let { id, name, convertionQuantity } = formState;
 
   useEffect(() => {
+    if (idInputRef.current) {
+      idInputRef.current.focus();
+    }
     if (
       modalState.type == "update" &&
       modalState.visible == true &&
-      modalState.rowSelected
+      modalState.idSelected
     ) {
-      setFormState({
-        id: modalState.rowSelected.id,
-        name: modalState.rowSelected.name,
-        convertionQuantity: modalState.rowSelected.convertionQuantity,
-      });
+      getOneUTbyId(modalState.idSelected);
     }
 
     return () => {};
   }, [modalState]);
 
+  async function getOneUTbyId(id) {
+    let res = await unitTypeApi.getOneById(id);
+    if (res.isSuccess) {
+      setFormState({
+        id: res.unitType.id,
+        name: res.unitType.name,
+        convertionQuantity: res.unitType.convertionQuantity,
+      });
+    }
+  }
+
   function closeModal() {
-    setModalState({
-      visible: false,
-    });
+    dispatch(
+      setOpen({
+        name: "UnitTypeCUModal",
+        modalState: {
+          visible: false,
+        },
+      })
+    );
     clearModal();
   }
 
   function clearModal() {
     setErrMessage(initErrMessage);
     setFormState(initFormState);
+    if (idInputRef.current) {
+      idInputRef.current.focus();
+    }
   }
 
   async function onSubmit(type, isClose) {
@@ -145,7 +169,7 @@ const UnitTypeCUModal = ({ modalState, setModalState }) => {
   }
 
   return (
-    <div className="price__modal">
+    <div className="unitType_modal">
       <ModalCustomer
         visible={modalState.visible}
         style={{
@@ -166,6 +190,7 @@ const UnitTypeCUModal = ({ modalState, setModalState }) => {
                 <div className="unitType_form_label">Mã đơn vị</div>
                 <div className="unitType_form_input_wrap">
                   <Input
+                    ref={idInputRef}
                     className="unitType_form_input"
                     size="small"
                     value={id}

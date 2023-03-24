@@ -1,0 +1,22 @@
+.unitType_modal {
+  .unitType_form {
+    padding-bottom: 12px;
+    font-size: 13px;
+  }
+  .unitType_form_group {
+    display: flex;
+  }
+  .unitType_form_label {
+    width: 120px;
+    padding-top: 4px;
+  }
+  .unitType_form_input_wrap {
+    padding-bottom: 8px;
+  }
+  .unitType_form_input {
+  }
+  .unitType_form_input_err {
+    color: red;
+    font-size: 12px;
+  }
+}

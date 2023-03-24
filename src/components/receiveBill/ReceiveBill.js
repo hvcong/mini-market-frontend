@@ -21,24 +21,26 @@ import {
   HolderOutlined,
   StopOutlined,
   DownOutlined,
+  RedoOutlined,
 } from "@ant-design/icons";
+import "../../assets/styles/bill.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import priceHeaderApi from "./../../api/priceHeaderApi";
-import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
+import { sqlToDDmmYYY } from "./../../utils/index";
 import DropSelectColum from "./../product/DropSelectColum";
-import StoreCUModal from "./StoreCUModal";
-import storeApi from "./../../api/storeApi";
-import { setStoreTrans } from "../../store/slices/storeTranSlice";
-import { antdToDmy, sqlToDDmmYYY } from "../../utils";
+import promotionApi from "./../../api/promotionApi";
+import billApi from "./../../api/billApi";
+import { setBills } from "../../store/slices/billSlice";
+import BillCUModal from "../bill/BillCUModal";
+import { setReceiveBills } from "../../store/slices/receiveBillSlice";
 
 const { Text } = Typography;
 
-const StoreChanging = ({}) => {
-  const { storeTrans, refresh, count } = useSelector(
-    (state) => state.storeTran
+const ReceiveBill = ({}) => {
+  let hideLoading = null;
+  const { receiveBills, refresh, count } = useSelector(
+    (state) => state.receiveBill
   );
-  console.log(storeTrans);
   const dispatch = useDispatch();
 
   const [modalState, setModalState] = useState({
@@ -54,58 +56,64 @@ const StoreChanging = ({}) => {
 
   const [allColumns, setAllColumns] = useState([
     {
-      title: "Mã",
-      dataIndex: "id",
+      title: "Mã hóa đơn",
+      dataIndex: "",
       width: 160,
       fixed: "left",
       fixedShow: true,
-      render: (_, row) => <Typography.Link>{row.id}</Typography.Link>,
+      render: (_, row) => (
+        <Typography.Link
+          onClick={() => {
+            onRowIdClick(row);
+          }}
+        >
+          {row.BillId}
+        </Typography.Link>
+      ),
     },
     {
-      title: "Mã sản phẩm",
-      dataIndex: "ProductId",
-    },
-    {
-      title: "Phương thức",
-      dataIndex: "type",
-    },
-    {
-      title: "Số lượng biến động",
-      dataIndex: "quantity",
-    },
-    {
+      title: "Ngày trả",
       width: 200,
-      title: "Thời gian",
       dataIndex: "createAt",
-      render: (_, rowData) => {
-        return sqlToDDmmYYY(rowData.createAt);
+      render: (createAt) => {
+        return sqlToDDmmYYY(createAt);
       },
     },
 
     {
-      title: "Mã nhân viên",
-      dataIndex: "EmployeeId",
+      title: "Ghi chú",
+      dataIndex: "note",
     },
   ]);
 
   useEffect(() => {
-    getStoreTransactions(pageState.page, pageState.limit);
+    getBills(pageState.page, pageState.limit);
     return () => {};
   }, [pageState.page]);
 
   useEffect(() => {
     if (refresh) {
-      getStoreTransactions(pageState.page, pageState.limit);
+      getBills(pageState.page, pageState.limit);
     }
 
     return () => {};
   }, [refresh]);
 
-  async function getStoreTransactions(page, limit) {
-    let res = await storeApi.getLimitStoreTransactions(page, limit);
+  useEffect(() => {
+    return () => {
+      if (hideLoading) {
+        hideLoading();
+      }
+    };
+  }, []);
+
+  async function getBills(page, limit) {
+    hideLoading = message.loading("Tải dữ liệu hóa đơn...", 0);
+    let res = await billApi.getLimitReceives(page, limit);
     if (res.isSuccess) {
-      dispatch(setStoreTrans(res.transactions));
+      dispatch(setReceiveBills(res.retrieves));
     }
+    hideLoading();
   }
 
   // pagination handle
@@ -116,8 +124,24 @@ const StoreChanging = ({}) => {
     });
   }
 
+  function onRowIdClick(row) {
+    setModalState({
+      type: "view-receive",
+      visible: true,
+      rowSelected: row,
+    });
+  }
+
+  useEffect(() => {
+    return () => {
+      if (hideLoading) {
+        hideLoading();
+      }
+    };
+  }, []);
+
   return (
-    <div className="products">
+    <div className="products promotion">
       <div className="table__header">
         <div className="left">
           <Typography.Title
@@ -126,23 +150,8 @@ const StoreChanging = ({}) => {
               margin: 0,
             }}
           >
-            Danh sách biến động kho{" "}
+            Danh sách hóa đơn đã trả hàng{" "}
           </Typography.Title>
-        </div>
-        <div className="btn__item">
-          <Button
-            size="small"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setModalState({
-                type: "create",
-                visible: true,
-              });
-            }}
-          >
-            Nhập kho
-          </Button>
         </div>
         <div className="btn__item">
           <DropSelectColum
@@ -156,7 +165,7 @@ const StoreChanging = ({}) => {
 
       <Table
         columns={allColumns.filter((col) => !col.hidden)}
-        dataSource={storeTrans}
+        dataSource={receiveBills}
         pagination={false}
         size="small"
         scroll={{
@@ -174,9 +183,9 @@ const StoreChanging = ({}) => {
           hideOnSinglePage
         />
       </div>
-      <StoreCUModal modalState={modalState} setModalState={setModalState} />
+      <BillCUModal modalState={modalState} setModalState={setModalState} />
     </div>
   );
 };
 
-export default StoreChanging;
+export default ReceiveBill;

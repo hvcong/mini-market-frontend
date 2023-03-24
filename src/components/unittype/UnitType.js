@@ -27,8 +27,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import unitTypeApi from "./../../api/unitTypeApi";
 import DropSelectColum from "./../product/DropSelectColum";
-import UnitTypeCUModal from "./UnitTypeCUModal";
 import { setUnitTypes } from "../../store/slices/unitTypeSlice";
+import { setOpen } from "../../store/slices/modalSlice";
 
 const UnitType = ({}) => {
   const {
@@ -36,13 +36,19 @@ const UnitType = ({}) => {
     refresh,
     count = 0,
   } = useSelector((state) => state.unitType);
+  const { modalState } = useSelector(
+    (state) => state.modal.modals["UnitTypeCUModal"]
+  );
   const dispatch = useDispatch();
 
-  const [modalState, setModalState] = useState({
-    visible: false,
-    type: "",
-    rowSelected: null,
-  });
+  function setModalState(state) {
+    dispatch(
+      setOpen({
+        name: "UnitTypeCUModal",
+        modalState: state,
+      })
+    );
+  }
 
   const [pageState, setPageState] = useState({
     page: 1,
@@ -60,7 +66,7 @@ const UnitType = ({}) => {
             setModalState({
               type: "update",
               visible: true,
-              rowSelected: row,
+              idSelected: row.id,
             });
           }}
         >
@@ -167,10 +173,6 @@ const UnitType = ({}) => {
             hideOnSinglePage
           />
         </div>
-        <UnitTypeCUModal
-          modalState={modalState}
-          setModalState={setModalState}
-        />
       </div>
     </div>
   );

@@ -26,8 +26,21 @@ import { useDispatch } from "react-redux";
 
 import BillLineTable from "./BillLineTable";
 import CreateBill from "./createBill/CreateBill";
+import billApi from "./../../api/billApi";
+import dayjs from "dayjs";
+import ListPromotion from "./ListPromotion";
+import ReceiveButton from "./ReceiveButton";
+const dateFormat = "YYYY-MM-DD";
 
-const initFormState = {};
+const initFormState = {
+  id: "",
+  orderDate: "",
+  cost: "",
+  CustomerId: "",
+  EmployeeId: "",
+  BillDetails: "",
+  PromotionResult: "",
+};
 const initErrMessage = {};
 
 const BillCUModal = ({ modalState, setModalState }) => {
@@ -36,15 +49,34 @@ const BillCUModal = ({ modalState, setModalState }) => {
 
   const [formState, setFormState] = useState(initFormState);
   const [errMessage, setErrMessage] = useState(initErrMessage);
+  const [receiveOpenId, setReceiveOpenId] = useState("");
 
   useEffect(() => {
     const { type, rowSelected, visible } = modalState;
+    if (rowSelected && visible) {
+      let billId = "";
+      if (type == "update") {
+        billId = rowSelected.id;
+      }
+      if (type == "view-receive") {
+        billId = rowSelected.BillId;
+      }
 
-    if (type == "update" && rowSelected && visible) {
+      loadOneBill(billId);
     }
-
     return () => {};
   }, [modalState]);
+
+  async function loadOneBill(billId) {
+    hideLoading = message.loading("Đang tải dữ liệu hóa đơn...", 0);
+    let res = await billApi.getOneBillById(billId);
+    if (res.isSuccess) {
+      setFormState({
+        ...res.bill,
+      });
+    }
+    hideLoading();
+  }
 
   async function onSubmit(type, isClose) {
     setErrMessage({});
@@ -90,8 +122,16 @@ const BillCUModal = ({ modalState, setModalState }) => {
     setFormState(initFormState);
   }
 
+  useEffect(() => {
+    return () => {
+      if (hideLoading) {
+        hideLoading();
+      }
+    };
+  }, [modalState]);
+
   return (
-    <div className="promotion_header_modal">
+    <div className="bill_modal">
       <ModalCustomer
         visible={modalState.visible}
         style={{
@@ -101,55 +141,102 @@ const BillCUModal = ({ modalState, setModalState }) => {
         <div>
           <div className="title__container">
             <Typography.Title level={4} className="title">
-              {modalState.type == "update" ? "Thông tin chi tiết hóa đơn" : ""}
+              Thông tin chi tiết hóa đơn
             </Typography.Title>
           </div>
           <div className="form__container">
-            <div className="promotion_header_form">
-              <div className="promotion_header_form_top">
-                <div className="promotion_header_form_left">
-                  <div className="promotion_header_form_group">
-                    <div className="promotion_header_form_label">
-                      Mã hóa đơn
-                    </div>
-                    <div className="promotion_header_form_input_wrap">
+            <div className="bill_form">
+              <div className="bill_form_top">
+                <div className="bill_form_left">
+                  <div className="bill_form_group">
+                    <div className="bill_form_label">Mã hóa đơn</div>
+                    <div className="bill_form_input_wrap">
                       <Input
-                        className="promotion_header_form_input"
+                        className="bill_form_input"
                         size="small"
+                        disabled
+                        value={formState.id}
                       />
-                      <div className="promotion_header_form_input_err"></div>
+                      <div className="bill_form_input_err"></div>
                     </div>
                   </div>
-                </div>
-                <div className="promotion_header_form_center">
-                  <div className="promotion_header_form_group">
-                    <div className="promotion_header_form_label">
-                      Mã hóa đơn
-                    </div>
-                    <div className="promotion_header_form_input_wrap">
-                      <Input
-                        className="promotion_header_form_input"
+                  <div className="bill_form_group">
+                    <div className="bill_form_label">Thời gian tạo</div>
+                    <div className="bill_form_input_wrap">
+                      <DatePicker
+                        className="bill_form_input"
                         size="small"
+                        disabled
+                        value={
+                          formState.orderDate &&
+                          dayjs(formState.orderDate, dateFormat)
+                        }
                       />
-                      <div className="promotion_header_form_input_err"></div>
+                      <div className="bill_form_input_err"></div>
                     </div>
                   </div>
-                </div>
+                  <div className="bill_form_group">
+                    <div className="bill_form_label">Mã nhân viên</div>
+                    <div className="bill_form_input_wrap">
+                      <Typography.Link>{formState.EmployeeId}</Typography.Link>
+                      <div className="bill_form_input_err"></div>
+                    </div>
+                  </div>
+                  <div className="bill_form_group">
+                    <div className="bill_form_label">Mã khách hàng</div>
+                    <div className="bill_form_input_wrap">
+                      <Typography.Link>{formState.CustomerId}</Typography.Link>
 
-                <div className="promotion_header_form_end">
-                  <div className="promotion_header_form_group">
-                    <div className="promotion_header_form_label">
-                      Mã hóa đơn
+                      <div className="bill_form_input_err"></div>
                     </div>
-                    <div className="promotion_header_form_input_wrap">
+                  </div>
+                  <div className="bill_form_group">
+                    <div className="bill_form_label">Tổng giá trị hóa đơn</div>
+                    <div className="bill_form_input_wrap">
                       <Input
-                        className="promotion_header_form_input"
+                        className="bill_form_input"
                         size="small"
+                        disabled
+                        value={formState.cost + " đồng"}
                       />
-                      <div className="promotion_header_form_input_err"></div>
+                      <div className="bill_form_input_err"></div>
                     </div>
                   </div>
                 </div>
+                <div className="bill_form_promotion">
+                  <div className="bill_form_promotion_title">
+                    <Typography.Title level={5}>
+                      Các khuyến mãi đã áp dụng
+                    </Typography.Title>
+                  </div>
+                  <div className="bill_form_promotion_list">
+                    <div className="bill_form_promotion_item">
+                      <div className="bill_form_promotion_item_id">
+                        <Typography.Title level={5}>
+                          Mã khuyến mãi
+                        </Typography.Title>
+                      </div>
+                      <div className="bill_form_promotion_item_type">
+                        <Typography.Title level={5}>
+                          Loại khuyến mãi
+                        </Typography.Title>
+                      </div>
+                      <div className="bill_form_promotion_item_status">
+                        <Typography.Title level={5}>
+                          Trạng thái
+                        </Typography.Title>
+                      </div>
+                    </div>
+                    {formState.PromotionResult && (
+                      <ListPromotion
+                        promotionResult={formState.PromotionResult}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="bill_form_bottom">
+                <BillLineTable BillDetails={formState.BillDetails} />
               </div>
             </div>
             <Space
@@ -160,37 +247,38 @@ const BillCUModal = ({ modalState, setModalState }) => {
                 marginTop: "12px",
               }}
             >
-              {modalState.type == "create" ? (
+              {modalState.type != "view-receive" && (
                 <>
+                  <ReceiveButton
+                    open={receiveOpenId}
+                    setOpen={(value) => {
+                      setReceiveOpenId(value);
+                    }}
+                    billId={
+                      modalState.visible &&
+                      modalState.rowSelected &&
+                      modalState.rowSelected.id
+                    }
+                    handleReceiveOke={() => {
+                      setModalState({
+                        visible: false,
+                      });
+                    }}
+                  />
+
                   <Button
                     type="primary"
                     onClick={() => {
-                      onSubmit("create");
+                      onSubmit("update", true);
                     }}
                   >
-                    Lưu & Thêm các dòng khuyến mãi
-                  </Button>
-                  <Button
-                    type="primary"
-                    onClick={() => {
-                      onSubmit("create", true);
-                    }}
-                  >
-                    Lưu & Đóng
+                    Xem hóa đơn in
                   </Button>
                 </>
-              ) : (
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    onSubmit("update", true);
-                  }}
-                >
-                  Cập nhật
-                </Button>
               )}
+
               <Button type="primary" danger onClick={closeModal}>
-                Hủy bỏ
+                Đóng
               </Button>
             </Space>
           </div>

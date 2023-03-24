@@ -7,8 +7,24 @@ class BillApi {
   }
 
   getLimitBill(page = 1, limit = 10) {
-    let url = `bill/get?_page=${page}&limit=${limit}`;
+    let url = `bill/success?_page=${page}&limit=${limit}`;
     return axiosClient.get(url);
+  }
+
+  getOneBillById(id) {
+    let url = `bill/getId?id=${id}`;
+    return axiosClient.get(url);
+  }
+
+  //// receive bill
+  getLimitReceives(page = 1, limit = 10) {
+    let url = `retrieve/get?_page=${page}&limit=${limit}`;
+    return axiosClient.get(url);
+  }
+
+  addOneReceive(formData) {
+    let url = `retrieve/add`;
+    return axiosClient.post(url, formData);
   }
 }
 

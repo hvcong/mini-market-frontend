@@ -14,6 +14,9 @@ import storeTicketReducer from "../store/slices/storeTicketSlice";
 import promotionHeaderReducer from "../store/slices/promotionHeaderSlice";
 import promotionLineReducer from "../store/slices/promotionLineSlice";
 import billReducer from "../store/slices/billSlice";
+import billLineReducer from "../store/slices/billLineSlice";
+import receiveBillReducer from "../store/slices/receiveBillSlice";
+import modalReducer from "../store/slices/modalSlice";
 
 const rootReducer = {
   product: productReducer,
@@ -31,6 +34,9 @@ const rootReducer = {
   promotionHeader: promotionHeaderReducer,
   promotionLine: promotionLineReducer,
   bill: billReducer,
+  billLine: billLineReducer,
+  receiveBill: receiveBillReducer,
+  modal: modalReducer,
 };
 
 export const store = configureStore({

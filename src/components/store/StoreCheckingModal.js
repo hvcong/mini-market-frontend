@@ -30,41 +30,53 @@ import ProductIdIInputSearchSelect from "../common/ProductIdIInputSearchSelect";
 import { uid } from "../../utils";
 import productApi from "../../api/productApi";
 import unitTypeApi from "./../../api/unitTypeApi";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import storeApi from "./../../api/storeApi";
-
-const initErrMessage = {
-  // rowId: {
-  //   product: "",
-  //   quantity: "",
-  //   utSelectedId: "",
-  // },
-};
+import UnitTypeSelectByProductId from "../promotion/UnitTypeSelectByProductId";
+import { setRefreshStoreTrans } from "../../store/slices/storeTranSlice";
+import { setOpen } from "../../store/slices/modalSlice";
 
 const lastItemOfTable = {
   isLastRow: true,
 };
 const initDataTable = [
   // {
-  //   id:'',
-  //   product:'',
-  //   listUTs:[],
-  //   quantity:'',
-  //    utSelectedId:''
-  // }
+  //   rowId: "",
+  //   product: "",
+  //   utIdSelected: "",
+  //   quantity1: 0,
+  //   quantity2: 0,
+  //   quantity3: 0,
+  //   quantity4: 0,
+  // },
+
   lastItemOfTable,
 ];
 
+const initErrMessage = {
+  // rowId: {
+  //   product: "",
+  //   utIdSelected: "",
+  //   quantity1: "",
+  //   quantity2: "",
+  //   quantity3: "",
+  //   quantity4: "",
+  // },
+};
+
 const ddMMyyyy = "DD/MM/YYYY";
 
-const StoreCheckingModal = ({ modalState, setModalState }) => {
+const StoreCheckingModal = () => {
+  let hideLoading = null;
+  const dispatch = useDispatch();
+  const modalState =
+    useSelector((state) => state.modal.modals["StoreCheckingModal"]) || {};
   const [allColumns, setAllColumns] = useState([]);
   const [dataTable, setDataTable] = useState(initDataTable);
   const [errMessage, setErrMessage] = useState(initErrMessage);
-  const { account } = useSelector((state) => state.user);
 
   useEffect(() => {
-    let _allColumns = [
+    let _allCol = [
       {
         title: "",
         dataIndex: "x",
@@ -78,7 +90,7 @@ const StoreCheckingModal = ({ modalState, setModalState }) => {
                 icon={<PlusOutlined style={{ fontSize: "12px" }} />}
                 type="dashed"
                 onClick={() => {
-                  onAddNewRow();
+                  addNewRow();
                 }}
               >
                 Thêm mới một dòng
@@ -91,7 +103,7 @@ const StoreCheckingModal = ({ modalState, setModalState }) => {
                   <DeleteOutlined
                     style={{ fontSize: "12px", color: "red" }}
                     onClick={() => {
-                      removeRowById(rowData.id);
+                      removeRowById(rowData.rowId);
                     }}
                   />
                 }
@@ -102,91 +114,169 @@ const StoreCheckingModal = ({ modalState, setModalState }) => {
           }
         },
       },
-
       {
         title: "Mã sản phẩm",
-        width: 200,
-        dataIndex: "availableBudget",
-        render: (_, rowData, index) => {
-          if (rowData.isLastRow) {
-            return null;
-          }
-          return (
-            <ProductIdIInputSearchSelect
-              addProductToRow={addProductToRow}
-              index={index}
-              style={{
-                width: 180,
-              }}
-            />
-          );
-        },
-      },
-      {
-        title: "Tên sản phẩm",
-        dataIndex: "availableBudget",
-        width: 360,
+        dataIndex: "product",
         render: (_, rowData) => {
-          if (rowData.isLastRow) {
-            return null;
-          } else {
-            return rowData.product && rowData.product.name;
-          }
-        },
-      },
-      {
-        title: "Đơn vị tính",
-        width: 200,
-        dataIndex: "availableBudget",
-        render: (_, rowData, index) => {
-          if (rowData.isLastRow) {
-            return null;
-          } else {
+          if (!rowData.isLastRow) {
+            let productId = rowData.product && rowData.product.id;
             return (
               <>
-                <UnitTypeSelect
-                  style={{
-                    width: 160,
+                <ProductIdIInputSearchSelect
+                  onChange={(productId) => {
+                    handleChangeProductIdSelect(productId, rowData.rowId);
                   }}
-                  listUTs={rowData.listUTs}
-                  utSelectedId={rowData.utSelectedId}
-                  setUTselectedId={setUTselectedId}
-                  index={index}
-                  dataTable={dataTable}
-                  status={
-                    errMessage[rowData.id] &&
-                    errMessage[rowData.id].utSelectedId &&
-                    "error"
-                  }
-                  value={rowData.utSelectedId}
-                  disabled={!rowData.product}
+                  style={{
+                    width: "140px",
+                  }}
+                  size="small"
+                  value={productId}
                 />
-                <div className="err_message">
-                  {errMessage[rowData.id] &&
-                    errMessage[rowData.id].utSelectedId}{" "}
-                </div>
               </>
             );
           }
         },
       },
       {
-        title: "Số lượng nhập",
+        title: "Tên sản phẩm",
+        dataIndex: "product",
+        render: (_, rowData) => {
+          if (!rowData.isLastRow) {
+            if (rowData.product) {
+              return rowData.product.name;
+            }
+          }
+        },
+      },
+      {
+        title: "Đơn vị báo cáo",
+        dataIndex: "product",
+
+        render: (_, rowData) => {
+          if (!rowData.isLastRow) {
+            let productId = "";
+            if (rowData.product) {
+              productId = rowData.product.id;
+            }
+
+            return (
+              <UnitTypeSelectByProductId
+                style={{ width: 130 }}
+                size="small"
+                productId={productId}
+                onChange={(utId) => {
+                  handleOnChangeUtIdSelect(utId, rowData.rowId);
+                }}
+                value={rowData.utIdSelected}
+              />
+            );
+          }
+        },
+      },
+      {
+        title: "Số lượng báo cáo",
         width: 120,
-        dataIndex: "availableBudget",
-        render: (_, rowData, index) => {
-          if (rowData.isLastRow) {
-            return null;
-          } else {
+        dataIndex: "product",
+        render: (_, rowData) => {
+          if (!rowData.isLastRow) {
+            let value = 0;
+            let convertionQuantity = 0;
+            let totalQuantity = rowData.product.quantity;
+            if (rowData.product && rowData.utIdSelected) {
+              rowData.product.ProductUnitTypes.map((put) => {
+                if (put.UnitTypeId == rowData.utIdSelected) {
+                  convertionQuantity = put.UnitType.convertionQuantity;
+                }
+              });
+            }
+
+            value =
+              (totalQuantity - (totalQuantity % convertionQuantity)) /
+                convertionQuantity || 0;
+
+            return value;
+          }
+        },
+      },
+      {
+        title: "Số lượng báo cáo lẻ ",
+        width: 120,
+
+        dataIndex: "product",
+        render: (_, rowData) => {
+          if (!rowData.isLastRow) {
+            let value = 0;
+            let convertionQuantity = 0;
+            let totalQuantity = rowData.product.quantity;
+            if (rowData.product && rowData.utIdSelected) {
+              rowData.product.ProductUnitTypes.map((put) => {
+                if (put.UnitTypeId == rowData.utIdSelected) {
+                  convertionQuantity = put.UnitType.convertionQuantity;
+                }
+              });
+            }
+
+            value = totalQuantity % convertionQuantity || 0;
+
+            return value;
+          }
+        },
+      },
+      {
+        title: "Số lượng báo cáo thực tế",
+        dataIndex: "product",
+        render: (_, rowData) => {
+          if (!rowData.isLastRow) {
             return (
               <InputNumber
-                value={rowData.quantity}
+                size="small"
+                disabled={!rowData.product}
+                min={0}
+                value={rowData.quantity3}
                 onChange={(value) => {
-                  if (value) {
-                    setQuantity(value, index);
+                  if (value || value == 0) {
+                    let _dataTable = dataTable.map((row) => {
+                      if (row.rowId == rowData.rowId) {
+                        return {
+                          ...row,
+                          quantity3: value,
+                        };
+                      }
+                      return row;
+                    });
+                    setDataTable(_dataTable);
                   }
                 }}
-                min={1}
+              />
+            );
+          }
+        },
+      },
+      {
+        title: "Số lượng lẻ thực tế",
+        dataIndex: "product",
+        render: (_, rowData) => {
+          if (!rowData.isLastRow) {
+            return (
+              <InputNumber
+                size="small"
+                disabled={!rowData.product}
+                min={0}
+                value={rowData.quantity4}
+                onChange={(value) => {
+                  if (value || value == 0) {
+                    let _dataTable = dataTable.map((row) => {
+                      if (row.rowId == rowData.rowId) {
+                        return {
+                          ...row,
+                          quantity4: value,
+                        };
+                      }
+                      return row;
+                    });
+                    setDataTable(_dataTable);
+                  }
+                }}
               />
             );
           }
@@ -194,134 +284,133 @@ const StoreCheckingModal = ({ modalState, setModalState }) => {
       },
     ];
 
-    setAllColumns(_allColumns);
+    setAllColumns(_allCol);
 
     return () => {};
   }, [dataTable]);
 
-  function onAddNewRow() {
-    let _dataTable = [...dataTable];
-    let length = _dataTable.length;
-    let id = uid();
-    _dataTable[length - 1] = {
-      id,
-      quantity: 1,
+  function addNewRow() {
+    let newRow = {
+      rowId: uid(),
+      product: "",
+      utIdSelected: "",
+      quantity1: 0,
+      quantity2: 0,
+      quantity3: 0,
+      quantity4: 0,
     };
-    _dataTable.push(lastItemOfTable);
 
-    let _errMess = { ...errMessage };
-    _errMess[id] = {};
-    setErrMessage(_errMess);
+    let _dataTable = [...dataTable];
+    _dataTable.splice(_dataTable.length - 1, 0, newRow);
+    setDataTable(_dataTable);
+
+    // add message for row
+    setErrMessage({
+      ...errMessage,
+      [newRow.rowId]: {},
+    });
+  }
+
+  function removeRowById(rowId) {
+    let _dataTable = dataTable.filter((row) => row.rowId != rowId);
     setDataTable(_dataTable);
   }
 
-  function removeRowById(id) {
-    let _dataTable = dataTable.filter((item) => item.id != id);
-    setDataTable(_dataTable);
+  function closeModal() {
+    setModalState({
+      visible: false,
+    });
+    clearModal();
   }
 
-  async function addProductToRow(productId, index) {
+  function setModalState(state) {
+    dispatch(
+      setOpen({
+        name: "StoreCheckingModal",
+        modalState: state,
+      })
+    );
+  }
+
+  function clearModal() {
+    setDataTable(initDataTable);
+  }
+
+  async function handleChangeProductIdSelect(productId, rowId) {
     if (productId) {
-      let product;
-      let listUTs;
-      let res = await productApi.findById(productId);
-      if (res.isSuccess) {
-        product = res.product;
-      }
-      let res2 = await unitTypeApi.findAllByProductId(productId);
-      if (res2.isSuccess) {
-        listUTs = res2.unitTypes;
-      }
+      // kiểm tra trùng trong bảng, nếu trùng thì ko cho thêm
+      let isExist = false;
+      dataTable.map((row) => {
+        if (row && row.product && row.product.id == productId) {
+          isExist = true;
+        }
+      });
 
-      let _dataTable = [...dataTable];
-      _dataTable[index].product = product;
-      _dataTable[index].listUTs = listUTs;
-      setDataTable(_dataTable);
-    } else {
-      let _dataTable = [...dataTable];
-      _dataTable[index].product = "";
-      _dataTable[index].listUTs = [];
-      _dataTable[index].utSelectedId = "";
-
-      setDataTable(_dataTable);
-    }
-  }
-
-  function setUTselectedId(utId, index) {
-    let _dataTable = [...dataTable];
-    _dataTable[index].utSelectedId = utId;
-    setDataTable(_dataTable);
-  }
-
-  function setQuantity(quantity, index) {
-    let _dataTable = [...dataTable];
-    _dataTable[index].quantity = quantity;
-    setDataTable(_dataTable);
-  }
-
-  async function onSubmit(type, isClose) {
-    if (checkData()) {
-      // message.info("oke");
-    }
-
-    let _data = {
-      // productId:quantity
-    };
-
-    dataTable.map((item) => {
-      if (item.isLastRow) {
-        return;
+      // đã tồn tại trong bảng
+      if (isExist) {
+        message.error("Sản phẩm đã tồn tại trong phiếu kiểm");
       } else {
-        let quantity = item.quantity;
-        let productId = item.product.id;
-        let utList = item.listUTs;
-        let utSelectedId = item.utSelectedId;
-        let convertionQuantity =
-          utList.filter((ut) => ut.id == utSelectedId)[0]?.convertionQuantity ||
-          0;
+        let res = await productApi.findOneById(productId);
+        if (res.isSuccess) {
+          let _dataTable = dataTable.map((row) => {
+            if (row.rowId == rowId) {
+              return {
+                ...row,
+                product: res.product,
+              };
+            }
+            return row;
+          });
 
-        if (_data[productId]) {
-          _data[productId] += quantity * convertionQuantity;
-        } else {
-          _data[productId] = 0;
-          _data[productId] += quantity * convertionQuantity;
+          setDataTable(_dataTable);
         }
       }
-    });
-
-    let productIds = Object.keys(_data);
-
-    let formData = {
-      data: productIds.map((productId) => ({
-        quantity: _data[productId],
-        productId,
-        type: "Nhập kho",
-        employeeId: account?.id,
-      })),
-    };
-
-    let res = await storeApi.addMany(formData);
-    console.log(res);
-    if (res.isSuccess) {
-      message.info("oke");
     } else {
-      message.error("error");
-    }
-
-    function checkData() {
-      let isCheck = true;
-
-      return isCheck;
+      let _dataTable = dataTable.map((row) => {
+        if (row.rowId == rowId) {
+          return {
+            ...row,
+            product: "",
+            utIdSelected: "",
+            quantity1: 0,
+            quantity2: 0,
+            quantity3: 0,
+            quantity4: 0,
+          };
+        }
+        return row;
+      });
+      setDataTable(_dataTable);
     }
   }
+
+  function handleOnChangeUtIdSelect(utIdSelected, rowId) {
+    let _dataTable = dataTable.map((row) => {
+      if (row.rowId == rowId) {
+        return {
+          ...row,
+          utIdSelected: utIdSelected,
+        };
+      }
+      return row;
+    });
+    setDataTable(_dataTable);
+  }
+
+  async function onSubmit(type, isClose) {}
 
   return (
     <div className="price__modal">
-      <ModalCustomer visible={modalState.visible}>
+      <ModalCustomer
+        visible={modalState.visible}
+        style={{
+          width: "90%",
+        }}
+      >
         <div>
           <div className="title__container">
             <Typography.Title level={4} className="title">
-              {modalState.type == "update" ? "" : "Tạo phiếu kiểm kho"}
+              {modalState.type == "update" ? "" : "Thêm mới phiếu kiểm kho"}
             </Typography.Title>
           </div>
           <div className="form__container">
@@ -333,16 +422,8 @@ const StoreCheckingModal = ({ modalState, setModalState }) => {
                     margin: 0,
                   }}
                 >
-                  Danh sách sản phẩm{" "}
+                  Danh sách sản phẩm kiểm kho{" "}
                 </Typography.Title>
-                {/* <div className="search__container">
-                  <SearchProduct
-                    placeholder="Tìm kiếm sản phẩm"
-                    style={{
-                      width: "280px",
-                    }}
-                  />
-                </div> */}
               </div>
 
               <div className="btn__item">

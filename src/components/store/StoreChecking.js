@@ -34,6 +34,7 @@ import StoreCUModal from "./StoreCUModal";
 import storeApi from "../../api/storeApi";
 import { setStoreTickets } from "../../store/slices/storeTicketSlice";
 import StoreCheckingModal from "./StoreCheckingModal";
+import { setOpen } from "../../store/slices/modalSlice";
 
 const { Text } = Typography;
 
@@ -43,22 +44,11 @@ const StoreChecking = ({}) => {
   );
   const dispatch = useDispatch();
 
-  const [modalState, setModalState] = useState({
-    visible: false,
-    type: "",
-    rowSelected: null,
-  });
-
   const [pageState, setPageState] = useState({
     page: 1,
     limit: 10,
   });
 
-  const [
-    isShowStoreTransactionDetailModal,
-    setIsShowStoreTransactionDetailModal,
-  ] = useState(false);
-  const [idTransactionSelected, setIdTransactionSelected] = useState(null);
   const [allColumns, setAllColumns] = useState([
     {
       title: "Mã chứng từ",
@@ -154,18 +144,17 @@ const StoreChecking = ({}) => {
     });
   }
 
-  // open storetransactionDetail modal with id
-  function openStoreTrDetailModal(id) {
-    setIdTransactionSelected(id);
-    setIsShowStoreTransactionDetailModal(true);
-  }
-
   function onRowIdClick(row) {
-    setModalState({
-      type: "update",
-      visible: true,
-      rowSelected: row,
-    });
+    dispatch(
+      setOpen({
+        name: "StoreCheckingModal",
+        modalState: {
+          visible: true,
+          type: "update",
+          idSelected: row.id,
+        },
+      })
+    );
   }
 
   return (
@@ -187,10 +176,15 @@ const StoreChecking = ({}) => {
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => {
-              setModalState({
-                type: "create",
-                visible: true,
-              });
+              dispatch(
+                setOpen({
+                  name: "StoreCheckingModal",
+                  modalState: {
+                    type: "create",
+                    visible: true,
+                  },
+                })
+              );
             }}
           >
             Thêm mới
@@ -226,10 +220,6 @@ const StoreChecking = ({}) => {
           hideOnSinglePage
         />
       </div>
-      <StoreCheckingModal
-        modalState={modalState}
-        setModalState={setModalState}
-      />
     </div>
   );
 };

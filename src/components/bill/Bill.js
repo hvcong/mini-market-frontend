@@ -5,6 +5,7 @@ import {
   message,
   Modal,
   Pagination,
+  Popconfirm,
   Row,
   Space,
   Spin,
@@ -23,7 +24,7 @@ import {
   DownOutlined,
   RedoOutlined,
 } from "@ant-design/icons";
-import "../../assets/styles/promotion.scss";
+import "../../assets/styles/bill.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { sqlToDDmmYYY } from "./../../utils/index";
@@ -33,6 +34,7 @@ import { setPromotionHeaders } from "../../store/slices/promotionHeaderSlice";
 import BillCUModal from "./BillCUModal";
 import billApi from "./../../api/billApi";
 import { setBills } from "../../store/slices/billSlice";
+import ReceiveButton from "./ReceiveButton";
 
 const { Text } = Typography;
 
@@ -40,6 +42,8 @@ const Bill = ({}) => {
   let hideLoading = null;
   const { bills, refresh, count } = useSelector((state) => state.bill);
   const dispatch = useDispatch();
+
+  const [receiveOpenId, setReceiveOpenId] = useState("billId");
 
   const [modalState, setModalState] = useState({
     visible: false,
@@ -52,59 +56,70 @@ const Bill = ({}) => {
     limit: 10,
   });
 
-  const [allColumns, setAllColumns] = useState([
-    {
-      title: "Mã hóa đơn",
-      dataIndex: "id",
-      width: 100,
-      fixed: "left",
-      fixedShow: true,
-      render: (_, row) => (
-        <Typography.Link
-          onClick={() => {
-            onRowIdClick(row);
-          }}
-        >
-          {row.id}
-        </Typography.Link>
-      ),
-    },
-    {
-      title: "Ngày tạo",
-      dataIndex: "orderDate",
-    },
+  const [allColumns, setAllColumns] = useState([]);
+  useEffect(() => {
+    let _allCol = [
+      {
+        title: "Mã hóa đơn",
+        dataIndex: "id",
+        width: 160,
+        fixed: "left",
+        fixedShow: true,
+        render: (_, row) => (
+          <Typography.Link
+            onClick={() => {
+              onRowIdClick(row);
+            }}
+          >
+            {row.id}
+          </Typography.Link>
+        ),
+      },
+      {
+        title: "Ngày tạo",
+        dataIndex: "orderDate",
+      },
 
-    {
-      title: "Tổng tiền",
-      dataIndex: "cost",
-    },
-    {
-      title: "Mã nhân viên",
-      dataIndex: "EmployeeId",
-      render: (EmployeeId, rowData) => {
-        return <Typography.Link>{EmployeeId}</Typography.Link>;
+      {
+        title: "Tổng tiền",
+        dataIndex: "cost",
       },
-    },
-    {
-      title: "Mã khách hàng",
-      dataIndex: "CustomerId",
-      render: (CustomerId, rowData) => {
-        return <Typography.Link>{CustomerId}</Typography.Link>;
+      {
+        title: "Mã nhân viên",
+        dataIndex: "EmployeeId",
+        render: (EmployeeId, rowData) => {
+          return <Typography.Link>{EmployeeId}</Typography.Link>;
+        },
       },
-    },
-    {
-      title: "Xử lí",
-      width: 100,
-      fixed: "right",
-      render: (_, rowData) => {
-        return (
-          <Button size="small" danger icon={<RedoOutlined />}>
-            Trả hàng
-          </Button>
-        );
+      {
+        title: "Mã khách hàng",
+        dataIndex: "CustomerId",
+        render: (CustomerId, rowData) => {
+          return <Typography.Link>{CustomerId}</Typography.Link>;
+        },
       },
-    },
-  ]);
+      {
+        title: "Xử lí",
+        width: 100,
+        fixed: "right",
+        render: (_, rowData) => {
+          return (
+            <ReceiveButton
+              open={rowData.id == receiveOpenId}
+              setOpen={(id) => {
+                setReceiveOpenId(id);
+                console.log(id);
+              }}
+              billId={rowData.id}
+            />
+          );
+        },
+      },
+    ];
+
+    setAllColumns(_allCol);
+    return () => {};
+  }, [receiveOpenId]);
 
   useEffect(() => {
     getBills(pageState.page, pageState.limit);
@@ -113,6 +128,7 @@ const Bill = ({}) => {
 
   useEffect(() => {
     if (refresh) {
+      console.log("refresh");
       getBills(pageState.page, pageState.limit);
     }
 
