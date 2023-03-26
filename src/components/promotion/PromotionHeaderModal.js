@@ -33,6 +33,8 @@ import CustomerGroupSelect from "./../customerGroup/CustomerGroupSelect";
 import PromotionLineModal from "./PromotionLineModal";
 import { setRefreshPromotionHeaders } from "../../store/slices/promotionHeaderSlice";
 import { setRefreshPromotionLines } from "../../store/slices/promotionLineSlice";
+import { compareDMY } from "../../utils";
+import dayjs from "dayjs";
 
 const initFormState = {
   id: "",
@@ -48,7 +50,8 @@ const initFormState = {
 };
 const initErrMessage = {
   id: "",
-  time: "",
+  startDate: "",
+  endDate: "",
   title: "",
   description: "",
   budget: "",
@@ -109,6 +112,7 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
       description,
       budget,
       state,
+      availableBudget: budget,
       image,
       customerIds: customerTypeIds.map((item) => {
         return {
@@ -120,12 +124,12 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
     if (await checkData()) {
       let res = {};
 
-      if (modalState.type == "create") {
+      if (type == "create") {
         hideLoading = message.loading("Đang tạo mới...", 0);
         res = await promotionApi.addOneHeader(formData);
         if (res.isSuccess) {
           hideLoading();
-          message.info("Thêm mới thành công");
+          message.info("Thêm mới thành công", 3);
           dispatch(setRefreshPromotionHeaders());
 
           if (isClose) {
@@ -139,7 +143,7 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
           }
         } else {
           hideLoading();
-          message.error("Có lỗi xảy ra, vui lòng thử lại!");
+          message.error("Có lỗi xảy ra, vui lòng thử lại!", 3);
         }
       } else {
         // update
@@ -156,7 +160,7 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
 
         if (res.isSuccess) {
           hideLoading();
-          message.info("Cập nhật thành công");
+          message.info("Cập nhật thành công", 3);
           dispatch(setRefreshPromotionHeaders());
           dispatch(setRefreshPromotionLines());
         }
@@ -235,6 +239,215 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
     setFormState(initFormState);
   }
 
+  async function handleOnChangeState(is) {
+    if (modalState.type == "create") {
+      // to active
+      if (is) {
+        if (!formState.startDate || !formState.endDate) {
+          message.error("Vui lòng chọn ngày bắt đầu và kết thúc trước!", 3);
+          return;
+        }
+
+        // khi tạo ngày bắt đầu phải == now mới được active
+        let now = new Date();
+        let start = new Date(formState.startDate);
+
+        let result = compareDMY(now, start);
+
+        if (result >= 0) {
+          setFormState({
+            ...formState,
+            state: is,
+          });
+        } else {
+          message.error("Ngày bắt đầu phải bé hơn hoặc bằng ngày hiện tại!", 3);
+        }
+      } else {
+        setFormState({
+          ...formState,
+          state: is,
+        });
+      }
+    }
+
+    if (modalState.type == "update") {
+      /**
+       * To active
+       * - kiểm tra thời gian ( start <= now && end > now)
+       * - kiểm tra trùng priceline
+       */
+
+      if (is) {
+        let isCheck = true;
+        let start = formState.startDate;
+        let end = formState.endDate;
+
+        if (compareDMY(new Date(start), new Date()) > 0) {
+          isCheck = false;
+          message.error("Ngày bắt đầu phải bé hơn hoặc bằng ngày hiện tại!", 3);
+        }
+
+        if (compareDMY(new Date(end), new Date()) < 1) {
+          isCheck = false;
+          message.error("Ngày kết thúc phải lớn hơn ngày hiện tại!", 3);
+        }
+
+        // kiểm tra trùng
+        // let res = await priceHeaderApi.getAllOnActive();
+
+        // let isExist = false;
+        // if (res.isSuccess) {
+        //   let headers = res.headers || [];
+        //   // loop through each header
+        //   for (const header of headers) {
+        //     // loop through each line in a header
+        //     let priceLines = header.Prices || [];
+
+        //     for (const line of priceLines) {
+        //       console.log(priceLines);
+        //       for (const _lineThisHeader of formState.Prices || []) {
+        //         if (
+        //           _lineThisHeader.ProductUnitTypeId == line.ProductUnitTypeId
+        //         ) {
+        //           isExist = true;
+        //           isCheck = false;
+        //           message.error(
+        //             `Sản phẩm "${line.ProductUnitType.Product.name} với đơn vị ${line.ProductUnitType.UnitType.name}" đang được bán ở bảng ${header.title} `
+        //           );
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
+
+        if (isCheck) {
+          // to active header
+          let res = await promotionApi.updateOneHeader(formState.id, {
+            state: true,
+          });
+
+          if (res.isSuccess) {
+            setFormState({
+              ...formState,
+              state: true,
+            });
+            message.info("Chương trình khuyến mãi đã bắt đầu sử dụng.", 3);
+            dispatch(setRefreshPromotionHeaders());
+          }
+        }
+      } else {
+        let res = await promotionApi.updateOneHeader(formState.id, {
+          state: false,
+        });
+
+        if (res.isSuccess) {
+          setFormState({
+            ...formState,
+            state: false,
+          });
+          message.info("Đã tạm dừng khuyến mãi ", 3);
+          dispatch(setRefreshPromotionHeaders());
+        }
+      }
+    }
+  }
+
+  async function handleOnChangeStartDate(string) {
+    if (modalState.type == "create") {
+      setFormState({
+        ...formState,
+        startDate: string,
+        endDate: "",
+        state: false,
+      });
+    } else {
+      // update
+      if (string) {
+        let start = new Date(string);
+        let end = new Date(formState.endDate);
+        if (compareDMY(start, new Date()) >= 0 && compareDMY(start, end) < 0) {
+          // oke
+          let res = await promotionApi.updateOneHeader(formState.id, {
+            startDate: string,
+          });
+
+          if (res.isSuccess) {
+            dispatch(setRefreshPromotionHeaders());
+            setFormState({
+              ...formState,
+              startDate: string,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  function disabledStartDate() {
+    if (modalState.type == "update") {
+      // đang active thì ko đc chỉnh ngày bắt đầu
+      if (formState.state) {
+        return true;
+      }
+
+      // ko active
+
+      let start = formState.startDate;
+      if (compareDMY(new Date(start), new Date()) < 0) {
+        return true;
+      }
+
+      // đang ko active
+    }
+  }
+
+  function disableEndDate() {
+    if (modalState.type == "create") {
+      if (!formState.startDate) {
+        return true;
+      }
+    } else {
+      // when update
+    }
+  }
+
+  async function handleOnChangeEndDate(string) {
+    let st = new Date(formState.startDate);
+    let now = new Date();
+    if (string) {
+      if (compareDMY(st, new Date(string)) >= 0) {
+        message.error("Ngày kết thúc phải lớn hơn ngày bắt đầu!", 3);
+        return;
+      }
+
+      if (compareDMY(new Date(string), now) <= 0) {
+        message.error("Ngày kết thúc phải lớn hơn ngày hiện tại!", 3);
+        return;
+      }
+
+      console.log("herer");
+      //oke when update
+      if (modalState.type == "update") {
+        let res = await promotionApi.updateOneHeader(formState.id, {
+          endDate: string,
+        });
+        if (res.isSuccess) {
+          dispatch(setRefreshPromotionHeaders());
+          setFormState({
+            ...formState,
+            endDate: string,
+          });
+        }
+      } else {
+        // create
+        setFormState({
+          ...formState,
+          endDate: string,
+        });
+      }
+    }
+  }
+
   return (
     <div className="promotion_header_modal">
       <ModalCustomer
@@ -305,17 +518,75 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
                     </div>
                   </div>
                   <div className="promotion_header_form_group">
-                    <div className="promotion_header_form_label">Thời gian</div>
+                    <div className="promotion_header_form_label">
+                      Ngày bắt đầu
+                    </div>
                     <div className="promotion_header_form_input_wrap">
-                      <DatePickerCustom
+                      <DatePicker
                         className="promotion_header_form_date"
                         size="small"
-                        onChangeDate={onChangeDate}
-                        value={[startDate, endDate]}
-                        status={errMessage.time && "error"}
+                        onChange={handleOnChangeStartDate}
+                        disabledDate={(current) => {
+                          let now = new Date();
+                          if (modalState.type == "update") {
+                            let end = new Date(formState.endDate);
+                            end.setDate(end.getDate() - 1);
+                            return (
+                              (current &&
+                                current <
+                                  dayjs(now.setDate(now.getDate() - 1))) ||
+                              (current && current >= dayjs(end))
+                            );
+                          }
+                          return (
+                            current &&
+                            current < dayjs(now.setDate(now.getDate() - 1))
+                          );
+                        }}
+                        value={
+                          formState.startDate &&
+                          dayjs(formState.startDate, "YYYY-MM-DD")
+                        }
+                        disabled={disabledStartDate()}
+                        status={errMessage.startDate && "error"}
                       />
                       <div className="promotion_header_form_input_err">
-                        {errMessage.time}
+                        {errMessage.startDate}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="promotion_header_form_group">
+                    <div className="promotion_header_form_label">
+                      Ngày kết thúc
+                    </div>
+                    <div className="promotion_header_form_input_wrap">
+                      <DatePicker
+                        className="promotion_header_form_date"
+                        size="small"
+                        onChange={handleOnChangeEndDate}
+                        disabledDate={(current) => {
+                          let isDisable = false;
+                          if (modalState.type == "create") {
+                            let st = new Date(formState.startDate);
+                            isDisable =
+                              current <= dayjs(st.setDate(st.getDate()));
+                          } else {
+                            let st = new Date(formState.startDate);
+                            isDisable =
+                              current <= dayjs(st.setDate(st.getDate())) ||
+                              current <= dayjs(new Date());
+                          }
+                          return isDisable;
+                        }}
+                        value={
+                          formState.endDate &&
+                          dayjs(formState.endDate, "YYYY-MM-DD")
+                        }
+                        disabled={disableEndDate()}
+                        status={errMessage.endDate && "error"}
+                      />
+                      <div className="promotion_header_form_input_err">
+                        {errMessage.endDate}
                       </div>
                     </div>
                   </div>
@@ -419,12 +690,7 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
                     </div>
                     <div className="promotion_header_form_input_wrap">
                       <Switch
-                        onChange={(value) =>
-                          setFormState({
-                            ...formState,
-                            state: value,
-                          })
-                        }
+                        onChange={handleOnChangeState}
                         checked={state}
                         status={errMessage.state && "error"}
                       />

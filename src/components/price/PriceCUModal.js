@@ -36,6 +36,9 @@ import priceHeaderApi from "../../api/priceHeaderApi";
 import { setRefreshPriceHeaders } from "../../store/slices/priceHeaderSlice";
 import PriceLineTable from "./PriceLineTable";
 import DatePickerCustom from "../promotion/DatePickerCustom";
+import dayjs from "dayjs";
+import { compareDMY } from "../../utils";
+import productApi from "./../../api/productApi";
 const { Text } = Typography;
 
 const initFormState = {
@@ -43,7 +46,8 @@ const initFormState = {
   title: "",
   startDate: "",
   endDate: "",
-  state: true,
+  state: false,
+  Prices: [],
 };
 
 const initErrMessage = {};
@@ -69,12 +73,19 @@ const PriceCUModal = ({ modalState, setModalState }) => {
     let { type, visible, rowSelected } = modalState;
 
     if (type && visible && rowSelected) {
-      setFormState({
-        ...rowSelected,
-      });
+      loadOneHeaderById(rowSelected.id);
     }
     return () => {};
   }, [modalState]);
+
+  async function loadOneHeaderById(id) {
+    let res = await priceHeaderApi.getOneById(id);
+    if (res.isSuccess) {
+      let header = res.header;
+
+      setFormState(header);
+    }
+  }
 
   function clearModal() {
     setFormState(initFormState);
@@ -151,8 +162,12 @@ const PriceCUModal = ({ modalState, setModalState }) => {
         _errMess.title = "Không được bỏ trống!";
       }
 
-      if (!formState.startDate || !formState.endDate) {
-        _errMess.time = "Không được bỏ trống!";
+      if (!formState.startDate) {
+        _errMess.startDate = "Không được bỏ trống!";
+      }
+
+      if (!formState.endDate) {
+        _errMess.endDate = "Không được bỏ trống!";
       }
 
       Object.keys(_errMess).map((key) => {
@@ -175,9 +190,229 @@ const PriceCUModal = ({ modalState, setModalState }) => {
     };
   }, []);
 
+  async function handleOnChangeState(is) {
+    if (modalState.type == "create") {
+      // to active
+      if (is) {
+        if (!formState.startDate || !formState.endDate) {
+          message.error("Vui lòng chọn ngày bắt đầu và kết thúc trước!");
+          return;
+        }
+
+        // khi tạo ngày bắt đầu phải == now mới được active
+        let now = new Date();
+        let start = new Date(formState.startDate);
+
+        let result = compareDMY(now, start);
+
+        if (result >= 0) {
+          setFormState({
+            ...formState,
+            state: is,
+          });
+        } else {
+          message.error("Ngày bắt đầu phải bé hơn hoặc bằng ngày hiện tại!");
+        }
+      } else {
+        setFormState({
+          ...formState,
+          state: is,
+        });
+      }
+    }
+
+    if (modalState.type == "update") {
+      /**
+       * To active
+       * - kiểm tra thời gian ( start <= now && end > now)
+       * - kiểm tra trùng priceline
+       */
+
+      if (is) {
+        let isCheck = true;
+        let start = formState.startDate;
+        let end = formState.endDate;
+
+        if (compareDMY(new Date(start), new Date()) > 0) {
+          isCheck = false;
+          message.error("Ngày bắt đầu phải bé hơn hoặc bằng ngày hiện tại!");
+        }
+
+        if (compareDMY(new Date(end), new Date()) < 1) {
+          isCheck = false;
+          message.error("Ngày kết thúc phải lớn hơn ngày hiện tại!");
+        }
+
+        // kiểm tra trùng
+        let res = await priceHeaderApi.getAllOnActive();
+
+        let isExist = false;
+        if (res.isSuccess) {
+          let headers = res.headers || [];
+          // loop through each header
+          for (const header of headers) {
+            // loop through each line in a header
+            let priceLines = header.Prices || [];
+
+            for (const line of priceLines) {
+              console.log(priceLines);
+              for (const _lineThisHeader of formState.Prices || []) {
+                if (
+                  _lineThisHeader.ProductUnitTypeId == line.ProductUnitTypeId
+                ) {
+                  isExist = true;
+                  isCheck = false;
+                  message.error(
+                    `Sản phẩm "${line.ProductUnitType.Product.name} với đơn vị ${line.ProductUnitType.UnitType.name}" đang được bán ở bảng ${header.title} `
+                  );
+                }
+              }
+            }
+          }
+        }
+
+        if (isCheck) {
+          // to active header
+          let res = await priceHeaderApi.updateOne({
+            id: formState.id,
+            state: true,
+          });
+
+          if (res.isSuccess) {
+            setFormState({
+              ...formState,
+              state: true,
+            });
+            message.info("Áp dụng bảng giá thành công");
+            dispatch(setRefreshPriceHeaders());
+          }
+        }
+      } else {
+        let res = await priceHeaderApi.updateOne({
+          id: formState.id,
+          state: false,
+        });
+
+        if (res.isSuccess) {
+          setFormState({
+            ...formState,
+            state: false,
+          });
+          message.info("Tạm dừng bảng giá thành công");
+          dispatch(setRefreshPriceHeaders());
+        }
+      }
+    }
+  }
+
+  async function handleOnChangeStartDate(string) {
+    if (modalState.type == "create") {
+      setFormState({
+        ...formState,
+        startDate: string,
+        endDate: "",
+        state: false,
+      });
+    } else {
+      // update
+      if (string) {
+        let start = new Date(string);
+        let end = new Date(formState.endDate);
+        if (compareDMY(start, new Date()) >= 0 && compareDMY(start, end) < 0) {
+          message.info("lon hon");
+
+          // oke
+          let res = await priceHeaderApi.updateOne({
+            id: formState.id,
+            startDate: string,
+          });
+          if (res.isSuccess) {
+            setFormState({
+              ...formState,
+              startDate: string,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  function disabledStartDate() {
+    if (modalState.type == "update") {
+      // đang active thì ko đc chỉnh ngày bắt đầu
+      if (formState.state) {
+        return true;
+      }
+
+      // ko active
+
+      let start = formState.startDate;
+      if (compareDMY(new Date(start), new Date()) < 0) {
+        return true;
+      }
+
+      // đang ko active
+    }
+  }
+
+  function disableEndDate() {
+    if (modalState.type == "create") {
+      if (!formState.startDate) {
+        return true;
+      }
+    } else {
+      // when update
+    }
+  }
+
+  async function handleOnChangeEndDate(string) {
+    let st = new Date(formState.startDate);
+    let now = new Date();
+    if (string) {
+      if (compareDMY(st, new Date(string)) >= 0) {
+        message.error("Ngày kết thúc phải lớn hơn ngày bắt đầu!");
+        return;
+      }
+
+      if (compareDMY(new Date(string), now) <= 0) {
+        message.error("Ngày kết thúc phải lớn hơn ngày hiện tại!");
+        return;
+      }
+
+      // oke when update
+      if (modalState.type == "update") {
+        let res = await priceHeaderApi.updateOne({
+          id: formState.id,
+          endDate: string,
+        });
+      }
+      setFormState({
+        ...formState,
+        endDate: string,
+      });
+    }
+  }
+
+  async function getPUTid(productId, utId) {
+    let res = await productApi.findOneById(productId);
+    if (!res.isSuccess) {
+      return;
+    }
+
+    let putId = res.product.ProductUnitTypes.filter(
+      (item) => item.UnitTypeId == utId
+    )[0].id;
+    return putId;
+  }
+
   return (
     <div className="price__modal">
-      <ModalCustomer visible={modalState.visible}>
+      <ModalCustomer
+        visible={modalState.visible}
+        style={{
+          width: "96%",
+        }}
+      >
         <div>
           <div className="title__container">
             <Typography.Title level={4} className="title">
@@ -225,23 +460,74 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                   <div className="input_err">{errMessage.title}</div>
                 </div>
               </div>
+
               <div className="input__container">
-                <Text className="input__label">Thời gian</Text>
+                <Text className="input__label">Ngày bắt đầu</Text>
                 <div className="input_wrap">
-                  <DatePickerCustom
+                  <DatePicker
                     size="small"
-                    value={[formState.startDate, formState.endDate]}
-                    onChangeDate={(strings) => {
-                      setFormState({
-                        ...formState,
-                        startDate: strings[0],
-                        endDate: strings[1],
-                      });
+                    value={
+                      formState.startDate &&
+                      dayjs(formState.startDate, "YYYY-MM-DD")
+                    }
+                    onChange={(_, string) => {
+                      handleOnChangeStartDate(string);
                     }}
-                    status={errMessage.time && "error"}
+                    disabledDate={(current) => {
+                      let now = new Date();
+                      if (modalState.type == "update") {
+                        let end = new Date(formState.endDate);
+                        end.setDate(end.getDate() - 1);
+                        return (
+                          (current &&
+                            current < dayjs(now.setDate(now.getDate() - 1))) ||
+                          (current && current >= dayjs(end))
+                        );
+                      }
+                      return (
+                        current &&
+                        current < dayjs(now.setDate(now.getDate() - 1))
+                      );
+                    }}
+                    disabled={disabledStartDate()}
+                    status={errMessage.startDate && "error"}
                   />
 
-                  <div className="input_err">{errMessage.time}</div>
+                  <div className="input_err">{errMessage.startDate}</div>
+                </div>
+              </div>
+              <div className="input__container">
+                <Text className="input__label">Ngày kết thúc</Text>
+                <div className="input_wrap">
+                  <DatePicker
+                    size="small"
+                    value={
+                      formState.endDate &&
+                      dayjs(formState.endDate, "YYYY-MM-DD")
+                    }
+                    disabled={disableEndDate()}
+                    onChange={(_, string) => {
+                      handleOnChangeEndDate(string);
+                    }}
+                    disabledDate={(current) => {
+                      let isDisable = false;
+
+                      if (modalState.type == "create") {
+                        let st = new Date(formState.startDate);
+                        isDisable = current <= dayjs(st.setDate(st.getDate()));
+                      } else {
+                        let st = new Date(formState.startDate);
+                        isDisable =
+                          current <= dayjs(st.setDate(st.getDate())) ||
+                          current <= dayjs(new Date());
+                      }
+
+                      return isDisable;
+                    }}
+                    status={errMessage.endDate && "error"}
+                  />
+
+                  <div className="input_err">{errMessage.endDate}</div>
                 </div>
               </div>
               <div className="input__container">
@@ -250,12 +536,7 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                   checkedChildren="On"
                   unCheckedChildren="Off"
                   checked={formState.state}
-                  onChange={(is) =>
-                    setFormState({
-                      ...formState,
-                      state: is,
-                    })
-                  }
+                  onChange={handleOnChangeState}
                 />
               </div>
             </div>

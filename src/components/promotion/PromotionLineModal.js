@@ -36,6 +36,7 @@ import DiscountRatePromotion from "./DiscountRatePromotion";
 import VoucherPromotion from "./VoucherPromotion";
 import { setRefreshPromotionLines } from "../../store/slices/promotionLineSlice";
 import productApi from "../../api/productApi";
+import { uid } from "../../utils";
 
 const initFormState = {
   id: "",
@@ -147,14 +148,185 @@ const PromotionLineModal = ({
     const { type, rowSelected, visible } = modalState;
 
     if (type == "update" && rowSelected && visible) {
-      // console.log(rowSelected);
-      setFormState({
-        ...rowSelected,
-      });
+      loadPromotionLine(rowSelected.id, rowSelected.type);
     }
 
     return () => {};
   }, [modalState]);
+
+  async function loadPromotionLine(id, type) {
+    if (type == "PP") {
+      let res = await promotionApi.getOnePPById(id);
+      if (res.isSuccess) {
+        setFormState({
+          id: "",
+          typePromotionId: type,
+          time: "",
+          title: "",
+          description: "",
+          state: true,
+          PP: {
+            productId1: "",
+            ut1: "",
+            milestones: "",
+            productId2: "",
+            ut2: "",
+            quantity: "",
+            state: true,
+          },
+          DRP: {
+            productId: "",
+            ut: "",
+            discountRate: "",
+            state: true,
+          },
+          MP: {
+            minCost: "",
+            discountMoney: "",
+            discountRate: "",
+            maxDiscountMoney: "",
+            state: true,
+          },
+          V: {
+            code: "",
+            discountMoney: "",
+            discountRate: "",
+            maxDiscountMoney: "",
+            state: true,
+          },
+        });
+      }
+    }
+
+    if (type == "MP") {
+      let res = await promotionApi.getOneMPById(id);
+      if (res.isSuccess) {
+        setFormState({
+          id: "",
+          typePromotionId: type,
+          time: "",
+          title: "",
+          description: "",
+          state: true,
+          PP: {
+            productId1: "",
+            ut1: "",
+            milestones: "",
+            productId2: "",
+            ut2: "",
+            quantity: "",
+            state: true,
+          },
+          DRP: {
+            productId: "",
+            ut: "",
+            discountRate: "",
+            state: true,
+          },
+          MP: {
+            minCost: "",
+            discountMoney: "",
+            discountRate: "",
+            maxDiscountMoney: "",
+            state: true,
+          },
+          V: {
+            code: "",
+            discountMoney: "",
+            discountRate: "",
+            maxDiscountMoney: "",
+            state: true,
+          },
+        });
+      }
+    }
+
+    if (type == "DRP") {
+      let res = await promotionApi.getOneDRPById(id);
+      if (res.isSuccess) {
+        setFormState({
+          id: "",
+          typePromotionId: type,
+          time: "",
+          title: "",
+          description: "",
+          state: true,
+          PP: {
+            productId1: "",
+            ut1: "",
+            milestones: "",
+            productId2: "",
+            ut2: "",
+            quantity: "",
+            state: true,
+          },
+          DRP: {
+            productId: "",
+            ut: "",
+            discountRate: "",
+            state: true,
+          },
+          MP: {
+            minCost: "",
+            discountMoney: "",
+            discountRate: "",
+            maxDiscountMoney: "",
+            state: true,
+          },
+          V: {
+            code: "",
+            discountMoney: "",
+            discountRate: "",
+            maxDiscountMoney: "",
+            state: true,
+          },
+        });
+      }
+    }
+
+    if (type == "V") {
+      let res = await promotionApi.getOneVById(id);
+      if (res.isSuccess) {
+        setFormState({
+          id: "",
+          typePromotionId: type,
+          time: "",
+          title: "",
+          description: "",
+          state: true,
+          PP: {
+            productId1: "",
+            ut1: "",
+            milestones: "",
+            productId2: "",
+            ut2: "",
+            quantity: "",
+            state: true,
+          },
+          DRP: {
+            productId: "",
+            ut: "",
+            discountRate: "",
+            state: true,
+          },
+          MP: {
+            minCost: "",
+            discountMoney: "",
+            discountRate: "",
+            maxDiscountMoney: "",
+            state: true,
+          },
+          V: {
+            code: "",
+            discountMoney: "",
+            discountRate: "",
+            maxDiscountMoney: "",
+            state: true,
+          },
+        });
+      }
+    }
+  }
 
   async function onSubmit(type, isClose) {
     let res = {};
@@ -179,6 +351,7 @@ const PromotionLineModal = ({
         let { PP } = formState;
 
         let putId = await getPUTid(PP.productId1, PP.ut1);
+        let putId2 = await getPUTid(PP.productId2, PP.ut2);
 
         if (type == "create") {
           formData = {
@@ -194,6 +367,16 @@ const PromotionLineModal = ({
           };
 
           res = await promotionApi.addOnePP(formData);
+          if (res.isSuccess) {
+            formData = {
+              id: uid(),
+              quantity: PP.quantity,
+              ProductUnitTypeId: putId2,
+              ProductPromotionId: formState.id,
+            };
+            console.log(formData);
+            res = await promotionApi.addOneGift(formData);
+          }
         }
       }
 
@@ -502,6 +685,7 @@ const PromotionLineModal = ({
                             typePromotionId: value,
                           });
                         }}
+                        disabled={modalState.type == "update"}
                       />
                       <div className="promotion_line_form_input_err">
                         {errMessage.typePromotionId}
@@ -599,6 +783,7 @@ const PromotionLineModal = ({
                 <div className="promotion_line_form_bottom_container">
                   {formState.typePromotionId == "PP" && (
                     <ProductGiftPromotion
+                      modalType={modalState.type}
                       formState={formState.PP}
                       setFormState={(value) => {
                         setFormState({
@@ -617,6 +802,7 @@ const PromotionLineModal = ({
                   )}
                   {formState.typePromotionId == "MP" && (
                     <MoneyProductPromotion
+                      modalType={modalState.type}
                       formState={formState.MP}
                       setFormState={(value) => {
                         setFormState({
@@ -635,6 +821,7 @@ const PromotionLineModal = ({
                   )}
                   {formState.typePromotionId == "DRP" && (
                     <DiscountRatePromotion
+                      modalType={modalState.type}
                       formState={formState.DRP}
                       setFormState={(value) => {
                         setFormState({
@@ -653,6 +840,7 @@ const PromotionLineModal = ({
                   )}
                   {formState.typePromotionId == "V" && (
                     <VoucherPromotion
+                      modalType={modalState.type}
                       formState={formState.V}
                       setFormState={(value) => {
                         setFormState({

@@ -566,3 +566,33 @@
   font-size: 13px;
   color: red;
 }
+
+.promotion_header_detail {
+  .promotion_header_detail_form_top {
+    display: flex;
+    font-size: 13px;
+  }
+  .promotion_header_detail_form_left {
+  }
+  .promotion_header_detail_form_right {
+    flex: 1;
+    margin-left: 100px;
+    .promotion_header_form_label {
+      width: 60px;
+    }
+  }
+  .promotion_header_form_group {
+    display: flex;
+    padding-bottom: 12px;
+  }
+  .promotion_header_form_label {
+    width: 140px;
+  }
+  .promotion_header_form_input_wrap {
+  }
+  .promotion_header_form_input_number {
+    width: 240px;
+  }
+  .promotion_header_detail_form_bottom {
+  }
+}

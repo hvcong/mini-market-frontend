@@ -53,7 +53,7 @@ const StoreChecking = ({}) => {
     {
       title: "Mã chứng từ",
       dataIndex: "id",
-      width: 100,
+      width: 160,
       fixed: "left",
       fixedShow: true,
       render: (_, row) => (
@@ -66,10 +66,7 @@ const StoreChecking = ({}) => {
         </Typography.Link>
       ),
     },
-    {
-      title: "Mã sản phẩm",
-      dataIndex: "ProductId",
-    },
+
     {
       title: "Mã nhân viên",
       dataIndex: "EmployeeId",
@@ -88,27 +85,14 @@ const StoreChecking = ({}) => {
         }
       },
     },
-    {
-      title: "Số lượng báo cáo",
-      dataIndex: "reportQty",
-    },
-    {
-      title: "Số lượng thực tế",
-      dataIndex: "realQty",
-    },
-    {
-      title: "Số lượng biến động",
-      dataIndex: "availableBudget",
-      render: (_, rowData) => {
-        if (rowData) {
-          return rowData.reportQty - rowData.realQty;
-        }
-      },
-    },
+
     {
       width: 200,
       title: "Thời gian kiểm",
       dataIndex: "createAt",
+      render: (createAt) => {
+        return sqlToDDmmYYY(createAt);
+      },
     },
     {
       title: "Ghi chú",
@@ -147,7 +131,7 @@ const StoreChecking = ({}) => {
   function onRowIdClick(row) {
     dispatch(
       setOpen({
-        name: "StoreCheckingModal",
+        name: "StoreCheckingDetail",
         modalState: {
           visible: true,
           type: "update",

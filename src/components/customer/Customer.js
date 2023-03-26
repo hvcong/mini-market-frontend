@@ -112,7 +112,7 @@ const Customer = ({}) => {
       width: 200,
       dataIndex: "groupId",
       render: (_, rowData) => {
-        return rowData.TypeCustomer.name;
+        return rowData.TypeCustomer && rowData.TypeCustomer.name;
       },
     },
   ]);

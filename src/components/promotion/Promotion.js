@@ -25,7 +25,7 @@ import {
 import "../../assets/styles/promotion.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { sqlToDDmmYYY } from "./../../utils/index";
+import { compareDMY, sqlToDDmmYYY } from "./../../utils/index";
 import priceHeaderApi from "./../../api/priceHeaderApi";
 import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
 import DropSelectColum from "./../product/DropSelectColum";
@@ -106,13 +106,21 @@ const Promotion = ({}) => {
     {
       title: "Trạng thái",
       dataIndex: "state",
-      render: (_, header) => (
-        <Switch
-          checkedChildren="On"
-          unCheckedChildren="Off"
-          checked={header.state}
-        />
-      ),
+      render: (_, header) => {
+        let start = new Date(header.startDate);
+        let end = new Date(header.endDate);
+        let now = new Date();
+
+        if (
+          header.state &&
+          compareDMY(start, now) <= 0 &&
+          compareDMY(end, now) > 0
+        ) {
+          return <div style={{ color: "green" }}>Đang sử dụng</div>;
+        } else {
+          return <div style={{ color: "red" }}>Đã ngưng</div>;
+        }
+      },
     },
   ]);
 
@@ -141,8 +149,35 @@ const Promotion = ({}) => {
     hideLoading = message.loading("Tải dữ liệu chương trình khuyến mãi...", 0);
     let res = await promotionApi.getLimitHeader(page, limit);
     if (res.isSuccess) {
-      dispatch(setPromotionHeaders(res.promotions));
+      let data = res.promotions;
+      console.log(data);
+      let _promotions = [];
+      for (const promotion of data.rows) {
+        let end = new Date(promotion.endDate);
+        let now = new Date();
+
+        if (end) {
+          if (compareDMY(end, now) <= 0) {
+            res = await promotionApi.updateOneHeader(promotion.id, {
+              state: false,
+            });
+            if (res.isSuccess) {
+              _promotions.push({
+                ...promotion,
+                state: false,
+              });
+            }
+            continue;
+          }
+        }
+
+        _promotions.push(promotion);
+      }
+
+      data.rows = _promotions;
+      dispatch(setPromotionHeaders(data));
     }
+
     hideLoading();
   }
 

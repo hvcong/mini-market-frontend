@@ -12,6 +12,11 @@ const initState = {
       type: "",
       idSelected: "",
     },
+    StoreCheckingDetail: {
+      visible: false,
+      type: "",
+      idSelected: "",
+    },
   },
 };
 

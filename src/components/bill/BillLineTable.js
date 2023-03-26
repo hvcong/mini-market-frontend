@@ -7,15 +7,26 @@ import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import promotionApi from "./../../api/promotionApi";
 import { setPromotionLines } from "../../store/slices/promotionLineSlice";
-import { sqlToDDmmYYY } from "./../../utils/index";
+import { sqlToDDmmYYY, uid } from "./../../utils/index";
 import PromotionLineModal from "./../promotion/PromotionLineModal";
 import billApi from "./../../api/billApi";
 
-const BillLineTable = ({ BillDetails = [], ProductPromotion }) => {
+let initDataTable = [
+  // {
+  //   id: "",
+  //   quantity: "",
+  //   price: "",
+  //   productId: "",
+  //   utName: "",
+  //   utId: "",
+  // },
+];
+
+const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
   let hideLoading = null;
   const dispatch = useDispatch();
   const [modalState, setModalState] = useState({});
-  const [tableData, setTableData] = useState([]);
+  const [tableData, setTableData] = useState(initDataTable);
 
   const [allColumns, setAllColumns] = useState([
     {
@@ -23,7 +34,7 @@ const BillLineTable = ({ BillDetails = [], ProductPromotion }) => {
       dataIndex: "isGift",
       width: 64,
       render: (isGift) => {
-        return !isGift ? (
+        return isGift ? (
           <GiftOutlined
             style={{
               fontSize: "20px",
@@ -44,6 +55,7 @@ const BillLineTable = ({ BillDetails = [], ProductPromotion }) => {
         return <Typography.Link>{productId}</Typography.Link>;
       },
     },
+
     {
       title: "Mã vị tính",
       dataIndex: "utId",
@@ -66,6 +78,8 @@ const BillLineTable = ({ BillDetails = [], ProductPromotion }) => {
       render: (price, rowData) => {
         if (!rowData.isGift) {
           return price;
+        } else {
+          return 0;
         }
       },
     },
@@ -75,7 +89,6 @@ const BillLineTable = ({ BillDetails = [], ProductPromotion }) => {
     if (BillDetails) {
       let _dataTable = [];
       BillDetails.map((bLine) => {
-        console.log(bLine);
         _dataTable.push({
           id: bLine.id,
           quantity: bLine.quantity,
@@ -86,11 +99,42 @@ const BillLineTable = ({ BillDetails = [], ProductPromotion }) => {
         });
       });
 
+      try {
+        // nhung san pham dc khuyen mai
+        listKM.map((result) => {
+          if (
+            result.isSuccess == true &&
+            result.type == "PP" &&
+            result.ProductPromotion
+          ) {
+            let PP = result.ProductPromotion || {};
+            let giftProduct = PP.GiftProduct || {};
+            let put2 = giftProduct.ProductUnitType || {};
+            console.log(put2);
+            let quantityGift = giftProduct.quantity;
+            let productGift = put2.Product || {};
+            let unitTypeGift = put2.UnitType || {};
+            let newRow = {
+              id: uid(),
+              quantity: quantityGift,
+              price: 0,
+              productId: productGift.id,
+              utName: unitTypeGift.name,
+              utId: unitTypeGift.id,
+              isGift: true,
+            };
+
+            _dataTable.push(newRow);
+          }
+        });
+      } catch (ex) {
+        console.log("data err");
+      }
       setTableData(_dataTable);
     }
 
     return () => {};
-  }, [BillDetails]);
+  }, [BillDetails, listKM]);
 
   function onClickRowId(rowData) {
     setModalState({

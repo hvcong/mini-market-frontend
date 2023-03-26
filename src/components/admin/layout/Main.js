@@ -10,6 +10,7 @@ import { useSelector } from "react-redux";
 import PriceCUModal from "../../price/PriceCUModal";
 import UnitTypeCUModal from "../../unittype/UnitTypeCUModal";
 import StoreCheckingModal from "../../store/StoreCheckingModal";
+import StoreCheckingDetail from "./../../store/StoreCheckingDetail";
 const Main = () => {
   return (
     <div className="admin">
@@ -24,6 +25,7 @@ const Main = () => {
           {/* modals */}
           <UnitTypeCUModal />
           <StoreCheckingModal />
+          <StoreCheckingDetail />
         </div>
 
         <div className="right">

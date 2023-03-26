@@ -26,7 +26,7 @@ import "../../assets/styles/priceLine.scss";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
-import { sqlToDDmmYYY } from "./../../utils/index";
+import { compareDMY, sqlToDDmmYYY } from "./../../utils/index";
 import priceHeaderApi from "./../../api/priceHeaderApi";
 import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
 import DropSelectColum from "./../product/DropSelectColum";
@@ -98,15 +98,21 @@ const Price = ({}) => {
     {
       title: "Trạng thái",
       dataIndex: "state",
-      render: (_, header) => (
-        <>
-          {header.state ? (
-            <div style={{ color: "green" }}>Đang sử dụng</div>
-          ) : (
-            <div style={{ color: "red" }}>Đã ngưng</div>
-          )}
-        </>
-      ),
+      render: (_, header) => {
+        let start = new Date(header.startDate);
+        let end = new Date(header.endDate);
+        let now = new Date();
+
+        if (
+          header.state &&
+          compareDMY(start, now) <= 0 &&
+          compareDMY(end, now) > 0
+        ) {
+          return <div style={{ color: "green" }}>Đang sử dụng</div>;
+        } else {
+          return <div style={{ color: "red" }}>Đã ngưng</div>;
+        }
+      },
     },
   ]);
 
@@ -125,8 +131,36 @@ const Price = ({}) => {
 
   async function getPriceHeaders(page, limit) {
     let res = await priceHeaderApi.getMany(page, limit);
+    console.log(res);
+
     if (res.isSuccess) {
-      dispatch(setPriceHeaders(res.headers));
+      let data = res.headers;
+      let _headers = [];
+      for (const header of data.rows) {
+        let end = new Date(header.endDate);
+        let now = new Date();
+
+        if (end) {
+          if (compareDMY(end, now) <= 0) {
+            res = await priceHeaderApi.updateOne({
+              id: header.id,
+              state: false,
+            });
+            if (res.isSuccess) {
+              _headers.push({
+                ...header,
+                state: false,
+              });
+            }
+            continue;
+          }
+        }
+
+        _headers.push(header);
+      }
+
+      data.rows = _headers;
+      dispatch(setPriceHeaders(data));
     }
   }
 

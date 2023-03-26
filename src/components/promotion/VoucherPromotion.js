@@ -6,6 +6,7 @@ const VoucherPromotion = ({
   formState = {},
   setFormState,
   errMessage = {},
+  modalType,
 }) => {
   return (
     <>
@@ -20,6 +21,7 @@ const VoucherPromotion = ({
               <Input
                 className="promotion_line_form_input"
                 size="small"
+                disabled={modalType == "update"}
                 value={formState.code}
                 onChange={({ target }) => {
                   setFormState({
@@ -40,6 +42,7 @@ const VoucherPromotion = ({
               <InputNumber
                 className="promotion_line_form_input"
                 size="small"
+                disabled={modalType == "update"}
                 value={formState.discountMoney}
                 onChange={(value) => {
                   setFormState({
@@ -63,6 +66,7 @@ const VoucherPromotion = ({
               <InputNumber
                 className="promotion_line_form_input"
                 size="small"
+                disabled={modalType == "update"}
                 value={formState.discountRate}
                 onChange={(value) => {
                   setFormState({
@@ -86,6 +90,7 @@ const VoucherPromotion = ({
               <InputNumber
                 className="promotion_line_form_input"
                 size="small"
+                disabled={modalType == "update"}
                 value={formState.maxDiscountMoney}
                 onChange={(value) => {
                   if (value) {

@@ -21,6 +21,11 @@ class PriceHeaderApi {
     let url = `priceHeader/update?id=${formData.id}`;
     return axiosClient.put(url, formData);
   }
+
+  getAllOnActive() {
+    let url = `priceHeader/active`;
+    return axiosClient.get(url);
+  }
 }
 
 const priceHeaderApi = new PriceHeaderApi();

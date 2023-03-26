@@ -35,6 +35,7 @@ import storeApi from "./../../api/storeApi";
 import UnitTypeSelectByProductId from "../promotion/UnitTypeSelectByProductId";
 import { setRefreshStoreTrans } from "../../store/slices/storeTranSlice";
 import { setOpen } from "../../store/slices/modalSlice";
+import { setRefreshStoreTickets } from "../../store/slices/storeTicketSlice";
 
 const lastItemOfTable = {
   isLastRow: true,
@@ -44,10 +45,10 @@ const initDataTable = [
   //   rowId: "",
   //   product: "",
   //   utIdSelected: "",
-  //   quantity1: 0,
-  //   quantity2: 0,
+
   //   quantity3: 0,
   //   quantity4: 0,
+  //    quantity4Disabled:false
   // },
 
   lastItemOfTable,
@@ -57,8 +58,6 @@ const initErrMessage = {
   // rowId: {
   //   product: "",
   //   utIdSelected: "",
-  //   quantity1: "",
-  //   quantity2: "",
   //   quantity3: "",
   //   quantity4: "",
   // },
@@ -71,6 +70,7 @@ const StoreCheckingModal = () => {
   const dispatch = useDispatch();
   const modalState =
     useSelector((state) => state.modal.modals["StoreCheckingModal"]) || {};
+  const { account } = useSelector((state) => state.user);
   const [allColumns, setAllColumns] = useState([]);
   const [dataTable, setDataTable] = useState(initDataTable);
   const [errMessage, setErrMessage] = useState(initErrMessage);
@@ -174,7 +174,7 @@ const StoreCheckingModal = () => {
         },
       },
       {
-        title: "Số lượng báo cáo",
+        title: "SL báo cáo",
         width: 120,
         dataIndex: "product",
         render: (_, rowData) => {
@@ -199,7 +199,7 @@ const StoreCheckingModal = () => {
         },
       },
       {
-        title: "Số lượng báo cáo lẻ ",
+        title: "SL lẻ báo cáo",
         width: 120,
 
         dataIndex: "product",
@@ -223,14 +223,14 @@ const StoreCheckingModal = () => {
         },
       },
       {
-        title: "Số lượng báo cáo thực tế",
+        title: "SL báo cáo thực tế",
         dataIndex: "product",
         render: (_, rowData) => {
           if (!rowData.isLastRow) {
             return (
               <InputNumber
                 size="small"
-                disabled={!rowData.product}
+                disabled={!rowData.product || !rowData.utIdSelected}
                 min={0}
                 value={rowData.quantity3}
                 onChange={(value) => {
@@ -253,14 +253,18 @@ const StoreCheckingModal = () => {
         },
       },
       {
-        title: "Số lượng lẻ thực tế",
+        title: "SL lẻ thực tế",
         dataIndex: "product",
         render: (_, rowData) => {
           if (!rowData.isLastRow) {
             return (
               <InputNumber
                 size="small"
-                disabled={!rowData.product}
+                disabled={
+                  !rowData.product ||
+                  rowData.quantity4Disabled ||
+                  !rowData.utIdSelected
+                }
                 min={0}
                 value={rowData.quantity4}
                 onChange={(value) => {
@@ -294,8 +298,7 @@ const StoreCheckingModal = () => {
       rowId: uid(),
       product: "",
       utIdSelected: "",
-      quantity1: 0,
-      quantity2: 0,
+
       quantity3: 0,
       quantity4: 0,
     };
@@ -372,8 +375,7 @@ const StoreCheckingModal = () => {
             ...row,
             product: "",
             utIdSelected: "",
-            quantity1: 0,
-            quantity2: 0,
+
             quantity3: 0,
             quantity4: 0,
           };
@@ -385,19 +387,110 @@ const StoreCheckingModal = () => {
   }
 
   function handleOnChangeUtIdSelect(utIdSelected, rowId) {
-    let _dataTable = dataTable.map((row) => {
-      if (row.rowId == rowId) {
+    if (utIdSelected) {
+      let _dataTable = dataTable.map((row) => {
+        if (row.rowId == rowId) {
+          return {
+            ...row,
+            utIdSelected: utIdSelected,
+          };
+        }
+        return row;
+      });
+
+      let convertionQuantity = 0;
+      _dataTable = _dataTable.map((row) => {
+        if (row.product && row.utIdSelected) {
+          row.product.ProductUnitTypes.map((put) => {
+            if (put.UnitTypeId == row.utIdSelected) {
+              convertionQuantity = put.UnitType.convertionQuantity;
+            }
+          });
+
+          if (convertionQuantity == 1) {
+            return {
+              ...row,
+              quantity4Disabled: true,
+            };
+          } else {
+            return {
+              ...row,
+              quantity4Disabled: false,
+            };
+          }
+        }
         return {
           ...row,
-          utIdSelected: utIdSelected,
+          quantity4Disabled: false,
         };
-      }
-      return row;
-    });
-    setDataTable(_dataTable);
+      });
+
+      setDataTable(_dataTable);
+    }
   }
 
-  async function onSubmit(type, isClose) {}
+  async function onSubmit(type, isClose) {
+    if (await checkData()) {
+      let res = {};
+      let formData = {};
+
+      if (type == "create") {
+        // loại bỏ những row rỗng
+        let _dataTable = dataTable.filter((row) => row.product);
+        try {
+          formData = {
+            EmployeeId: account.id,
+            ticketDetails: _dataTable.map((row) => {
+              let convertionQuantity = 0;
+              if (row.product && row.utIdSelected) {
+                row.product.ProductUnitTypes.map((put) => {
+                  if (put.UnitTypeId == row.utIdSelected) {
+                    convertionQuantity = put.UnitType.convertionQuantity;
+                  }
+                });
+              }
+
+              return {
+                reportQty: row.product.quantity,
+                realQty: row.quantity3 * convertionQuantity + row.quantity4,
+                ProductId: row.product.id,
+              };
+            }),
+          };
+
+          hideLoading = message.loading("Đang tạo mới...", 0);
+          res = await storeApi.addTiket(formData);
+
+          if (res.isSuccess) {
+            message.info("Thao tác thành công");
+
+            dispatch(setRefreshStoreTickets());
+
+            if (isClose) {
+              closeModal();
+            } else {
+              clearModal();
+            }
+          }
+        } catch (ex) {
+          console.log("có lỗi xảy ra");
+        }
+      }
+
+      if (hideLoading) {
+        hideLoading();
+      }
+    }
+
+    async function checkData() {
+      let isCheck = true;
+      let _errMess = {};
+      setErrMessage(_errMess);
+
+      // Object.keys(_errMess)
+      return isCheck;
+    }
+  }
 
   return (
     <div className="price__modal">

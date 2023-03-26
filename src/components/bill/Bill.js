@@ -100,7 +100,7 @@ const Bill = ({}) => {
       },
       {
         title: "Xử lí",
-        width: 100,
+        width: 120,
         fixed: "right",
         render: (_, rowData) => {
           return (
@@ -195,10 +195,10 @@ const Bill = ({}) => {
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => {
-              setModalState({
-                type: "create",
-                visible: true,
-              });
+              // setModalState({
+              //   type: "create",
+              //   visible: true,
+              // });
             }}
           >
             Thêm mới

@@ -16,6 +16,16 @@ class StoreApi {
     let url = `ticket/get?_page=${page}&_limit=${limit}`;
     return axiosClient.get(url);
   }
+
+  addTiket(formData) {
+    let url = `ticket/add`;
+    return axiosClient.post(url, formData);
+  }
+
+  getOneTicketById(id) {
+    let url = `ticket/one?id=${id}`;
+    return axiosClient.get(url);
+  }
 }
 
 const storeApi = new StoreApi();

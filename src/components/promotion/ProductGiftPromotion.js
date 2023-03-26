@@ -9,6 +9,7 @@ const ProductGiftPromotion = ({
   formState = {},
   setFormState,
   errMessage = {},
+  modalType,
 }) => {
   return (
     <>
@@ -24,6 +25,7 @@ const ProductGiftPromotion = ({
                 className="promotion_line_form_input"
                 size="small"
                 value={formState.productId1}
+                disabled={modalType == "update"}
                 onChange={(value) => {
                   console.log(value);
                   setFormState({
@@ -44,6 +46,7 @@ const ProductGiftPromotion = ({
               <UnitTypeSelectByProductId
                 className="promotion_line_form_input"
                 size="small"
+                disabled={modalType == "update"}
                 value={formState.ut1}
                 productId={formState.productId1}
                 onChange={(value) => {
@@ -65,6 +68,7 @@ const ProductGiftPromotion = ({
               <InputNumber
                 className="promotion_line_form_input"
                 size="small"
+                disabled={modalType == "update"}
                 value={formState.milestones}
                 onChange={(value) => {
                   if (value) {
@@ -92,6 +96,7 @@ const ProductGiftPromotion = ({
               <ProductIdSelect
                 className="promotion_line_form_input"
                 size="small"
+                disabled={modalType == "update"}
                 value={formState.productId2}
                 onChange={(value) => {
                   console.log(value);
@@ -115,6 +120,7 @@ const ProductGiftPromotion = ({
               <UnitTypeSelectByProductId
                 className="promotion_line_form_input"
                 size="small"
+                disabled={modalType == "update"}
                 value={formState.ut2}
                 productId={formState.productId2}
                 onChange={(value) => {
@@ -138,6 +144,7 @@ const ProductGiftPromotion = ({
               <InputNumber
                 className="promotion_line_form_input"
                 size="small"
+                disabled={modalType == "update"}
                 value={formState.quantity}
                 onChange={(value) => {
                   if (value) {

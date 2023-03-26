@@ -8,6 +8,7 @@ const DiscountRatePromotion = ({
   formState = {},
   setFormState,
   errMessage = {},
+  modalType,
 }) => {
   return (
     <>
@@ -30,6 +31,7 @@ const DiscountRatePromotion = ({
                     productId: value,
                   });
                 }}
+                disabled={modalType == "update"}
                 status={errMessage.productId && "error"}
               />
               <div className="promotion_line_form_input_err">
@@ -43,6 +45,7 @@ const DiscountRatePromotion = ({
               <UnitTypeSelectByProductId
                 className="promotion_line_form_input"
                 size="small"
+                disabled={modalType == "update"}
                 value={formState.ut}
                 productId={formState.productId}
                 onChange={(value) => {
@@ -66,6 +69,7 @@ const DiscountRatePromotion = ({
               <InputNumber
                 className="promotion_line_form_input"
                 size="small"
+                disabled={modalType == "update"}
                 value={formState.discountRate}
                 onChange={(value) => {
                   if (value) {

@@ -20,6 +20,7 @@ import {
   Table,
   message,
   Upload,
+  Tag,
 } from "antd";
 import ModalCustomer from "../ModalCustomer";
 import { useDispatch } from "react-redux";
@@ -39,7 +40,7 @@ const initFormState = {
   CustomerId: "",
   EmployeeId: "",
   BillDetails: "",
-  PromotionResult: "",
+  PromotionResults: [],
 };
 const initErrMessage = {};
 
@@ -50,6 +51,7 @@ const BillCUModal = ({ modalState, setModalState }) => {
   const [formState, setFormState] = useState(initFormState);
   const [errMessage, setErrMessage] = useState(initErrMessage);
   const [receiveOpenId, setReceiveOpenId] = useState("");
+  const [listKM, setListKM] = useState([]);
 
   useEffect(() => {
     const { type, rowSelected, visible } = modalState;
@@ -130,6 +132,92 @@ const BillCUModal = ({ modalState, setModalState }) => {
     };
   }, [modalState]);
 
+  useEffect(() => {
+    if (formState.PromotionResults) {
+      let promotionResults = formState.PromotionResults.map((result) => {
+        if (result.ProductPromotionId) {
+          let {
+            id,
+            isSuccess,
+            note,
+            BillId,
+            ProductPromotionId,
+            ProductPromotion,
+          } = result;
+
+          return {
+            id,
+            isSuccess,
+            note,
+            BillId,
+            ProductPromotionId,
+            ProductPromotion,
+            type: "PP",
+          };
+        }
+        if (result.MoneyPromotion) {
+          let {
+            id,
+            isSuccess,
+            note,
+            BillId,
+            MoneyPromotionId,
+            MoneyPromotion,
+          } = result;
+
+          return {
+            id,
+            isSuccess,
+            note,
+            BillId,
+            MoneyPromotionId,
+            MoneyPromotion,
+            type: "MP",
+          };
+        }
+        if (result.DiscountRateProduct) {
+          let {
+            id,
+            isSuccess,
+            note,
+            BillId,
+            DiscountRateProductId,
+            DiscountRateProduct,
+          } = result;
+
+          return {
+            id,
+            isSuccess,
+            note,
+            BillId,
+            DiscountRateProductId,
+            DiscountRateProduct,
+            type: "DRP",
+          };
+        }
+        if (result.Voucher) {
+          let { id, isSuccess, note, BillId, VoucherId, Voucher } = result;
+
+          return {
+            id,
+            isSuccess,
+            note,
+            BillId,
+            VoucherId,
+            Voucher,
+            type: "V",
+          };
+        }
+      }).filter((item) => item.id);
+
+      console.log(promotionResults);
+
+      setListKM(promotionResults);
+    }
+
+    return () => {};
+  }, [formState]);
+
   return (
     <div className="bill_modal">
       <ModalCustomer
@@ -202,6 +290,25 @@ const BillCUModal = ({ modalState, setModalState }) => {
                       <div className="bill_form_input_err"></div>
                     </div>
                   </div>
+                  <div className="bill_form_group">
+                    <div className="bill_form_label">Trạng thái</div>
+                    <div className="bill_form_input_wrap">
+                      <div className="bill_form_input_state_success">
+                        {modalState.type != "view-receive" && (
+                          <Tag style={{ fontSize: "13px" }} color="green">
+                            Thành công
+                          </Tag>
+                        )}
+                      </div>
+                      <div className="bill_form_input_state_error">
+                        {modalState.type == "view-receive" && (
+                          <Tag style={{ fontSize: "13px" }} color="volcano">
+                            Thất bại, đã trả hàng
+                          </Tag>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div className="bill_form_promotion">
                   <div className="bill_form_promotion_title">
@@ -210,33 +317,17 @@ const BillCUModal = ({ modalState, setModalState }) => {
                     </Typography.Title>
                   </div>
                   <div className="bill_form_promotion_list">
-                    <div className="bill_form_promotion_item">
-                      <div className="bill_form_promotion_item_id">
-                        <Typography.Title level={5}>
-                          Mã khuyến mãi
-                        </Typography.Title>
-                      </div>
-                      <div className="bill_form_promotion_item_type">
-                        <Typography.Title level={5}>
-                          Loại khuyến mãi
-                        </Typography.Title>
-                      </div>
-                      <div className="bill_form_promotion_item_status">
-                        <Typography.Title level={5}>
-                          Trạng thái
-                        </Typography.Title>
-                      </div>
-                    </div>
-                    {formState.PromotionResult && (
-                      <ListPromotion
-                        promotionResult={formState.PromotionResult}
-                      />
+                    {formState.PromotionResults && (
+                      <ListPromotion listKM={listKM} />
                     )}
                   </div>
                 </div>
               </div>
               <div className="bill_form_bottom">
-                <BillLineTable BillDetails={formState.BillDetails} />
+                <BillLineTable
+                  BillDetails={formState.BillDetails}
+                  listKM={listKM}
+                />
               </div>
             </div>
             <Space

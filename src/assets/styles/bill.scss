@@ -48,15 +48,6 @@
     display: flex;
     padding-bottom: 12px;
   }
-  .bill_form_promotion_item_header_id {
-    flex: 1;
-  }
-  .bill_form_promotion_item_header_type {
-    flex: 2;
-  }
-  .bill_form_promotion_item_header_status {
-    flex: 1;
-  }
 
   .bill_form_promotion_item {
     display: flex;
@@ -64,12 +55,15 @@
     padding: 4px;
   }
   .bill_form_promotion_item_id {
-    flex: 1;
+    width: 160px;
   }
   .bill_form_promotion_item_type {
-    flex: 2;
+    width: 200px;
   }
-  .bill_form_promotion_item_type {
+  .bill_form_promotion_item_status {
+    width: 90px;
+  }
+  .bill_form_promotion_item_note {
     flex: 1;
   }
 
