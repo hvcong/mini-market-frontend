@@ -37,8 +37,9 @@ import { setRefreshPriceHeaders } from "../../store/slices/priceHeaderSlice";
 import PriceLineTable from "./PriceLineTable";
 import DatePickerCustom from "../promotion/DatePickerCustom";
 import dayjs from "dayjs";
-import { compareDMY } from "../../utils";
+import { antdToDmy, antdToYmd, compareDMY, sqlToAntd } from "../../utils";
 import productApi from "./../../api/productApi";
+import { current } from "@reduxjs/toolkit";
 const { Text } = Typography;
 
 const initFormState = {
@@ -198,21 +199,10 @@ const PriceCUModal = ({ modalState, setModalState }) => {
           message.error("Vui lòng chọn ngày bắt đầu và kết thúc trước!");
           return;
         }
-
-        // khi tạo ngày bắt đầu phải == now mới được active
-        let now = new Date();
-        let start = new Date(formState.startDate);
-
-        let result = compareDMY(now, start);
-
-        if (result >= 0) {
-          setFormState({
-            ...formState,
-            state: is,
-          });
-        } else {
-          message.error("Ngày bắt đầu phải bé hơn hoặc bằng ngày hiện tại!");
-        }
+        setFormState({
+          ...formState,
+          state: is,
+        });
       } else {
         setFormState({
           ...formState,
@@ -221,28 +211,13 @@ const PriceCUModal = ({ modalState, setModalState }) => {
       }
     }
 
-    if (modalState.type == "update") {
-      /**
-       * To active
-       * - kiểm tra thời gian ( start <= now && end > now)
-       * - kiểm tra trùng priceline
-       */
-
+    if (
+      modalState.type == "update" &&
+      formState.startDate &&
+      formState.endDate
+    ) {
       if (is) {
         let isCheck = true;
-        let start = formState.startDate;
-        let end = formState.endDate;
-
-        if (compareDMY(new Date(start), new Date()) > 0) {
-          isCheck = false;
-          message.error("Ngày bắt đầu phải bé hơn hoặc bằng ngày hiện tại!");
-        }
-
-        if (compareDMY(new Date(end), new Date()) < 1) {
-          isCheck = false;
-          message.error("Ngày kết thúc phải lớn hơn ngày hiện tại!");
-        }
-
         // kiểm tra trùng
         let res = await priceHeaderApi.getAllOnActive();
 
@@ -312,7 +287,7 @@ const PriceCUModal = ({ modalState, setModalState }) => {
       let now = new Date();
 
       // đã quá hạn
-      if (compareDMY(end, now) <= 0) {
+      if (compareDMY(end, now) < 0) {
         return true;
       }
 
@@ -357,41 +332,58 @@ const PriceCUModal = ({ modalState, setModalState }) => {
       if (string) {
         let start = new Date(string);
         let end = new Date(formState.endDate);
-        if (compareDMY(start, new Date()) >= 0 && compareDMY(start, end) < 0) {
-          message.info("lon hon");
+        let now = new Date();
 
-          // oke
-          let res = await priceHeaderApi.updateOne({
-            id: formState.id,
-            startDate: string,
-          });
-          if (res.isSuccess) {
-            setFormState({
-              ...formState,
-              startDate: string,
-            });
-          }
+        if (compareDMY(start, now) <= 0) {
+          message.error("Ngày bắt đầu phải lớn hơn ngày hiện tại!");
+          return;
         }
+
+        if (compareDMY(start, end) > 0) {
+          message.error("Ngày bắt đầu phải bé hơn hoặc bằng ngày kết thúc!");
+          return;
+        }
+
+        // oke
+
+        setFormState({
+          ...formState,
+          startDate: string,
+        });
       }
     }
   }
 
   function disableStartDate() {
-    if (modalState.type == "update") {
-      // đang active thì ko đc chỉnh ngày bắt đầu
-      if (formState.state) {
+    if (
+      modalState.type == "update" &&
+      formState.startDate &&
+      formState.endDate
+    ) {
+      let now = new Date();
+      let start = new Date(formState.startDate);
+      let end = new Date(formState.endDate);
+
+      // start <= now ko được chỉnh sửa
+      if (compareDMY(start, now) <= 0) {
         return true;
       }
-
-      // ko active
-
-      let start = formState.startDate;
-      if (compareDMY(new Date(start), new Date()) < 0) {
-        return true;
-      }
-
-      // đang ko active
     }
+  }
+
+  function disValueStartDate(val) {
+    let now = new Date();
+    let value = new Date(antdToYmd(val));
+    let isDisable = false;
+    let end = new Date(formState.endDate);
+
+    if (modalState.type == "update") {
+      isDisable = compareDMY(value, end) > 0 || compareDMY(value, now) <= 0;
+    } else {
+      isDisable = compareDMY(value, now) <= 0;
+    }
+
+    return isDisable;
   }
 
   function disableEndDate() {
@@ -401,30 +393,67 @@ const PriceCUModal = ({ modalState, setModalState }) => {
       }
     } else {
       // when update
+
+      if (formState.startDate && formState.endDate) {
+        let start = new Date(formState.startDate);
+        let end = new Date(formState.endDate);
+        let now = new Date();
+
+        // nếu đang sử dụng thì ko đc chỉnh sửa
+        if (
+          compareDMY(start, now) <= 0 &&
+          compareDMY(end, now) >= 0 &&
+          formState.state
+        ) {
+          return true;
+        }
+
+        // nếu end < now thì ko được
+        if (compareDMY(end, now) < 0) {
+          return true;
+        }
+      }
     }
   }
 
+  function disValueEndDate(val) {
+    let isDisable = false;
+
+    if (formState.startDate) {
+      let st = new Date(formState.startDate);
+      let now = new Date();
+      let value = "";
+      try {
+        value = new Date(antdToYmd(val));
+      } catch (ex) {
+        console.log("exception");
+      }
+      if (value) {
+        if (modalState.type == "create") {
+          isDisable = compareDMY(value, st) < 0;
+        } else {
+          isDisable = compareDMY(value, st) < 0 || compareDMY(value, now) < 0;
+        }
+      }
+    }
+    return isDisable;
+  }
+
   async function handleOnChangeEndDate(string) {
-    let st = new Date(formState.startDate);
-    let now = new Date();
     if (string) {
-      if (compareDMY(st, new Date(string)) >= 0) {
-        message.error("Ngày kết thúc phải lớn hơn ngày bắt đầu!");
+      let start = new Date(formState.startDate);
+      let end = new Date(string);
+      let now = new Date();
+      if (compareDMY(end, start) < 0) {
+        message.error("Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu!");
         return;
       }
 
-      if (compareDMY(new Date(string), now) <= 0) {
+      if (compareDMY(end, now) < 0) {
         message.error("Ngày kết thúc phải lớn hơn ngày hiện tại!");
         return;
       }
 
-      // oke when update
-      if (modalState.type == "update") {
-        let res = await priceHeaderApi.updateOne({
-          id: formState.id,
-          endDate: string,
-        });
-      }
       setFormState({
         ...formState,
         endDate: string,
@@ -506,28 +535,12 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                   <DatePicker
                     size="small"
                     value={
-                      formState.startDate &&
-                      dayjs(formState.startDate, "YYYY-MM-DD")
+                      formState.startDate && sqlToAntd(formState.startDate)
                     }
                     onChange={(_, string) => {
                       handleOnChangeStartDate(string);
                     }}
-                    disabledDate={(current) => {
-                      let now = new Date();
-                      if (modalState.type == "update") {
-                        let end = new Date(formState.endDate);
-                        end.setDate(end.getDate() - 1);
-                        return (
-                          (current &&
-                            current < dayjs(now.setDate(now.getDate() - 1))) ||
-                          (current && current >= dayjs(end))
-                        );
-                      }
-                      return (
-                        current &&
-                        current < dayjs(now.setDate(now.getDate() - 1))
-                      );
-                    }}
+                    disabledDate={disValueStartDate}
                     disabled={disableStartDate()}
                     status={errMessage.startDate && "error"}
                   />
@@ -540,29 +553,12 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                 <div className="input_wrap">
                   <DatePicker
                     size="small"
-                    value={
-                      formState.endDate &&
-                      dayjs(formState.endDate, "YYYY-MM-DD")
-                    }
+                    value={formState.endDate && sqlToAntd(formState.endDate)}
                     disabled={disableEndDate()}
                     onChange={(_, string) => {
                       handleOnChangeEndDate(string);
                     }}
-                    disabledDate={(current) => {
-                      let isDisable = false;
-
-                      if (modalState.type == "create") {
-                        let st = new Date(formState.startDate);
-                        isDisable = current <= dayjs(st.setDate(st.getDate()));
-                      } else {
-                        let st = new Date(formState.startDate);
-                        isDisable =
-                          current <= dayjs(st.setDate(st.getDate())) ||
-                          current <= dayjs(new Date());
-                      }
-
-                      return isDisable;
-                    }}
+                    disabledDate={disValueEndDate}
                     status={errMessage.endDate && "error"}
                   />
 

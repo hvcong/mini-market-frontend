@@ -22,7 +22,9 @@ export function sqlToDDmmYYY(date) {
 
 export function sqlToAntd(date) {
   let result = sqlToDDmmYYY(date);
+  console.log(date);
   result = dayjs(result, "DD/MM/YYYY");
+  console.log(result);
   if (isNaN(result.$D)) {
     return "";
   }
@@ -51,6 +53,13 @@ export function antdToDmy(date) {
   let m = date.$M + 1 < 10 ? "0" + (date.$M + 1) : date.$M + 1;
   let y = date.$y;
   return d + "/" + m + "/" + y;
+}
+
+export function antdToYmd(date) {
+  let d = date.$D < 10 ? "0" + date.$D : date.$D;
+  let m = date.$M + 1 < 10 ? "0" + (date.$M + 1) : date.$M + 1;
+  let y = date.$y;
+  return y + "/" + m + "/" + d;
 }
 
 export function dmyToYmd(dmy) {
@@ -83,15 +92,15 @@ export function compareDMY(jsDate1, jsDate2) {
     return 0;
   }
 
-  if (y2 > y1) {
+  if (y1 < y2) {
     return -1;
   }
 
   if (y2 == y1) {
-    if (m2 > m1) {
+    if (m1 < m2) {
       return -1;
     } else if (m2 == m1) {
-      if (d2 > d1) {
+      if (d1 < d2) {
         return -1;
       } else {
         return 1;
@@ -102,4 +111,20 @@ export function compareDMY(jsDate1, jsDate2) {
   }
 
   return 1;
+}
+
+export function formatDateJsToYMD(date) {
+  if (date) {
+    var d = new Date(date),
+      month = "" + (d.getMonth() + 1),
+      day = "" + d.getDate(),
+      year = d.getFullYear();
+
+    if (month.length < 2) month = "0" + month;
+    if (day.length < 2) day = "0" + day;
+
+    return [year, month, day].join("-");
+  } else {
+    console.log("date wrong");
+  }
 }

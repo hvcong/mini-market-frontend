@@ -65,14 +65,14 @@ const initFormState = {
     minCost: 1,
     discountMoney: 0,
     discountRate: 0,
-    maxDiscountMoney: 1,
+    maxMoneyDiscount: 1,
     state: true,
   },
   V: {
     code: "",
     discountMoney: 0,
     discountRate: 0,
-    maxDiscountMoney: 1,
+    maxMoneyDiscount: 1,
     state: true,
   },
 };
@@ -102,14 +102,14 @@ const initErrMessage = {
     minCost: "",
     discountMoney: "",
     discountRate: "",
-    maxDiscountMoney: "",
+    maxMoneyDiscount: "",
     state: true,
   },
   V: {
     code: "",
     discountMoney: "",
     discountRate: "",
-    maxDiscountMoney: "",
+    maxMoneyDiscount: "",
     state: true,
   },
 };
@@ -184,14 +184,14 @@ const PromotionLineModal = ({
             minCost: "",
             discountMoney: "",
             discountRate: "",
-            maxDiscountMoney: "",
+            maxMoneyDiscount: "",
             state: true,
           },
           V: {
             code: "",
             discountMoney: "",
             discountRate: "",
-            maxDiscountMoney: "",
+            maxMoneyDiscount: "",
             state: true,
           },
         });
@@ -227,14 +227,14 @@ const PromotionLineModal = ({
             minCost: "",
             discountMoney: "",
             discountRate: "",
-            maxDiscountMoney: "",
+            maxMoneyDiscount: "",
             state: true,
           },
           V: {
             code: "",
             discountMoney: "",
             discountRate: "",
-            maxDiscountMoney: "",
+            maxMoneyDiscount: "",
             state: true,
           },
         });
@@ -270,14 +270,14 @@ const PromotionLineModal = ({
             minCost: "",
             discountMoney: "",
             discountRate: "",
-            maxDiscountMoney: "",
+            maxMoneyDiscount: "",
             state: true,
           },
           V: {
             code: "",
             discountMoney: "",
             discountRate: "",
-            maxDiscountMoney: "",
+            maxMoneyDiscount: "",
             state: true,
           },
         });
@@ -313,14 +313,14 @@ const PromotionLineModal = ({
             minCost: "",
             discountMoney: "",
             discountRate: "",
-            maxDiscountMoney: "",
+            maxMoneyDiscount: "",
             state: true,
           },
           V: {
             code: "",
             discountMoney: "",
             discountRate: "",
-            maxDiscountMoney: "",
+            maxMoneyDiscount: "",
             state: true,
           },
         });
@@ -413,7 +413,7 @@ const PromotionLineModal = ({
             minCost: MP.minCost,
             discountMoney: MP.discountMoney,
             discountRate: MP.discountRate,
-            maxDiscountMoney: MP.maxDiscountMoney,
+            maxMoneyDiscount: MP.maxMoneyDiscount,
             state: MP.state,
             PromotionHeaderId: promotionHeaderId,
           };
@@ -434,7 +434,7 @@ const PromotionLineModal = ({
             state: formState.state,
             discountMoney: V.discountMoney,
             discountRate: V.discountRate,
-            maxDiscountMoney: V.maxDiscountMoney,
+            maxMoneyDiscount: V.maxMoneyDiscount,
             PromotionHeaderId: promotionHeaderId,
           };
 
@@ -533,8 +533,8 @@ const PromotionLineModal = ({
           _errMess.MP.discountRate =
             "Số tiền chiết khấu hoặc % chiết khấu phải > 0!";
         }
-        if (!MP.maxDiscountMoney) {
-          _errMess.MP.maxDiscountMoney = "Không được bỏ trống!";
+        if (!MP.maxMoneyDiscount) {
+          _errMess.MP.maxMoneyDiscount = "Không được bỏ trống!";
         }
       }
 
@@ -564,8 +564,8 @@ const PromotionLineModal = ({
           _errMess.V.discountRate =
             "Số tiền chiết khấu hoặc % chiết khấu phải > 0!";
         }
-        if (V.maxDiscountMoney <= 0) {
-          _errMess.V.maxDiscountMoney = "Phải lớn hơn 0!";
+        if (V.maxMoneyDiscount <= 0) {
+          _errMess.V.maxMoneyDiscount = "Phải lớn hơn 0!";
         }
       }
 
