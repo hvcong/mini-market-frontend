@@ -305,6 +305,45 @@ const PriceCUModal = ({ modalState, setModalState }) => {
     }
   }
 
+  function disableChangeState(startDate, endDate) {
+    if (startDate && endDate) {
+      let start = new Date(startDate);
+      let end = new Date(endDate);
+      let now = new Date();
+
+      // đã quá hạn
+      if (compareDMY(end, now) <= 0) {
+        return true;
+      }
+
+      // chưa tới hạn
+      if (compareDMY(start, now) > 0) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  function disableAddNewPriceLine(startDate, endDate, state) {
+    if (startDate && endDate) {
+      let start = new Date(startDate);
+      let end = new Date(endDate);
+      let now = new Date();
+
+      // đã quá hạn
+      if (compareDMY(end, now) <= 0) {
+        return true;
+      }
+
+      // đã và đang sử dụng
+      if (compareDMY(start, now) <= 0 && compareDMY(end, now) == 1) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   async function handleOnChangeStartDate(string) {
     if (modalState.type == "create") {
       setFormState({
@@ -337,7 +376,7 @@ const PriceCUModal = ({ modalState, setModalState }) => {
     }
   }
 
-  function disabledStartDate() {
+  function disableStartDate() {
     if (modalState.type == "update") {
       // đang active thì ko đc chỉnh ngày bắt đầu
       if (formState.state) {
@@ -489,7 +528,7 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                         current < dayjs(now.setDate(now.getDate() - 1))
                       );
                     }}
-                    disabled={disabledStartDate()}
+                    disabled={disableStartDate()}
                     status={errMessage.startDate && "error"}
                   />
 
@@ -537,6 +576,10 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                   unCheckedChildren="Off"
                   checked={formState.state}
                   onChange={handleOnChangeState}
+                  disabled={disableChangeState(
+                    formState.startDate,
+                    formState.endDate
+                  )}
                 />
               </div>
             </div>
@@ -545,6 +588,10 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                 headerPriceId={formState.id}
                 startDateHeader={formState.startDate}
                 endDateHeader={formState.endDate}
+                isDisabledAddButton={disableAddNewPriceLine(
+                  formState.startDate,
+                  formState.endDate
+                )}
               />
             )}
 

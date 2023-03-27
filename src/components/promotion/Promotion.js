@@ -95,15 +95,6 @@ const Promotion = ({}) => {
       hidden: true,
     },
     {
-      title: "Tổng ngân sách",
-      dataIndex: "budget",
-    },
-    {
-      title: "Ngân sách còn lại",
-      dataIndex: "availableBudget",
-      hidden: true,
-    },
-    {
       title: "Trạng thái",
       dataIndex: "state",
       render: (_, header) => {
@@ -149,33 +140,7 @@ const Promotion = ({}) => {
     hideLoading = message.loading("Tải dữ liệu chương trình khuyến mãi...", 0);
     let res = await promotionApi.getLimitHeader(page, limit);
     if (res.isSuccess) {
-      let data = res.promotions;
-      console.log(data);
-      let _promotions = [];
-      for (const promotion of data.rows) {
-        let end = new Date(promotion.endDate);
-        let now = new Date();
-
-        if (end) {
-          if (compareDMY(end, now) <= 0) {
-            res = await promotionApi.updateOneHeader(promotion.id, {
-              state: false,
-            });
-            if (res.isSuccess) {
-              _promotions.push({
-                ...promotion,
-                state: false,
-              });
-            }
-            continue;
-          }
-        }
-
-        _promotions.push(promotion);
-      }
-
-      data.rows = _promotions;
-      dispatch(setPromotionHeaders(data));
+      dispatch(setPromotionHeaders(res.promotions));
     }
 
     hideLoading();

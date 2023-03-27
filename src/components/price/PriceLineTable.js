@@ -10,7 +10,12 @@ import { setPriceLines } from "../../store/slices/priceLineSlice";
 import { PlusOutlined } from "@ant-design/icons";
 import PriceLineModal from "./priceLineModal";
 
-const PriceLineTable = ({ headerPriceId, startDateHeader, endDateHeader }) => {
+const PriceLineTable = ({
+  headerPriceId,
+  startDateHeader,
+  endDateHeader,
+  isDisabledAddButton,
+}) => {
   const { priceLines, refresh } = useSelector((state) => state.priceLine);
   const dispatch = useDispatch();
   const [modalState, setModalState] = useState({
@@ -145,6 +150,7 @@ const PriceLineTable = ({ headerPriceId, startDateHeader, endDateHeader }) => {
                 visible: true,
               });
             }}
+            disabled={isDisabledAddButton}
           >
             Thêm mới một dòng
           </Button>

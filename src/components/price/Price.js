@@ -131,36 +131,9 @@ const Price = ({}) => {
 
   async function getPriceHeaders(page, limit) {
     let res = await priceHeaderApi.getMany(page, limit);
-    console.log(res);
 
     if (res.isSuccess) {
-      let data = res.headers;
-      let _headers = [];
-      for (const header of data.rows) {
-        let end = new Date(header.endDate);
-        let now = new Date();
-
-        if (end) {
-          if (compareDMY(end, now) <= 0) {
-            res = await priceHeaderApi.updateOne({
-              id: header.id,
-              state: false,
-            });
-            if (res.isSuccess) {
-              _headers.push({
-                ...header,
-                state: false,
-              });
-            }
-            continue;
-          }
-        }
-
-        _headers.push(header);
-      }
-
-      data.rows = _headers;
-      dispatch(setPriceHeaders(data));
+      dispatch(setPriceHeaders(res.headers));
     }
   }
 
