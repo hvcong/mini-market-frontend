@@ -300,6 +300,9 @@ const PriceCUModal = ({ modalState, setModalState }) => {
   }
 
   function disableAddNewPriceLine(startDate, endDate, state) {
+    if (state) {
+      return true;
+    }
     if (startDate && endDate) {
       let start = new Date(startDate);
       let end = new Date(endDate);
@@ -346,10 +349,16 @@ const PriceCUModal = ({ modalState, setModalState }) => {
 
         // oke
 
-        setFormState({
-          ...formState,
-          startDate: string,
+        let res = await priceHeaderApi.updateOne({
+          id: formState.id,
+          startDate: formState.startDate,
         });
+        if (res.isSuccess) {
+          setFormState({
+            ...formState,
+            startDate: string,
+          });
+        }
       }
     }
   }
@@ -360,6 +369,10 @@ const PriceCUModal = ({ modalState, setModalState }) => {
       formState.startDate &&
       formState.endDate
     ) {
+      if (formState.state) {
+        return true;
+      }
+
       let now = new Date();
       let start = new Date(formState.startDate);
       let end = new Date(formState.endDate);
@@ -393,6 +406,9 @@ const PriceCUModal = ({ modalState, setModalState }) => {
       }
     } else {
       // when update
+      if (formState.state) {
+        return true;
+      }
 
       if (formState.startDate && formState.endDate) {
         let start = new Date(formState.startDate);
@@ -454,10 +470,16 @@ const PriceCUModal = ({ modalState, setModalState }) => {
         return;
       }
 
-      setFormState({
-        ...formState,
-        endDate: string,
+      let res = await priceHeaderApi.updateOne({
+        id: formState.id,
+        endDate: formState.endDate,
       });
+      if (res.isSuccess) {
+        setFormState({
+          ...formState,
+          endDate: string,
+        });
+      }
     }
   }
 
@@ -586,7 +608,8 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                 endDateHeader={formState.endDate}
                 isDisabledAddButton={disableAddNewPriceLine(
                   formState.startDate,
-                  formState.endDate
+                  formState.endDate,
+                  formState.state
                 )}
               />
             )}

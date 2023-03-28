@@ -14,6 +14,7 @@ import Employee from "./../components/employee/Employee";
 import Customer from "./../components/customer/Customer";
 import Category from "./../components/category/Category";
 import ReceiveBill from "../components/receiveBill/ReceiveBill";
+import CreateBill from "../components/bill/createBill/CreateBill";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="store_check" element={<StoreChecking />} />
           <Route path="customer_group" element={<CustomerGroup />} />
           <Route path="employee" element={<Employee />} />
+          <Route path="create_bill" element={<CreateBill />} />
         </Route>
         {/* <Route path="bills/create" element={<CreateBill />} /> */}
       </Routes>

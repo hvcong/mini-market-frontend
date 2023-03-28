@@ -69,20 +69,20 @@ const ProductGiftPromotion = ({
                 className="promotion_line_form_input"
                 size="small"
                 disabled={modalType == "update"}
-                value={formState.milestones}
+                value={formState.minQuantity}
                 onChange={(value) => {
                   if (value) {
                     setFormState({
                       ...formState,
-                      milestones: value,
+                      minQuantity: value,
                     });
                   }
                 }}
                 min={1}
-                status={errMessage.milestones && "error"}
+                status={errMessage.minQuantity && "error"}
               />
               <div className="promotion_line_form_input_err">
-                {errMessage.milestones}
+                {errMessage.minQuantity}
               </div>
             </div>
           </div>

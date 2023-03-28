@@ -1,6 +1,7 @@
 import React from "react";
 
 const HighlightedText = ({ text, highlightText }) => {
+  if (!highlightText) return text;
   function getHighlightedText(text, higlight) {
     // Split text on higlight term, include term itself into parts, ignore case
     var parts = text.split(new RegExp(`(${higlight})`, "gi"));

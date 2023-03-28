@@ -13,7 +13,7 @@ const AdminHeader = () => {
       style={{
         position: "fixed",
         width: "100%",
-        zIndex: 100,
+        zIndex: 10,
       }}
     >
       <div className="list">

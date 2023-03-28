@@ -26,7 +26,6 @@ import { useDispatch } from "react-redux";
 import ImageUpload from "./ImageUpload";
 import DropSelectColum from "../product/DropSelectColum";
 import { PlusOutlined } from "@ant-design/icons";
-import PromotionLineTable from "./PromotionLineTable";
 import DatePickerCustom from "./DatePickerCustom";
 import promotionApi from "./../../api/promotionApi";
 import CustomerGroupSelect from "./../customerGroup/CustomerGroupSelect";
@@ -36,10 +35,16 @@ import DiscountRatePromotion from "./DiscountRatePromotion";
 import VoucherPromotion from "./VoucherPromotion";
 import { setRefreshPromotionLines } from "../../store/slices/promotionLineSlice";
 import productApi from "../../api/productApi";
-import { uid } from "../../utils";
+import {
+  antdToYmd,
+  codeVocherGenarate,
+  compareDMY,
+  sqlToAntd,
+  uid,
+} from "../../utils";
 
 const initFormState = {
-  id: "",
+  id: uid(),
   typePromotionId: "",
   startDate: "",
   endDate: "",
@@ -49,7 +54,7 @@ const initFormState = {
   PP: {
     productId1: "",
     ut1: "",
-    milestones: 1,
+    minQuantity: 1,
     productId2: "",
     ut2: "",
     quantity: 1,
@@ -67,12 +72,16 @@ const initFormState = {
     discountRate: 0,
     maxMoneyDiscount: 1,
     state: true,
+    type: "discountMoney",
+    budget: 0,
+    availableBudget: 0,
   },
   V: {
-    code: "",
+    code: codeVocherGenarate(),
     discountMoney: 0,
     discountRate: 0,
-    maxMoneyDiscount: 1,
+    maxDiscountMoney: 0,
+    type: "discountMoney",
     state: true,
   },
 };
@@ -86,7 +95,7 @@ const initErrMessage = {
   PP: {
     productId1: "",
     ut1: "",
-    milestones: "",
+    minQuantity: "",
     productId2: "",
     ut2: "",
     quantity: "",
@@ -104,12 +113,15 @@ const initErrMessage = {
     discountRate: "",
     maxMoneyDiscount: "",
     state: true,
+    type: "",
+    budget: "",
+    availableBudget: "",
   },
   V: {
     code: "",
     discountMoney: "",
     discountRate: "",
-    maxMoneyDiscount: "",
+    maxDiscountMoney: "",
     state: true,
   },
 };
@@ -137,6 +149,7 @@ const PromotionLineModal = ({
   modalState,
   setModalState,
   promotionHeaderId,
+  minMaxTime,
 }) => {
   let hideLoading = null;
   const dispatch = useDispatch();
@@ -149,30 +162,35 @@ const PromotionLineModal = ({
 
     if (type == "update" && rowSelected && visible) {
       loadPromotionLine(rowSelected.id, rowSelected.type);
+    } else if (type == "create" && visible) {
     }
 
     return () => {};
   }, [modalState]);
 
+  useEffect(() => {
+    if (formState.V) {
+      formState.V.code = codeVocherGenarate();
+    }
+    return () => {};
+  }, [formState.typePromotionId]);
+
   async function loadPromotionLine(id, type) {
     if (type == "PP") {
       let res = await promotionApi.getOnePPById(id);
       if (res.isSuccess) {
+        let productPromotion = res.productPromotion;
+
         setFormState({
-          id: "",
+          ...productPromotion,
           typePromotionId: type,
-          time: "",
-          title: "",
-          description: "",
-          state: true,
           PP: {
-            productId1: "",
-            ut1: "",
-            milestones: "",
-            productId2: "",
-            ut2: "",
-            quantity: "",
-            state: true,
+            productId1: productPromotion.ProductUnitType.ProductId,
+            ut1: productPromotion.ProductUnitType.UnitTypeId,
+            minQuantity: productPromotion.minQuantity,
+            productId2: productPromotion.GiftProduct.ProductUnitType.ProductId,
+            ut2: productPromotion.GiftProduct.ProductUnitType.UnitTypeId,
+            quantity: productPromotion.GiftProduct.quantity,
           },
           DRP: {
             productId: "",
@@ -201,17 +219,15 @@ const PromotionLineModal = ({
     if (type == "MP") {
       let res = await promotionApi.getOneMPById(id);
       if (res.isSuccess) {
+        let moneyPromotion = res.moneyPromotion || {};
         setFormState({
-          id: "",
-          typePromotionId: type,
-          time: "",
-          title: "",
-          description: "",
-          state: true,
+          ...moneyPromotion,
+          typePromotionId: "MP",
+
           PP: {
             productId1: "",
             ut1: "",
-            milestones: "",
+            minQuantity: "",
             productId2: "",
             ut2: "",
             quantity: "",
@@ -224,11 +240,7 @@ const PromotionLineModal = ({
             state: true,
           },
           MP: {
-            minCost: "",
-            discountMoney: "",
-            discountRate: "",
-            maxMoneyDiscount: "",
-            state: true,
+            ...moneyPromotion,
           },
           V: {
             code: "",
@@ -244,41 +256,34 @@ const PromotionLineModal = ({
     if (type == "DRP") {
       let res = await promotionApi.getOneDRPById(id);
       if (res.isSuccess) {
+        let discountRate = res.discountRate;
         setFormState({
-          id: "",
+          ...discountRate,
           typePromotionId: type,
-          time: "",
-          title: "",
-          description: "",
-          state: true,
           PP: {
             productId1: "",
             ut1: "",
-            milestones: "",
+            minQuantity: "",
             productId2: "",
             ut2: "",
             quantity: "",
-            state: true,
           },
           DRP: {
-            productId: "",
-            ut: "",
-            discountRate: "",
-            state: true,
+            productId: discountRate.ProductUnitType.ProductId,
+            ut: discountRate.ProductUnitType.UnitTypeId,
+            discountRate: discountRate.discountRate,
           },
           MP: {
             minCost: "",
             discountMoney: "",
             discountRate: "",
             maxMoneyDiscount: "",
-            state: true,
           },
           V: {
             code: "",
             discountMoney: "",
             discountRate: "",
             maxMoneyDiscount: "",
-            state: true,
           },
         });
       }
@@ -287,17 +292,15 @@ const PromotionLineModal = ({
     if (type == "V") {
       let res = await promotionApi.getOneVById(id);
       if (res.isSuccess) {
+        let voucher = res.voucher;
         setFormState({
-          id: "",
+          ...voucher,
           typePromotionId: type,
-          time: "",
-          title: "",
-          description: "",
-          state: true,
+
           PP: {
             productId1: "",
             ut1: "",
-            milestones: "",
+            minQuantity: "",
             productId2: "",
             ut2: "",
             quantity: "",
@@ -317,11 +320,7 @@ const PromotionLineModal = ({
             state: true,
           },
           V: {
-            code: "",
-            discountMoney: "",
-            discountRate: "",
-            maxMoneyDiscount: "",
-            state: true,
+            ...voucher,
           },
         });
       }
@@ -345,27 +344,26 @@ const PromotionLineModal = ({
     if (await checkData()) {
       // validate oke
 
-      //// create and update PP
       let formData = {};
+      //// create and update PP
       if (formState.typePromotionId == "PP") {
         let { PP } = formState;
 
         let putId = await getPUTid(PP.productId1, PP.ut1);
         let putId2 = await getPUTid(PP.productId2, PP.ut2);
 
+        formData = {
+          id: formState.id,
+          title: formState.title,
+          description: formState.description,
+          startDate: formState.startDate,
+          endDate: formState.endDate,
+          minQuantity: PP.minQuantity,
+          state: formState.state,
+          ProductUnitTypeId: putId,
+          PromotionHeaderId: promotionHeaderId,
+        };
         if (type == "create") {
-          formData = {
-            id: formState.id,
-            title: formState.title,
-            description: formState.description,
-            startDate: formState.startDate,
-            endDate: formState.endDate,
-            minQuantity: PP.milestones,
-            state: formState.state,
-            ProductUnitTypeId: putId,
-            PromotionHeaderId: promotionHeaderId,
-          };
-
           res = await promotionApi.addOnePP(formData);
           if (res.isSuccess) {
             formData = {
@@ -377,6 +375,16 @@ const PromotionLineModal = ({
             console.log(formData);
             res = await promotionApi.addOneGift(formData);
           }
+        } else {
+          // update
+
+          let { id, ...updateForm } = formData;
+          res = await promotionApi.updateOnePP(id, updateForm);
+
+          if (res.isSuccess) {
+            // nesu thay đổi gift
+            message.info("cần thêm một số việc ở đây nữa");
+          }
         }
       }
 
@@ -385,39 +393,52 @@ const PromotionLineModal = ({
         let { DRP } = formState;
 
         let putId = await getPUTid(DRP.productId, DRP.ut);
-        console.log(putId);
         formData = {
           id: formState.id,
           startDate: formState.startDate,
           endDate: formState.endDate,
+          title: formState.title,
+          description: formState.description,
           discountRate: DRP.discountRate,
           state: formState.state,
           PromotionHeaderId: promotionHeaderId,
           ProductUnitTypeId: putId,
         };
-        console.log(formData);
-        res = await promotionApi.addOneDRP(formData);
+        if (type == "create") {
+          res = await promotionApi.addOneDRP(formData);
+        } else {
+          // update
+          let { id, ...updateForm } = formData;
+          res = await promotionApi.updateOneDRP(id, updateForm);
+        }
       }
 
       //// create and update MP
       if (formState.typePromotionId == "MP") {
         let { MP } = formState;
+        formData = {
+          id: formState.id,
+          title: formState.title,
+          description: formState.description,
+          startDate: formState.startDate,
+          endDate: formState.endDate,
+          minCost: MP.minCost,
+          discountMoney: MP.discountMoney,
+          discountRate: MP.discountRate,
+          maxMoneyDiscount: MP.type == "discountRate" ? MP.maxMoneyDiscount : 0,
+          state: MP.state,
+          type: MP.type,
+          budget: MP.budget,
+          availableBudget: MP.budget,
+          PromotionHeaderId: promotionHeaderId,
+        };
 
         if (type == "create") {
-          formData = {
-            id: formState.id,
-            title: formState.title,
-            description: formState.description,
-            startDate: formState.startDate,
-            endDate: formState.endDate,
-            minCost: MP.minCost,
-            discountMoney: MP.discountMoney,
-            discountRate: MP.discountRate,
-            maxMoneyDiscount: MP.maxMoneyDiscount,
-            state: MP.state,
-            PromotionHeaderId: promotionHeaderId,
-          };
           res = await promotionApi.addOneMP(formData);
+        } else {
+          //update
+          let { id, ...updateForm } = formData;
+          res = await promotionApi.updateOneMP(id, updateForm);
         }
       }
 
@@ -426,20 +447,25 @@ const PromotionLineModal = ({
       if (formState.typePromotionId == "V") {
         let { V } = formState;
 
-        if (type == "create") {
-          formData = {
-            code: V.code,
-            startDate: formState.startDate,
-            endDate: formState.endDate,
-            state: formState.state,
-            discountMoney: V.discountMoney,
-            discountRate: V.discountRate,
-            maxMoneyDiscount: V.maxMoneyDiscount,
-            PromotionHeaderId: promotionHeaderId,
-          };
+        formData = {
+          id: formState.id,
+          code: V.code,
+          startDate: formState.startDate,
+          title: formState.title,
+          description: formState.description,
+          endDate: formState.endDate,
+          state: formState.state,
+          discountMoney: V.discountMoney,
+          discountRate: V.discountRate,
+          type: V.type,
+          maxDiscountMoney: V.maxDiscountMoney,
+          PromotionHeaderId: promotionHeaderId,
+        };
 
-          console.log(formData);
+        if (type == "create") {
           res = await promotionApi.addOneV(formData);
+        } else {
+          message.error("Chưa có api");
         }
       }
 
@@ -503,8 +529,8 @@ const PromotionLineModal = ({
           _errMess.PP.ut1 = "Không được bỏ trống";
         }
 
-        if (!PP.milestones) {
-          _errMess.PP.milestones = "Không được bỏ trống";
+        if (!PP.minQuantity) {
+          _errMess.PP.minQuantity = "Không được bỏ trống";
         }
 
         if (!PP.productId2) {
@@ -523,18 +549,27 @@ const PromotionLineModal = ({
       // check for MP
       let { MP } = formState;
       if (MP && formState.typePromotionId == "MP") {
-        console.log("here");
+        if (!MP.budget || MP.budget <= 0) {
+          _errMess.MP.budget = "Giá trị phải > 0";
+        }
+
         if (!MP.minCost) {
           _errMess.MP.minCost = "Không được bỏ trống!";
         }
-        if (MP.discountMoney == 0 && MP.discountRate == 0) {
-          _errMess.MP.discountMoney =
-            "Số tiền chiết khấu hoặc % chiết khấu phải > 0!";
-          _errMess.MP.discountRate =
-            "Số tiền chiết khấu hoặc % chiết khấu phải > 0!";
+
+        if (MP.type == "discountMoney") {
+          if (MP.discountMoney <= 0) {
+            _errMess.MP.discountMoney = "Số tiền phải > 0!";
+          }
         }
-        if (!MP.maxMoneyDiscount) {
-          _errMess.MP.maxMoneyDiscount = "Không được bỏ trống!";
+
+        if (MP.type == "discountRate") {
+          if (MP.discountRate <= 0 || MP.discountRate > 100) {
+            _errMess.MP.discountRate = "Giá trị phải > 0 và <= 100!";
+          }
+          if (!MP.maxMoneyDiscount && MP.maxMoneyDiscount <= 0) {
+            _errMess.MP.maxMoneyDiscount = "Giá trị phải >= 0";
+          }
         }
       }
 
@@ -557,15 +592,23 @@ const PromotionLineModal = ({
       if (V && formState.typePromotionId == "V") {
         if (!V.code) {
           _errMess.V.code = "Không được bỏ trống!";
+        } else {
+          // check in db
+          let res = await promotionApi.getOneVByCode(V.code);
+          if (res.isSuccess) {
+            _errMess.V.code = "Code này đã được sử dụng trước đó!";
+          }
         }
-        if (V.discountMoney == 0 && V.discountRate == 0) {
-          _errMess.V.discountMoney =
-            "Số tiền chiết khấu hoặc % chiết khấu phải > 0!";
-          _errMess.V.discountRate =
-            "Số tiền chiết khấu hoặc % chiết khấu phải > 0!";
+
+        if (V.type == "discountMoney" && !V.discountMoney) {
+          _errMess.V.discountMoney = "Số tiền chiết khấu phải > 0!";
         }
-        if (V.maxMoneyDiscount <= 0) {
-          _errMess.V.maxMoneyDiscount = "Phải lớn hơn 0!";
+
+        if (V.type == "discountRate" && !V.discountRate) {
+          _errMess.V.discountRate = "Số % chiết khấu phải > 0 và <=100";
+          if (V.maxDiscountMoney <= 0) {
+            _errMess.V.maxDiscountMoney = "Giá trị phải > 0!";
+          }
         }
       }
 
@@ -615,6 +658,36 @@ const PromotionLineModal = ({
     )[0].id;
     return putId;
   }
+
+  function disabledDate() {
+    let min = new Date(minMaxTime.minStartDate);
+    let max = new Date(minMaxTime.maxEndDate);
+    let now = new Date();
+
+    if (compareDMY(max, now) < 0) {
+      return [true, true];
+    }
+
+    if (
+      modalState.type == "update" &&
+      formState.startDate &&
+      formState.endDate
+    ) {
+      let start = new Date(formState.startDate);
+      let end = new Date(formState.endDate);
+
+      if (compareDMY(start, now) <= 0) {
+        if (compareDMY(end, now) < 0) {
+          return [true, true];
+        } else {
+          return [true, false];
+        }
+      }
+    }
+
+    return [false, false];
+  }
+
   function closeModal() {
     setModalState({
       visible: false,
@@ -624,6 +697,7 @@ const PromotionLineModal = ({
 
   function clearModal() {
     setErrMessage(initErrMessage);
+    initFormState.id = uid();
     setFormState(initFormState);
   }
 
@@ -653,7 +727,7 @@ const PromotionLineModal = ({
                       <Input
                         className="promotion_line_form_input"
                         size="small"
-                        disabled={modalState.type == "update"}
+                        disabled
                         value={formState.id}
                         status={errMessage.id && "error"}
                         onChange={({ target }) => {
@@ -700,6 +774,7 @@ const PromotionLineModal = ({
                         size="small"
                         value={[formState.startDate, formState.endDate]}
                         status={errMessage.time && "error"}
+                        disabled={disabledDate()}
                         onChangeDate={(strings) => {
                           if (strings) {
                             setFormState({
@@ -709,6 +784,18 @@ const PromotionLineModal = ({
                             });
                           }
                         }}
+                        // disabledDate={(val) => {
+                        //   let min = new Date(minMaxTime.minStartDate);
+                        //   let max = new Date(minMaxTime.maxEndDate);
+                        //   let value = new Date(antdToYmd(val));
+                        //   let now = new Date();
+
+                        //   return (
+                        //     compareDMY(value, now) <= 0 ||
+                        //     compareDMY(value, min) < 0 ||
+                        //     compareDMY(value, max) > 0
+                        //   );
+                        // }}
                       />
                       <div className="promotion_line_form_input_err">
                         {errMessage.time}

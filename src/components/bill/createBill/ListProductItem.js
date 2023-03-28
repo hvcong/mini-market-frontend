@@ -9,6 +9,9 @@ import {
 } from "../../../store/slices/createBillSlice";
 const ListProductItem = ({ data, index }) => {
   const dispatch = useDispatch();
+  let product = data.ProductUnitType.Product;
+  let unitType = data.ProductUnitType.UnitType;
+
   return (
     <div className="list_product_item">
       <div className="index">{index}</div>
@@ -23,19 +26,18 @@ const ListProductItem = ({ data, index }) => {
         />
       </div>
       <div className="product_id">
-        <Typography.Link>{data.ProductUnitType.Product.id}</Typography.Link>
+        <Typography.Link>{product.id}</Typography.Link>
       </div>
-      <div className="product_name">{data.ProductUnitType.Product.name}</div>
+      <div className="product_name">{product.name}</div>
       <div className="product_unit">
-        <Tag color="green">{data.ProductUnitType.UnitType.name}</Tag>
+        <Tag color="green">{unitType.name}</Tag>
       </div>
       <div className="quantity_container">
         <InputNumber
           className="value"
           size="small"
-          defaultValue={1}
           min={1}
-          value={data.quantity || 1}
+          value={data.quantity}
           onChange={(value) => {
             let newValue = value;
             if (value == null || value == 0) {

@@ -79,6 +79,14 @@ export function uid() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
+export function codeVocherGenarate() {
+  return (
+    "VC" +
+    Date.now().toString(36) +
+    Math.random().toString(36).substr(2, 4)
+  ).toLocaleUpperCase();
+}
+
 export function compareDMY(jsDate1, jsDate2) {
   let d1 = jsDate1.getDate();
   let m1 = jsDate1.getMonth();

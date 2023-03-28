@@ -20,6 +20,11 @@ class PromotionApi {
     return axiosClient.put(url, formData);
   }
 
+  getAllOnActive() {
+    let url = `promotion/getAll/active`;
+    return axiosClient.get(url);
+  }
+
   // line PP
   addOnePP(formData) {
     let url = `productPromotion/add`;
@@ -27,9 +32,13 @@ class PromotionApi {
   }
 
   getOnePPById(id) {
-    return {
-      isSuccess: true,
-    };
+    let url = `productPromotion/getId?id=${id}`;
+    return axiosClient.get(url);
+  }
+
+  updateOnePP(id, formData) {
+    let url = `productPromotion/update?id=${id}`;
+    return axiosClient.put(url, formData);
   }
 
   // line DRP
@@ -39,21 +48,32 @@ class PromotionApi {
   }
 
   getOneDRPById(id) {
-    return {
-      isSuccess: true,
-    };
+    let url = `discount/getId?id=${id}`;
+    return axiosClient.get(url);
   }
 
+  updateOneDRP(id, formData) {
+    let url = `discount/update?id=${id}`;
+    return axiosClient.put(url, formData);
+  }
+
+  // line MP
   addOneMP(formData) {
     let url = `moneyPromotion/add`;
     return axiosClient.post(url, formData);
   }
 
   getOneMPById(id) {
-    return {
-      isSuccess: true,
-    };
+    let url = `moneyPromotion/getId?id=${id}`;
+    return axiosClient.get(url);
   }
+
+  updateOneMP(id, formData) {
+    let url = `moneyPromotion/update?id=${id}`;
+    return axiosClient.put(url, formData);
+  }
+
+  // line V
 
   addOneV(formData) {
     let url = `voucher`;
@@ -61,10 +81,18 @@ class PromotionApi {
   }
 
   getOneVById(id) {
-    return {
-      isSuccess: true,
-    };
+    let url = `voucher/getId?id=${id}`;
+    return axiosClient.get(url);
   }
+
+  getOneVByCode(code) {
+    let url = `voucher/get?code=VCLFRR5P89F2YW`;
+    return axiosClient.get(url);
+  }
+  // updateOneV(id, formData) {
+  //   let url = `moneyPromotion/update?id=${id}`;
+  //   return axiosClient.put(url, formData);
+  // }
 
   //gift product
   addOneGift(formData) {

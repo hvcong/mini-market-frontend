@@ -18,6 +18,8 @@ import {
 } from "../../../store/slices/priceLineSlice";
 import priceLineApi from "../../../api/priceLineApi";
 import { addOneProductToActiveTab } from "../../../store/slices/createBillSlice";
+import priceHeaderApi from "../../../api/priceHeaderApi";
+import { compareDMY } from "../../../utils";
 
 const SearchProductInput = (props) => {
   const dispatch = useDispatch();
@@ -25,7 +27,7 @@ const SearchProductInput = (props) => {
   const list =
     useSelector((state) => state.createBill.listState[activeKey]) || [];
   const [quantityInput, setQuantityInput] = useState(2);
-  const [productLine, setProductLine] = useState({});
+  const [priceSelected, setPriceSelected] = useState();
 
   const quantityRef = useRef();
   const searchInput = useRef();
@@ -38,15 +40,19 @@ const SearchProductInput = (props) => {
     fetchData(input, setData, setFetching, list);
   };
   const handleChange = async (value) => {
-    let [productId, putId] = value.split("///");
-    let res = await priceLineApi.getOneBy_PUT_id(putId);
-    if (res.isSuccess) {
-      setInput(res.price.ProductUnitType.Product.name);
-      // setQuantityInput(1);
-      quantityRef.current.select();
-      quantityRef.current.focus();
+    searchInput.current.focus();
+    if (value) {
+      let res = await priceLineApi.getOneById(value);
+      if (res.isSuccess) {
+        let price = res.price;
+        let str = `${price.ProductUnitType.Product.name} (${price.ProductUnitType.UnitType.name})`;
+        setInput(str);
+        setQuantityInput(1);
+        quantityRef.current.select();
+        quantityRef.current.focus();
+        setPriceSelected(price);
+      }
     }
-    setProductLine(res.price);
   };
 
   return (
@@ -104,13 +110,16 @@ const SearchProductInput = (props) => {
         }}
         onKeyDown={({ nativeEvent }) => {
           if (nativeEvent.key == "Enter") {
-            dispatch(
-              addOneProductToActiveTab({
-                ...productLine,
-                quantity: quantityInput,
-              })
-            );
+            if (priceSelected) {
+              dispatch(
+                addOneProductToActiveTab({
+                  ...priceSelected,
+                  quantity: quantityInput,
+                })
+              );
+            }
             setInput("");
+            setPriceSelected(null);
             searchInput.current.focus();
           }
         }}
@@ -125,39 +134,35 @@ const SearchProductInput = (props) => {
 
 async function fetchData(input, setData, setFetching, list) {
   setFetching(true);
-  let products = [];
-  let typeFind = "name";
-  let res = await productApi.findManyByName(input);
-  console.log(res);
+  let headers = []; // header on using
+  let res = await priceHeaderApi.getAllOnActive();
   if (res.isSuccess) {
-    products = res.products || [];
-  }
+    for (const header of res.headers || []) {
+      let start = new Date(header.startDate);
+      let end = new Date(header.endDate);
+      let now = new Date();
+      let state = header.state;
 
-  let _listP = [];
-
-  products.map((product) => {
-    if (product.ProductUnitTypes) {
-      product.ProductUnitTypes.map((put) => {
-        let isExist = false;
-        list.map((pline) => {
-          if (pline.ProductUnitType.id == put.id) {
-            isExist = true;
-          }
-        });
-
-        if (!isExist) {
-          _listP.push({
-            ...product,
-            put: put,
-          });
-        }
-      });
+      if (compareDMY(start, now) <= 0 && compareDMY(end, now) >= 0 && state) {
+        headers.push(header);
+      }
     }
+  }
+  let _listPrices = [];
+
+  headers.map((header) => {
+    header.Prices.map((line) => {
+      _listPrices.push(line);
+    });
   });
 
-  let data = _listP.map((p, index) => {
+  let data = _listPrices.map((line, index) => {
+    let product = line.ProductUnitType.Product;
+    let unitype = line.ProductUnitType.UnitType;
+    let putId = line.ProductUnitTypeId;
+
     return {
-      value: p.id + "///" + p.put.id,
+      value: line.id,
       label: (
         <div
           style={{
@@ -182,15 +187,15 @@ async function fetchData(input, setData, setFetching, list) {
               paddingBottom: "12px",
             }}
           >
-            <HighlightedText text={p.name} highlightText={input} />
+            <HighlightedText text={product.name} highlightText={input} />
             <div
               style={{
                 fontSize: "12px",
               }}
             >
-              {p.id}
+              <HighlightedText text={product.id} highlightText={input} />
             </div>
-            <div> Tồn kho: {p.quantity} || KH đặt: 4</div>
+            <div>Tồn kho: {product.quantity / unitype.convertionQuantity}</div>
           </div>
           <div
             style={{
@@ -200,8 +205,8 @@ async function fetchData(input, setData, setFetching, list) {
             }}
           >
             <Typography.Title level={5} type="success">
-              <Tag color="gold">{p.put.UnitType.name}</Tag>
-              {p.put.Prices[0].price}
+              <Tag color="gold">{unitype.name}</Tag>
+              {line.price}
             </Typography.Title>
           </div>
         </div>

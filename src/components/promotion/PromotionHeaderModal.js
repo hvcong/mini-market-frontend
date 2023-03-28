@@ -42,8 +42,6 @@ const initFormState = {
   endDate: "",
   title: "",
   description: "",
-  budget: 0,
-  availableBudget: 0,
   state: "",
   image: "",
   customerTypeIds: [],
@@ -54,8 +52,6 @@ const initErrMessage = {
   endDate: "",
   title: "",
   description: "",
-  budget: "",
-  availableBudget: "",
   state: "",
   image: "",
   customerTypeIds: "",
@@ -73,8 +69,6 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
     endDate,
     title,
     description,
-    budget,
-    availableBudget,
     state,
     image,
     customerTypeIds,
@@ -110,9 +104,7 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
       endDate,
       title,
       description,
-      budget,
       state,
-      availableBudget: budget,
       image,
       customerIds: customerTypeIds.map((item) => {
         return {
@@ -197,10 +189,6 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
 
       if (!endDate) {
         _errMess.time = "Không được bỏ trống!";
-      }
-
-      if (!budget || budget == 0) {
-        _errMess.budget = "Ngân sách phải lớn hơn 0!";
       }
 
       if (!customerTypeIds || customerTypeIds.length == 0) {
@@ -590,45 +578,6 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
                       </div>
                     </div>
                   </div>
-
-                  {modalState?.type == "update" ? (
-                    <div className="promotion_header_form_group">
-                      <div className="promotion_header_form_label">
-                        Ngân sách còn lại
-                      </div>
-                      <div className="promotion_header_form_input_wrap">
-                        <InputNumber
-                          className="promotion_header_form_input_number"
-                          size="small"
-                          value={availableBudget}
-                          disabled
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="promotion_header_form_group">
-                      <div className="promotion_header_form_label">
-                        Tổng ngân sách
-                      </div>
-                      <div className="promotion_header_form_input_wrap">
-                        <InputNumber
-                          className="promotion_header_form_input_number"
-                          size="small"
-                          value={budget}
-                          onChange={(value) =>
-                            setFormState({
-                              ...formState,
-                              budget: value,
-                            })
-                          }
-                          status={errMessage.budget && "error"}
-                        />
-                        <div className="promotion_header_form_input_err">
-                          {errMessage.budget}
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
                 <div className="promotion_header_form_right">
                   <div className="promotion_header_form_group">
@@ -707,6 +656,7 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
                   promotionHeaderId={
                     modalState.rowSelected && modalState.rowSelected.id
                   }
+                  headerState={formState.state}
                 />
               )}
             </div>

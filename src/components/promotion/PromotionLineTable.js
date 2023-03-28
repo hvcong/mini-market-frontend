@@ -10,91 +10,105 @@ import promotionApi from "./../../api/promotionApi";
 import { setPromotionLines } from "../../store/slices/promotionLineSlice";
 import { sqlToDDmmYYY } from "./../../utils/index";
 
-const PromotionLineTable = ({ promotionHeaderId }) => {
+const PromotionLineTable = ({ promotionHeaderId, headerState }) => {
   let hideLoading = null;
   const { promotionLines, refresh, count } = useSelector(
     (state) => state.promotionLine
   );
+
   const dispatch = useDispatch();
 
   const [modalState, setModalState] = useState({});
+  const [minMaxTime, setMinMaxTime] = useState({
+    minStartDate: "",
+    maxEndDate: "",
+  });
 
-  const [allColumns, setAllColumns] = useState([
-    {
-      title: "Mã KM",
-      dataIndex: "id",
-      width: 120,
-      fixed: "left",
-      fixedShow: true,
-      render: (_, row) => (
-        <Typography.Link onClick={() => onClickRowId(row)}>
-          {row.id}
-        </Typography.Link>
-      ),
-    },
-    {
-      title: "Tên KM",
-      dataIndex: "title",
-      width: 200,
-    },
-    {
-      title: "Loại KM",
-      dataIndex: "",
-      width: 200,
-      render: (_, rowData) => {
-        console.log(rowData);
-        if (rowData && rowData.type == "PP") {
-          return "Tặng sản phẩm";
-        }
-        if (rowData && rowData.type == "V") {
-          return "Phiếu giảm giá";
-        }
-        if (rowData && rowData.type == "MP") {
-          return "Chiếu khấu theo hóa đơn";
-        }
-        if (rowData && rowData.type == "DRP") {
-          return "Chiết khấu trên sản phẩm";
-        }
-      },
-    },
-    {
-      title: "Mô tả",
-      dataIndex: "description",
-      width: 200,
-    },
-    {
-      title: "Ngày bắt đầu",
-      dataIndex: "startDate",
-      render: (_, rowData) => {
-        if (rowData) {
-          return sqlToDDmmYYY(rowData.startDate);
-        }
-      },
-    },
+  const [allColumns, setAllColumns] = useState([]);
 
-    {
-      title: "Ngày kết thúc",
-      dataIndex: "endDate",
-      render: (_, rowData) => {
-        if (rowData) {
-          return sqlToDDmmYYY(rowData.endDate);
-        }
+  useEffect(() => {
+    setAllColumns([
+      {
+        title: "Mã KM",
+        dataIndex: "id",
+        width: 120,
+        fixed: "left",
+        fixedShow: true,
+        render: (_, row) => (
+          <Typography.Link onClick={() => onClickRowId(row)}>
+            {row.id}
+          </Typography.Link>
+        ),
       },
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "state",
-      render: (_, rowData) => {
-        if (rowData) {
-          return rowData.state ? (
-            <div style={{ color: "green" }}>Đang hoạt động</div>
-          ) : (
-            <div style={{ color: "red" }}>Đã ngưng</div>
-          );
-        }
+      {
+        title: "Tên KM",
+        dataIndex: "title",
+        width: 200,
       },
-    },
-  ]);
+      {
+        title: "Loại KM",
+        dataIndex: "",
+        width: 200,
+        render: (_, rowData) => {
+          if (rowData && rowData.type == "PP") {
+            return "Tặng sản phẩm";
+          }
+          if (rowData && rowData.type == "V") {
+            return "Phiếu giảm giá";
+          }
+          if (rowData && rowData.type == "MP") {
+            return "Chiếu khấu theo hóa đơn";
+          }
+          if (rowData && rowData.type == "DRP") {
+            return "Chiết khấu trên sản phẩm";
+          }
+        },
+      },
+      {
+        title: "Mô tả",
+        dataIndex: "description",
+        width: 200,
+      },
+      {
+        title: "Ngày bắt đầu",
+        dataIndex: "startDate",
+        render: (_, rowData) => {
+          if (rowData) {
+            return sqlToDDmmYYY(rowData.startDate);
+          }
+        },
+      },
+
+      {
+        title: "Ngày kết thúc",
+        dataIndex: "endDate",
+        render: (_, rowData) => {
+          if (rowData) {
+            return sqlToDDmmYYY(rowData.endDate);
+          }
+        },
+      },
+      {
+        title: "Trạng thái",
+        dataIndex: "state",
+        render: (_, rowData) => {
+          if (rowData) {
+            if (!headerState) {
+              return <div style={{ color: "red" }}>Đã ngưng</div>;
+            } else {
+              return rowData.state ? (
+                <div style={{ color: "green" }}>Đang hoạt động</div>
+              ) : (
+                <div style={{ color: "red" }}>Đã ngưng</div>
+              );
+            }
+          }
+        },
+      },
+    ]);
+
+    return () => {};
+  }, [headerState]);
 
   useEffect(() => {
     if (promotionHeaderId) {
@@ -121,7 +135,13 @@ const PromotionLineTable = ({ promotionHeaderId }) => {
   async function getAllPromotionLines(promotionHeaderId) {
     hideLoading = message.loading("Tải dữ liệu khuyến mãi...", 0);
     let res = await promotionApi.getOneHeaderById(promotionHeaderId);
+
     if (res.isSuccess) {
+      setMinMaxTime({
+        minStartDate: res.promotion.startDate,
+        maxEndDate: res.promotion.endDate,
+      });
+
       let _listLines = [];
 
       res.promotion.ProductPromotions.map((item) => {
@@ -213,6 +233,7 @@ const PromotionLineTable = ({ promotionHeaderId }) => {
         modalState={modalState}
         setModalState={setModalState}
         promotionHeaderId={promotionHeaderId}
+        minMaxTime={minMaxTime}
       />
     </div>
   );

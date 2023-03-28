@@ -20,6 +20,11 @@ class PriceLineApi {
     let url = `price/proUnitId?productUnitTypeId=${id}`;
     return axiosClient.get(url);
   }
+
+  getOneById(priceId) {
+    let url = `price/priceId?id=${priceId}`;
+    return axiosClient.get(url);
+  }
 }
 
 const priceLineApi = new PriceLineApi();

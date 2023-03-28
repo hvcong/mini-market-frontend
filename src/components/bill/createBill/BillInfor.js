@@ -192,7 +192,7 @@ const BillInfor = () => {
             fontSize: "15px",
           }}
         >
-          {convertToVND(total - customerTake)}
+          {convertToVND(customerTake - total)}
         </div>
       </div>
       <div className="btn">

@@ -95,7 +95,6 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
     setErrMessage({});
     let formData = {};
     let putId;
-    console.log(formState);
 
     if (await checkData()) {
       putId = await getPUTid(formState.productId, formState.utId);
@@ -142,14 +141,11 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
         _errMess.utId = "Không được bỏ trống";
       }
 
-      // thêm vào bảng giá đang active
+      if (formState.productId && formState.utId) {
+        let thisHeader = formState.ListPricesHeader;
+        let start1 = new Date(thisHeader.startDate);
+        let end1 = new Date(thisHeader.endDate);
 
-      if (
-        formState.productId &&
-        formState.utId &&
-        formState.ListPricesHeader.state
-      ) {
-        // kiểm tra xem đã có trong bảng bảng active hay chưa
         let res = await priceHeaderApi.getAllOnActive();
         let putId = await getPUTid(formState.productId, formState.utId);
         let isExist = false;
@@ -157,56 +153,75 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
           let headers = res.headers || [];
           // loop through each header
           for (const header of headers) {
-            // loop through each line in a header
-            let priceLines = header.Prices || [];
-            for (const line of priceLines) {
-              if (line.ProductUnitTypeId == putId) {
-                if (header.id == headerPriceId) {
-                  message.error(
-                    `Sản phẩm và đơn vị này đang sử dụng ở bảng giá này`
-                  );
-                } else {
-                  message.error(
-                    `Sản phẩm và đơn vị này đang sử dụng ở bảng giá "${header.title}"`
-                  );
+            let start2 = new Date(header.startDate);
+            let end2 = new Date(header.endDate);
+            console.log("headerId:", header.id);
+            console.log("start1:", start1);
+            console.log("end1:", end1);
+            console.log("start2:", start2);
+            console.log("end2:", end2);
+
+            let is1 =
+              compareDMY(end2, start1) >= 0 && compareDMY(end2, end1) >= 0;
+            let is2 =
+              compareDMY(start1, start2) >= 0 && compareDMY(start1, end2) <= 0;
+            let is3 =
+              compareDMY(start1, start2) <= 0 && compareDMY(end2, end1) <= 0;
+
+            console.log(is1, is2, is3);
+            if (is1 || is2 || is3) {
+              console.log(header.id);
+              // loop through each line in a header
+              let priceLines = header.Prices || [];
+              for (const line of priceLines) {
+                if (line.ProductUnitTypeId == putId) {
+                  if (header.id == headerPriceId) {
+                    message.error(
+                      `Sản phẩm và đơn vị này đang sử dụng ở bảng giá này`
+                    );
+                  } else {
+                    message.error(
+                      `Sản phẩm và đơn vị này đang sử dụng ở bảng giá "${header.title}"`
+                    );
+                  }
+                  isExist = true;
+                  isCheck = false;
+                  break;
                 }
-                isExist = true;
-                isCheck = false;
-                break;
               }
             }
-            if (isExist) {
-              break;
-            }
+            // if (isExist) {
+            //   break;
+            // }
           }
         }
       }
 
       // thêm vào bảng giá chưa active
-      if (
-        formState.productId &&
-        formState.utId &&
-        !formState.ListPricesHeader.state
-      ) {
-        // kiểm tra xem đã nằm trong bảng này hay chưa
-        let isExist = false;
-        let putId = await getPUTid(formState.productId, formState.utId);
-        console.log(putId);
-        let res = await priceHeaderApi.getOneById(headerPriceId);
-        if (res.isSuccess) {
-          let header = res.header || {};
-          let Prices = header.Prices || [];
+      // if (
+      //   formState.productId &&
+      //   formState.utId &&
+      //   !formState.ListPricesHeader.state
+      // ) {
+      //   // kiểm tra xem đã nằm trong bảng này hay chưa
+      //   let isExist = false;
+      //   let putId = await getPUTid(formState.productId, formState.utId);
+      //   console.log(putId);
+      //   let res = await priceHeaderApi.getOneById(headerPriceId);
+      //   if (res.isSuccess) {
+      //     let header = res.header || {};
+      //     let Prices = header.Prices || [];
 
-          for (const line of Prices) {
-            if (line.ProductUnitTypeId == putId) {
-              isExist = true;
-              isCheck = false;
-              message.error("Sẩn phẩm với đơn vị đã tồn tại trong bảng này!");
-              break;
-            }
-          }
-        }
-      }
+      //     for (const line of Prices) {
+      //       if (line.ProductUnitTypeId == putId) {
+      //         isExist = true;
+      //         isCheck = false;
+      //         message.error("Sẩn phẩm với đơn vị đã tồn tại trong bảng này!");
+      //         break;
+      //       }
+      //     }
+      //   }
+      // }
 
       Object.keys(_errMess).map((key) => {
         if (_errMess[key]) {
@@ -241,43 +256,57 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
 
   function disabledUT() {
     if (formState.ListPricesHeader) {
-      let start =
-        formState.ListPricesHeader &&
-        new Date(formState.ListPricesHeader.startDate);
-      let end =
-        formState.ListPricesHeader &&
-        new Date(formState.ListPricesHeader.endDate);
-      let state =
-        formState.ListPricesHeader && formState.ListPricesHeader.state;
-      let now = new Date();
+      let header = formState.ListPricesHeader;
 
-      // đang hoạt động thì ko được chỉnh sửa
-      if (modalState.type == "update" && state) {
+      if (header.state) {
         return true;
       }
-      // ngày bắt đầu bé hơn ngày hiện tại thì disabled
-      if (modalState.type == "update" && compareDMY(start, now) < 0) {
+
+      let start = header && new Date(header.startDate);
+      let end = header && new Date(header.endDate);
+      let now = new Date();
+
+      // start <= now thì disabled
+      if (modalState.type == "update" && compareDMY(start, now) <= 0) {
         return true;
       }
     }
   }
 
   function disabledProductId() {
-    let start =
-      formState.ListPricesHeader &&
-      new Date(formState.ListPricesHeader.startDate);
-    let end =
-      formState.ListPricesHeader &&
-      new Date(formState.ListPricesHeader.endDate);
-    let state = formState.ListPricesHeader && formState.ListPricesHeader.state;
-    let now = new Date();
-    // đang hoạt động thì ko được chỉnh sửa
-    if (modalState.type == "update" && state) {
-      return true;
+    if (formState.ListPricesHeader) {
+      let header = formState.ListPricesHeader;
+      if (header.state) {
+        return true;
+      }
+
+      let start = header && new Date(header.startDate);
+      let end = header && new Date(header.endDate);
+      let now = new Date();
+
+      // // start <= now thì disabled
+      if (modalState.type == "update" && compareDMY(start, now) <= 0) {
+        return true;
+      }
     }
-    // ngày bắt đầu bé hơn ngày hiện tại thì disabled
-    if (modalState.type == "update" && compareDMY(start, now) < 0) {
-      return true;
+  }
+
+  function disabledPrice() {
+    if (formState.ListPricesHeader) {
+      let header = formState.ListPricesHeader;
+      if (header.state) {
+        return true;
+      }
+
+      let start = header && new Date(header.startDate);
+      let end = header && new Date(header.endDate);
+      let state = header && header.state;
+      let now = new Date();
+
+      // // start <= now thì disabled
+      if (modalState.type == "update" && compareDMY(start, now) <= 0) {
+        return true;
+      }
     }
   }
 
@@ -313,7 +342,7 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
                       });
                     }}
                     status={errMessage.productId && "error"}
-                    disabled={disabledProductId()}
+                    // disabled={disabledProductId()}
                   />
                   <div className="price_line_form_input_err">
                     {errMessage.productId}
@@ -336,7 +365,7 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
                       });
                     }}
                     status={errMessage.utId && "error"}
-                    disabled={disabledUT()}
+                    // disabled={disabledUT()}
                   />
                   <div className="price_line_form_input_err">
                     {errMessage.utId}
@@ -360,7 +389,7 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
                     }}
                     min={0}
                     status={errMessage.price && "error"}
-                    disabled={modalState.type == "update"}
+                    // disabled={disabledPrice()}
                   />
                   <div className="price_line_form_input_err">
                     {errMessage.price}

@@ -83,8 +83,10 @@ export const createBillState = createSlice({
       state.listState[state.tabState.activeKey] = list;
     },
     removeOneProductLine: (state, action) => {
+      // id of priceline
       let list = state.listState[state.tabState.activeKey];
-      list = list.filter((item) => item.id != action.payload.id);
+      console.log(action.payload);
+      list = list.filter((item) => item.id != action.payload);
       state.listState[state.tabState.activeKey] = list;
     },
     removeAllProductOnActiveTab: (state, action) => {

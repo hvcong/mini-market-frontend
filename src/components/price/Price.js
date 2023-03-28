@@ -10,6 +10,7 @@ import {
   Spin,
   Switch,
   Table,
+  Tag,
   Tooltip,
   Typography,
 } from "antd";
@@ -108,9 +109,38 @@ const Price = ({}) => {
           compareDMY(start, now) <= 0 &&
           compareDMY(end, now) > 0
         ) {
-          return <div style={{ color: "green" }}>Đang sử dụng</div>;
+          return (
+            <Tag
+              color="green"
+              style={{
+                fontSize: 11,
+              }}
+            >
+              Đang sử dụng
+            </Tag>
+          );
+        } else if (compareDMY(start, now) > 0) {
+          return (
+            <Tag
+              style={{
+                fontSize: 11,
+              }}
+              color="gold"
+            >
+              Sắp tới
+            </Tag>
+          );
         } else {
-          return <div style={{ color: "red" }}>Đã ngưng</div>;
+          return (
+            <Tag
+              style={{
+                fontSize: 11,
+              }}
+              color="red"
+            >
+              Đã hết hạn
+            </Tag>
+          );
         }
       },
     },

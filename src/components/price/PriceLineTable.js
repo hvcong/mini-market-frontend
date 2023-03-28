@@ -150,7 +150,7 @@ const PriceLineTable = ({
                 visible: true,
               });
             }}
-            disabled={isDisabledAddButton}
+            // disabled={isDisabledAddButton}
           >
             Thêm mới một dòng
           </Button>

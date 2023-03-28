@@ -1,6 +1,17 @@
 import React from "react";
-import { Input, InputNumber } from "antd";
+import { Input, InputNumber, Select } from "antd";
 import { Typography } from "antd";
+
+const typeMPs = [
+  {
+    value: "discountMoney",
+    label: "Tiền",
+  },
+  {
+    value: "discountRate",
+    label: "Phần trăm (%)  ",
+  },
+];
 
 const VoucherPromotion = ({
   formState = {},
@@ -37,77 +48,108 @@ const VoucherPromotion = ({
             </div>
           </div>
           <div className="promotion_line_form_group">
-            <div className="promotion_line_form_label">Số tiền chiết khấu</div>
+            <div className="promotion_line_form_label">
+              Hình thức tính tiền chiết khấu
+            </div>
             <div className="promotion_line_form_input_wrap">
-              <InputNumber
+              <Select
                 className="promotion_line_form_input"
                 size="small"
                 disabled={modalType == "update"}
-                value={formState.discountMoney}
+                value={formState.type}
                 onChange={(value) => {
                   setFormState({
                     ...formState,
-                    discountMoney: value,
+                    type: value,
                   });
                 }}
-                min={0}
-                status={errMessage.discountMoney && "error"}
+                options={typeMPs}
+                status={errMessage.type && "error"}
               />
               <div className="promotion_line_form_input_err">
-                {errMessage.discountMoney}
+                {errMessage.type}
               </div>
             </div>
           </div>
         </div>
         <div className="promotion_line_form_bottom_right">
-          <div className="promotion_line_form_group">
-            <div className="promotion_line_form_label">Số % chiết khấu</div>
-            <div className="promotion_line_form_input_wrap">
-              <InputNumber
-                className="promotion_line_form_input"
-                size="small"
-                disabled={modalType == "update"}
-                value={formState.discountRate}
-                onChange={(value) => {
-                  setFormState({
-                    ...formState,
-                    discountRate: value,
-                  });
-                }}
-                min={0}
-                status={errMessage.discountRate && "error"}
-              />
-              <div className="promotion_line_form_input_err">
-                {errMessage.discountRate}
+          {formState.type == "discountMoney" ? (
+            <div className="promotion_line_form_group">
+              <div className="promotion_line_form_label">
+                Số tiền chiết khấu
               </div>
-            </div>
-          </div>
-          <div className="promotion_line_form_group">
-            <div className="promotion_line_form_label">
-              Số tiền chiết khấu tối đa
-            </div>
-            <div className="promotion_line_form_input_wrap">
-              <InputNumber
-                className="promotion_line_form_input"
-                size="small"
-                disabled={modalType == "update"}
-                value={formState.maxDiscountMoney}
-                onChange={(value) => {
-                  if (value) {
+              <div className="promotion_line_form_input_wrap">
+                <InputNumber
+                  className="promotion_line_form_input"
+                  size="small"
+                  disabled={modalType == "update"}
+                  value={formState.discountMoney}
+                  onChange={(value) => {
                     setFormState({
                       ...formState,
-                      maxDiscountMoney: value,
+                      discountMoney: value,
                     });
-                  }
-                }}
-                min={1}
-                status={errMessage.maxDiscountMoney && "error"}
-              />
-              <div className="promotion_line_form_input_err">
-                {errMessage.maxDiscountMoney}
+                  }}
+                  min={0}
+                  status={errMessage.discountMoney && "error"}
+                />
+                <div className="promotion_line_form_input_err">
+                  {errMessage.discountMoney}
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="promotion_line_form_group">
+                <div className="promotion_line_form_label">Số % chiết khấu</div>
+                <div className="promotion_line_form_input_wrap">
+                  <InputNumber
+                    className="promotion_line_form_input"
+                    size="small"
+                    disabled={modalType == "update"}
+                    value={formState.discountRate}
+                    onChange={(value) => {
+                      setFormState({
+                        ...formState,
+                        discountRate: value,
+                      });
+                    }}
+                    min={0}
+                    status={errMessage.discountRate && "error"}
+                  />
+                  <div className="promotion_line_form_input_err">
+                    {errMessage.discountRate}
+                  </div>
+                </div>
+              </div>
+              <div className="promotion_line_form_group">
+                <div className="promotion_line_form_label">
+                  Số tiền chiết khấu tối đa
+                </div>
+                <div className="promotion_line_form_input_wrap">
+                  <InputNumber
+                    className="promotion_line_form_input"
+                    size="small"
+                    disabled={modalType == "update"}
+                    value={formState.maxDiscountMoney}
+                    onChange={(value) => {
+                      if (value) {
+                        setFormState({
+                          ...formState,
+                          maxDiscountMoney: value,
+                        });
+                      }
+                    }}
+                    min={1}
+                    status={errMessage.maxDiscountMoney && "error"}
+                  />
+                  <div className="promotion_line_form_input_err">
+                    {errMessage.maxDiscountMoney}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>
