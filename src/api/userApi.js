@@ -5,6 +5,11 @@ class UserApi {
     return axiosClient.get(url);
   }
 
+  getAllCustomerLikePhone(phone) {
+    let url = `user/likePhone?phonenumber=${phone}`;
+    return axiosClient.get(url);
+  }
+
   getLimitCustomers(page = 1, limit = 10) {
     let url = `user/get?_page=${page}&_limit=${limit}`;
     return axiosClient.get(url);

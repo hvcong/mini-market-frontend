@@ -1,5 +1,6 @@
 import {
   DeleteOutlined,
+  FallOutlined,
   GifOutlined,
   GiftFilled,
   MoreOutlined,
@@ -11,9 +12,9 @@ import {
   addOneProductToActiveTab,
   removeOneProductLine,
 } from "../../../store/slices/createBillSlice";
-import { Button, Empty, message, Table, Typography } from "antd";
+import { Button, Empty, message, Table, Tag, Typography } from "antd";
 import promotionApi from "./../../../api/promotionApi";
-import { compareDMY } from "./../../../utils/index";
+import { compareDMY, convertToVND } from "./../../../utils/index";
 import BillInfor from "./BillInfor";
 
 const ListProduct = () => {
@@ -133,7 +134,7 @@ const ListProduct = () => {
     // first row for calculate
     _tableData.push({ isFirstRow: true });
 
-    _tableData.push(...list);
+    // _tableData.push(...list);
 
     listPromotionLinesOnActive.map((promotionLine) => {
       // kiểm tra khách hàng này có được áp dụng ko?
@@ -151,7 +152,7 @@ const ListProduct = () => {
             let quantity = priceLine.quantity;
 
             let giftQuantity = (quantity - (quantity % step)) / step;
-            if (giftQuantity >= 0) {
+            if (giftQuantity > 0) {
               _tableData.push({
                 isPromotion: true,
                 ProductUnitType: put2,
@@ -159,6 +160,24 @@ const ListProduct = () => {
                 price: 0,
               });
             }
+          }
+        });
+      }
+
+      // DRP
+      if (promotionLine.promotionType == "DRP") {
+        let put1 = promotionLine.ProductUnitType;
+        list.map((priceLine) => {
+          let put3 = priceLine.ProductUnitType;
+          if (put1.id == put3.id) {
+            _tableData.push({
+              ...priceLine,
+              DRPused: promotionLine,
+            });
+          } else {
+            _tableData.push({
+              ...priceLine,
+            });
           }
         });
       }
@@ -213,14 +232,33 @@ const ListProduct = () => {
       },
       {
         title: "Đơn giá",
+        align: "right",
         render: (_, rowData) => {
           if (!rowData.isFirstRow && rowData) {
-            return rowData.price || 0;
+            if (rowData.DRPused) {
+              // khi có giảm giá trên sản phẩm
+              return (
+                <div className="price_discount_container">
+                  <div className="price_before">
+                    {convertToVND(rowData.price)}
+                  </div>
+                  <div className="price_after">
+                    {convertToVND(
+                      rowData.price -
+                        (rowData.price * rowData.DRPused.discountRate) / 100
+                    )}
+                  </div>
+                </div>
+              );
+            } else {
+              return convertToVND(rowData.price) || 0;
+            }
           }
         },
       },
       {
         title: "Số lượng",
+        align: "right",
         render: (_, rowData) => {
           if (!rowData.isFirstRow && rowData) {
             return rowData.quantity;
@@ -229,21 +267,39 @@ const ListProduct = () => {
       },
       {
         title: "Tổng",
+        align: "right",
         render: (_, rowData) => {
           if (!rowData.isFirstRow && rowData) {
-            return rowData.price * rowData.quantity;
+            let total = 0;
+            if (rowData.DRPused) {
+              total =
+                (rowData.price -
+                  (rowData.price * rowData.DRPused.discountRate) / 100) *
+                rowData.quantity;
+            } else {
+              total = rowData.price * rowData.quantity;
+            }
+
+            return convertToVND(total);
           }
 
+          // tổng cuối cùng
           if (rowData.isFirstRow) {
             let total = 0;
             _tableData.map((row) => {
               if (!row.isFirstRow) {
-                total += row.quantity * row.price;
+                if (row.DRPused) {
+                  let price =
+                    row.price - (row.price * row.DRPused.discountRate) / 100;
+                  total += price * row.quantity;
+                } else {
+                  total += row.quantity * row.price;
+                }
               }
             });
             return (
               <Typography.Title level={4} style={{ margin: 0, padding: 0 }}>
-                {total}
+                {convertToVND(total)}
               </Typography.Title>
             );
           }
@@ -253,15 +309,17 @@ const ListProduct = () => {
         title: "",
         width: 32,
         render: (_, rowData) => {
-          if (!rowData.isFirstRow && rowData.isPromotion) {
-            return (
-              <GiftFilled
-                style={{
-                  fontSize: 18,
-                  color: "red",
-                }}
-              />
-            );
+          if (!rowData.isFirstRow) {
+            if (rowData.isPromotion) {
+              return (
+                <Tag color="green">
+                  <GiftFilled />
+                </Tag>
+              );
+            }
+            if (rowData.DRPused) {
+              return <Tag color="green">-{rowData.DRPused.discountRate} %</Tag>;
+            }
           }
         },
       },

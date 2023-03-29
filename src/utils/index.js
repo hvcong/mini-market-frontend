@@ -72,7 +72,7 @@ export function dmyToYmd(dmy) {
 
 export function convertToVND(value) {
   value = Number(value);
-  return value.toLocaleString("it-IT", { style: "currency", currency: "VND" });
+  return value.toLocaleString("it-IT");
 }
 
 export function uid() {

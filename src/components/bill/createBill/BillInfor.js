@@ -1,4 +1,9 @@
-import { PlusOutlined } from "@ant-design/icons";
+import {
+  GiftFilled,
+  GiftOutlined,
+  GiftTwoTone,
+  PlusOutlined,
+} from "@ant-design/icons";
 import { Button, Input, InputNumber, message, Tag, Typography } from "antd";
 import React, { useEffect, useState } from "react";
 import CustomerSelect from "./CustomerSelect";
@@ -6,6 +11,7 @@ import EmployeeSelect from "./EmployeeSelect";
 import { useDispatch, useSelector } from "react-redux";
 import { convertToVND } from "../../../utils/index";
 import billApi from "../../../api/billApi";
+import { sqlToDDmmYYY } from "./../../../utils/index";
 import {
   addOneProductToActiveTab,
   clearOneTab,
@@ -14,8 +20,7 @@ import {
 
 const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
   const { account, isLogged } = useSelector((state) => state.user);
-  const { activeKey } = useSelector((state) => state.createBill.tabState);
-  const list = useSelector((state) => state.createBill.listState[activeKey]);
+  const [MPused, setMPused] = useState(null);
   let hideLoading = null;
   const dispatch = useDispatch();
   const [amountMoney, setAmountMoney] = useState({
@@ -32,21 +37,66 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
   useEffect(() => {
     calAmountMoney();
     return () => {};
-  }, [list]);
+  }, [tableData, listPromotionLinesOnActive]);
 
   function calAmountMoney() {
     let subTotal = 0;
-    list.map((productLine) => {
-      subTotal =
-        subTotal + Number(productLine.price) * Number(productLine.quantity);
-    });
 
+    tableData.map((row) => {
+      if (!row.isFirstRow) {
+        if (row.DRPused) {
+          let price = row.price - (row.price * row.DRPused.discountRate) / 100;
+          subTotal += price * row.quantity;
+        } else {
+          subTotal += row.quantity * row.price;
+        }
+      }
+    });
     let discountOnProduct = 0;
     let discountOnBill = 0;
+    let MPused = null;
 
+    listPromotionLinesOnActive.map((promotionLine) => {
+      if (promotionLine.promotionType == "MP") {
+        let minCost = promotionLine.minCost;
+        let type = promotionLine.type;
+        let discountMoney = promotionLine.discountMoney;
+        let discountRate = promotionLine.discountRate;
+        let maxMoneyDiscount = promotionLine.maxMoneyDiscount;
+
+        if (minCost <= subTotal) {
+          if (type == "discountMoney") {
+            // lấy cái giảm giá nhiều nhát
+            if (discountMoney > discountOnBill) {
+              MPused = promotionLine;
+              discountOnBill = discountMoney;
+            }
+          }
+          if (type == "discountRate") {
+            let sum = discountRate * subTotal;
+            if (sum > maxMoneyDiscount) {
+              sum = maxMoneyDiscount;
+            }
+
+            // lấy cái giảm giá nhiều nhát
+            if (sum > discountOnBill) {
+              discountOnBill = sum;
+              MPused = promotionLine;
+            }
+          }
+        }
+      }
+    });
+
+    setMPused(MPused);
+
+    // Số tiền cần trả
     let total = subTotal - discountOnBill - discountOnProduct;
+
     setAmountMoney({
       ...amountMoney,
+      discountOnProduct,
+      discountOnBill,
       subTotal,
       total,
     });
@@ -58,7 +108,7 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
       cost: total,
       customerPhonenumber: "0356267136",
       employeeId: account.id,
-      priceIds: list.map((p) => p.id),
+      // priceIds: list.map((p) => p.id),
     };
 
     if (await checkData()) {
@@ -88,57 +138,45 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
         <div className="label selectLabel">Nhân viên</div>
         <div className="employee">
           <div
-            className="select_container"
             style={{
               border: "1px solid #ddd",
               padding: "4px 8px",
               borderRadius: "4px",
+              width: 160,
             }}
           >
             {account.name}
           </div>
-          <div className="time_container">10/03/2023</div>
+          <div className="time_container">{sqlToDDmmYYY(new Date())}</div>
         </div>
       </div>
       <div className="row">
         <div className="label selectLabel">Khách hàng</div>
-        <div className="customer">
-          <div className="select_container">
-            <CustomerSelect />
-          </div>
-          <div className="add_cus_icon">
-            <PlusOutlined className="icon" />
-          </div>
-        </div>
-        {/* <div className="price_mode">
-            
-        </div> */}
+        <CustomerSelect />
       </div>
       <div className="row">
         <div className="label">Tổng tiền hàng</div>
-        <div className="quantitty">{(list && list.length) || 0}</div>
         <div className="value">{convertToVND(subTotal)}</div>
       </div>
-      <div className="row">
-        <div className="label">Giảm giá trên sp</div>
-        <div
-          className="value"
-          style={{
-            color: "green",
-          }}
-        >
-          {convertToVND(discountOnProduct)}
-        </div>
-      </div>
+
       <div className="row">
         <div className="label">Giảm giá trên hóa đơn</div>
         <div
           className="value"
           style={{
             color: "green",
+            cursor: "pointer",
           }}
         >
-          {convertToVND(discountOnBill)}
+          {
+            <GiftOutlined
+              style={{
+                paddingRight: 8,
+                color: "red",
+              }}
+            />
+          }
+          -{convertToVND(discountOnBill)}
         </div>
       </div>
       <div className="row">
@@ -203,7 +241,7 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
             width: "100%",
           }}
           onClick={onSubmit}
-          disabled={list.length == 0}
+          disabled={tableData.length <= 1}
         >
           THANH TOÁN (F5)
         </Button>

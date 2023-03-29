@@ -135,7 +135,14 @@ const SearchProductInput = (props) => {
 async function fetchData(input, setData, setFetching, list) {
   setFetching(true);
   let headers = []; // header on using
-  let res = await priceHeaderApi.getAllOnActive();
+  let productFounds = [];
+  let res = {};
+  res = await productApi.findManyById(input);
+  if (res.isSuccess) {
+    productFounds = res.products;
+  }
+
+  res = await priceHeaderApi.getAllOnActive();
   if (res.isSuccess) {
     for (const header of res.headers || []) {
       let start = new Date(header.startDate);
@@ -148,11 +155,20 @@ async function fetchData(input, setData, setFetching, list) {
       }
     }
   }
+
   let _listPrices = [];
 
   headers.map((header) => {
     header.Prices.map((line) => {
-      _listPrices.push(line);
+      if (input) {
+        for (const product of productFounds) {
+          if (line.ProductUnitType.ProductId == product.id)
+            _listPrices.push(line);
+          break;
+        }
+      } else {
+        _listPrices.push(line);
+      }
     });
   });
 
@@ -187,7 +203,7 @@ async function fetchData(input, setData, setFetching, list) {
               paddingBottom: "12px",
             }}
           >
-            <HighlightedText text={product.name} highlightText={input} />
+            {product.name}
             <div
               style={{
                 fontSize: "12px",

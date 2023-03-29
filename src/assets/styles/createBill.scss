@@ -66,6 +66,22 @@
       height: calc(100vh - 45px - 90px);
       overflow-y: auto;
     }
+
+    .price_discount_container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+    }
+    .price_before {
+      text-decoration: line-through;
+      color: #545353;
+      padding-right: 8px;
+      font-size: 12px;
+    }
+    .price_after {
+      font-size: 14px;
+      color: red;
+    }
     .bill_infor_container {
       border: 1px solid #ddd;
       border-radius: 4px;
@@ -88,7 +104,7 @@
           flex: 1;
         }
         .select_container {
-          width: 180px;
+          width: 280px;
         }
         .time_container {
           flex: 1;
@@ -128,7 +144,7 @@
           width: 160px;
         }
         .selectLabel {
-          width: 80px;
+          width: 100px;
         }
         .label.bold {
           font-weight: bold;

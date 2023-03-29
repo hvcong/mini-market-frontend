@@ -1,4 +1,4 @@
-import { Empty, Select, Spin } from "antd";
+import { Button, Empty, Select, Spin, Tag } from "antd";
 import { useEffect, useState } from "react";
 import userApi from "../../../api/userApi";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,18 +6,14 @@ import {
   addTab,
   onChangeCustomerPhone,
 } from "../../../store/slices/createBillSlice";
+import HighlightedText from "../../HighlightedText";
+import { PlusOutlined } from "@ant-design/icons";
 
-const CustomerSelect = () => {
+const CustomerSelect = ({ style }) => {
   const { activeKey } = useSelector((state) => state.createBill.tabState);
   const { tabItems } = useSelector((state) => state.createBill.tabState) || [];
+  const [phoneNew, setPhoneNew] = useState("");
   const dispatch = useDispatch();
-  let customerPhone = "0";
-
-  tabItems.map((item) => {
-    if (item.key == activeKey) {
-      customerPhone = item.customerPhone;
-    }
-  });
 
   const [data, setData] = useState([
     {
@@ -34,25 +30,41 @@ const CustomerSelect = () => {
   const [fetching, setFetching] = useState(false);
 
   const handleSearch = (input) => {
+    if (input && input.length == 10) {
+      setPhoneNew(input);
+    }
+    if (input && input.length == 1) {
+      setPhoneNew("");
+    }
+
+    setInput(input);
+
     // fetching data here
     fetchData(input, setData, setFetching);
   };
   const handleChange = async (value) => {
+    console.log(value);
+    setInput(value);
+    setPhoneNew("");
     dispatch(onChangeCustomerPhone(value));
   };
 
   return (
-    <div className="customer_select">
+    <div
+      className="customer_select"
+      style={{
+        display: "flex",
+      }}
+    >
       <Select
         size="small"
         showSearch
         placeholder="Khách hàng"
         optionFilterProp="children"
         style={{
-          width: "100%",
+          width: "160px",
         }}
-        value={customerPhone}
-        defaultActiveFirstOption={true}
+        value={phoneNew || input}
         showArrow={false}
         filterOption={false}
         onSearch={handleSearch}
@@ -77,6 +89,19 @@ const CustomerSelect = () => {
           label: item.label,
         }))}
       />
+      <div className="add_new_customer">
+        {phoneNew && phoneNew.length == 10 && (
+          <Tag
+            color="green"
+            style={{
+              marginLeft: 12,
+              marginTop: 1,
+            }}
+          >
+            KH mới
+          </Tag>
+        )}
+      </div>
     </div>
   );
 };
@@ -84,19 +109,27 @@ const CustomerSelect = () => {
 async function fetchData(input, setData, setFetching) {
   setFetching(true);
   let data = [];
+  console.log(input);
 
-  let res = await userApi.getAllCustomer();
+  let res = await userApi.getAllCustomerLikePhone(input);
   if (res.isSuccess) {
-    let listCus = res.customers.rows;
-    console.log(listCus);
+    let listCus = res.customers;
     listCus = listCus.filter((item) => item.phonenumber != "0");
     data = listCus.map((c) => {
+      let name = (c.firstName || "") + " " + (c.lastName || "");
+
       return {
         value: c.phonenumber,
         label: (
           <div>
-            <div>{c.firstName + " " + c.lastName}</div>
-            <div>{c.id + " - " + c.phonenumber}</div>
+            <div>{name}</div>
+            <div
+              style={{
+                display: "flex",
+              }}
+            >
+              <HighlightedText text={c.phonenumber} highlightText={input} />
+            </div>
           </div>
         ),
       };
