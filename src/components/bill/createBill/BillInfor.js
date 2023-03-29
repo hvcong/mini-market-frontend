@@ -12,7 +12,7 @@ import {
   removeAllProductOnActiveTab,
 } from "../../../store/slices/createBillSlice";
 
-const BillInfor = () => {
+const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
   const { account, isLogged } = useSelector((state) => state.user);
   const { activeKey } = useSelector((state) => state.createBill.tabState);
   const list = useSelector((state) => state.createBill.listState[activeKey]);
