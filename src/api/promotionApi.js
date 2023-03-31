@@ -99,6 +99,12 @@ class PromotionApi {
     let url = `giftProduct/add`;
     return axiosClient.post(url, formData);
   }
+
+  //// result
+  addResult(formData) {
+    let url = "result/add";
+    return axiosClient.post(url, formData);
+  }
 }
 
 const promotionApi = new PromotionApi();

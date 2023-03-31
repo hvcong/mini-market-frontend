@@ -19,7 +19,7 @@ import {
 import priceLineApi from "../../../api/priceLineApi";
 import { addOneProductToActiveTab } from "../../../store/slices/createBillSlice";
 import priceHeaderApi from "../../../api/priceHeaderApi";
-import { compareDMY } from "../../../utils";
+import { compareDMY, convertToVND } from "../../../utils";
 
 const SearchProductInput = (props) => {
   const dispatch = useDispatch();
@@ -222,7 +222,7 @@ async function fetchData(input, setData, setFetching, list) {
           >
             <Typography.Title level={5} type="success">
               <Tag color="gold">{unitype.name}</Tag>
-              {line.price}
+              {convertToVND(line.price)}
             </Typography.Title>
           </div>
         </div>

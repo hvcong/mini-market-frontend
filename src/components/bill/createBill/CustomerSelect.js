@@ -12,7 +12,13 @@ import { PlusOutlined } from "@ant-design/icons";
 const CustomerSelect = ({ style }) => {
   const { activeKey } = useSelector((state) => state.createBill.tabState);
   const { tabItems } = useSelector((state) => state.createBill.tabState) || [];
-  const [phoneNew, setPhoneNew] = useState("");
+  let customerPhone = "";
+  tabItems.map((item) => {
+    if (item.key == activeKey) {
+      customerPhone = item.customerPhone;
+    }
+  });
+
   const dispatch = useDispatch();
 
   const [data, setData] = useState([
@@ -30,22 +36,13 @@ const CustomerSelect = ({ style }) => {
   const [fetching, setFetching] = useState(false);
 
   const handleSearch = (input) => {
-    if (input && input.length == 10) {
-      setPhoneNew(input);
-    }
-    if (input && input.length == 1) {
-      setPhoneNew("");
-    }
-
     setInput(input);
 
     // fetching data here
     fetchData(input, setData, setFetching);
   };
   const handleChange = async (value) => {
-    console.log(value);
     setInput(value);
-    setPhoneNew("");
     dispatch(onChangeCustomerPhone(value));
   };
 
@@ -64,7 +61,8 @@ const CustomerSelect = ({ style }) => {
         style={{
           width: "160px",
         }}
-        value={phoneNew || input}
+        value={customerPhone}
+        defaultActiveFirstOption
         showArrow={false}
         filterOption={false}
         onSearch={handleSearch}
@@ -89,8 +87,8 @@ const CustomerSelect = ({ style }) => {
           label: item.label,
         }))}
       />
-      <div className="add_new_customer">
-        {phoneNew && phoneNew.length == 10 && (
+      {/* <div className="add_new_customer">
+        {customerPhone && customerPhone.length == 10 && (
           <Tag
             color="green"
             style={{
@@ -101,7 +99,7 @@ const CustomerSelect = ({ style }) => {
             KH mới
           </Tag>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -17,6 +17,23 @@ const initState = {
       type: "",
       idSelected: "",
     },
+    BillCUModal: {
+      visible: false,
+      type: "",
+      idSelected: "",
+    },
+    ResultDetailModal: {
+      visible: false,
+      type: "",
+      idSelected: "",
+    },
+    PromotionLineModal: {
+      visible: false,
+      type: "",
+      idSelected: "",
+      promotionHeaderId: "",
+      minMaxTime: "",
+    },
   },
 };
 

@@ -67,21 +67,6 @@
       overflow-y: auto;
     }
 
-    .price_discount_container {
-      display: flex;
-      align-items: flex-end;
-      justify-content: flex-end;
-    }
-    .price_before {
-      text-decoration: line-through;
-      color: #545353;
-      padding-right: 8px;
-      font-size: 12px;
-    }
-    .price_after {
-      font-size: 14px;
-      color: red;
-    }
     .bill_infor_container {
       border: 1px solid #ddd;
       border-radius: 4px;

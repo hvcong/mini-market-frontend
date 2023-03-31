@@ -66,7 +66,26 @@ export const createBillState = createSlice({
     },
 
     addOneProductToActiveTab: (state, action) => {
-      state.listState[state.tabState.activeKey].push(action.payload);
+      let isExits = false;
+      let newPriceLine = action.payload;
+      let list = state.listState[state.tabState.activeKey];
+
+      let newList = list.map((priceLine) => {
+        if (priceLine.id == newPriceLine.id) {
+          isExits = true;
+          return {
+            ...priceLine,
+            quantity: priceLine.quantity + newPriceLine.quantity,
+          };
+        }
+        return priceLine;
+      });
+
+      if (!isExits) {
+        newList.push(newPriceLine);
+      }
+
+      state.listState[state.tabState.activeKey] = newList;
     },
 
     updateQuantityOneProduct: (state, action) => {

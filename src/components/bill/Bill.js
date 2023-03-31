@@ -35,6 +35,7 @@ import BillCUModal from "./BillCUModal";
 import billApi from "./../../api/billApi";
 import { setBills } from "../../store/slices/billSlice";
 import ReceiveButton from "./ReceiveButton";
+import { setOpen } from "../../store/slices/modalSlice";
 
 const { Text } = Typography;
 
@@ -44,12 +45,6 @@ const Bill = ({}) => {
   const dispatch = useDispatch();
 
   const [receiveOpenId, setReceiveOpenId] = useState("billId");
-
-  const [modalState, setModalState] = useState({
-    visible: false,
-    type: "",
-    rowSelected: null,
-  });
 
   const [pageState, setPageState] = useState({
     page: 1,
@@ -111,6 +106,7 @@ const Bill = ({}) => {
                 console.log(id);
               }}
               billId={rowData.id}
+              size="small"
             />
           );
         },
@@ -161,11 +157,16 @@ const Bill = ({}) => {
   }
 
   function onRowIdClick(row) {
-    setModalState({
-      type: "update",
-      visible: true,
-      rowSelected: row,
-    });
+    dispatch(
+      setOpen({
+        name: "BillCUModal",
+        modalState: {
+          visible: true,
+          type: "update",
+          idSelected: row.id,
+        },
+      })
+    );
   }
 
   useEffect(() => {
@@ -234,7 +235,6 @@ const Bill = ({}) => {
           hideOnSinglePage
         />
       </div>
-      <BillCUModal modalState={modalState} setModalState={setModalState} />
     </div>
   );
 };

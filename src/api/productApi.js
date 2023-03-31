@@ -18,6 +18,7 @@ class ProductApi {
 
   updateOne(formData) {
     let url = `product/update?id=${formData.id}`;
+
     return axiosClient.put(url, formData);
   }
 

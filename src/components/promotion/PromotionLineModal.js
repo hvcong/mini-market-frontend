@@ -22,7 +22,7 @@ import {
   Upload,
 } from "antd";
 import ModalCustomer from "../ModalCustomer";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import ImageUpload from "./ImageUpload";
 import DropSelectColum from "../product/DropSelectColum";
 import { PlusOutlined } from "@ant-design/icons";
@@ -42,6 +42,7 @@ import {
   sqlToAntd,
   uid,
 } from "../../utils";
+import { setOpen } from "../../store/slices/modalSlice";
 
 const initFormState = {
   id: uid(),
@@ -145,23 +146,23 @@ const typePromotionData = [
   },
 ];
 
-const PromotionLineModal = ({
-  modalState,
-  setModalState,
-  promotionHeaderId,
-  minMaxTime,
-}) => {
+const PromotionLineModal = () => {
   let hideLoading = null;
   const dispatch = useDispatch();
+  const modalState = useSelector(
+    (state) => state.modal.modals["PromotionLineModal"]
+  );
+  const promotionHeaderId = modalState.promotionHeaderId;
+  const minMaxTime = modalState.minMaxTime;
 
   const [formState, setFormState] = useState(initFormState);
   const [errMessage, setErrMessage] = useState(initErrMessage);
 
   useEffect(() => {
-    const { type, rowSelected, visible } = modalState;
+    const { type, idSelected, visible } = modalState;
 
-    if (type == "update" && rowSelected && visible) {
-      loadPromotionLine(rowSelected.id, rowSelected.type);
+    if (idSelected && visible) {
+      loadPromotionLine(idSelected);
     } else if (type == "create" && visible) {
     }
 
@@ -175,155 +176,152 @@ const PromotionLineModal = ({
     return () => {};
   }, [formState.typePromotionId]);
 
-  async function loadPromotionLine(id, type) {
-    if (type == "PP") {
-      let res = await promotionApi.getOnePPById(id);
-      if (res.isSuccess) {
-        let productPromotion = res.productPromotion;
-
-        setFormState({
-          ...productPromotion,
-          typePromotionId: type,
-          PP: {
-            productId1: productPromotion.ProductUnitType.ProductId,
-            ut1: productPromotion.ProductUnitType.UnitTypeId,
-            minQuantity: productPromotion.minQuantity,
-            productId2: productPromotion.GiftProduct.ProductUnitType.ProductId,
-            ut2: productPromotion.GiftProduct.ProductUnitType.UnitTypeId,
-            quantity: productPromotion.GiftProduct.quantity,
-          },
-          DRP: {
-            productId: "",
-            ut: "",
-            discountRate: "",
-            state: true,
-          },
-          MP: {
-            minCost: "",
-            discountMoney: "",
-            discountRate: "",
-            maxMoneyDiscount: "",
-            state: true,
-          },
-          V: {
-            code: "",
-            discountMoney: "",
-            discountRate: "",
-            maxMoneyDiscount: "",
-            state: true,
-          },
-        });
-      }
+  async function loadPromotionLine(id) {
+    let type = "";
+    let res = {};
+    res = await promotionApi.getOnePPById(id);
+    if (res.isSuccess) {
+      let productPromotion = res.productPromotion;
+      type = "PP";
+      setFormState({
+        ...productPromotion,
+        typePromotionId: type,
+        PP: {
+          productId1: productPromotion.ProductUnitType.ProductId,
+          ut1: productPromotion.ProductUnitType.UnitTypeId,
+          minQuantity: productPromotion.minQuantity,
+          productId2: productPromotion.GiftProduct.ProductUnitType.ProductId,
+          ut2: productPromotion.GiftProduct.ProductUnitType.UnitTypeId,
+          quantity: productPromotion.GiftProduct.quantity,
+        },
+        DRP: {
+          productId: "",
+          ut: "",
+          discountRate: "",
+          state: true,
+        },
+        MP: {
+          minCost: "",
+          discountMoney: "",
+          discountRate: "",
+          maxMoneyDiscount: "",
+          state: true,
+        },
+        V: {
+          code: "",
+          discountMoney: "",
+          discountRate: "",
+          maxMoneyDiscount: "",
+          state: true,
+        },
+      });
     }
 
-    if (type == "MP") {
-      let res = await promotionApi.getOneMPById(id);
-      if (res.isSuccess) {
-        let moneyPromotion = res.moneyPromotion || {};
-        setFormState({
+    res = await promotionApi.getOneMPById(id);
+    if (res.isSuccess) {
+      type = "MP";
+      let moneyPromotion = res.moneyPromotion || {};
+      setFormState({
+        ...moneyPromotion,
+        typePromotionId: "MP",
+
+        PP: {
+          productId1: "",
+          ut1: "",
+          minQuantity: "",
+          productId2: "",
+          ut2: "",
+          quantity: "",
+          state: true,
+        },
+        DRP: {
+          productId: "",
+          ut: "",
+          discountRate: "",
+          state: true,
+        },
+        MP: {
           ...moneyPromotion,
-          typePromotionId: "MP",
-
-          PP: {
-            productId1: "",
-            ut1: "",
-            minQuantity: "",
-            productId2: "",
-            ut2: "",
-            quantity: "",
-            state: true,
-          },
-          DRP: {
-            productId: "",
-            ut: "",
-            discountRate: "",
-            state: true,
-          },
-          MP: {
-            ...moneyPromotion,
-          },
-          V: {
-            code: "",
-            discountMoney: "",
-            discountRate: "",
-            maxMoneyDiscount: "",
-            state: true,
-          },
-        });
-      }
+        },
+        V: {
+          code: "",
+          discountMoney: "",
+          discountRate: "",
+          maxMoneyDiscount: "",
+          state: true,
+        },
+      });
     }
 
-    if (type == "DRP") {
-      let res = await promotionApi.getOneDRPById(id);
-      if (res.isSuccess) {
-        let discountRate = res.discountRate;
-        setFormState({
-          ...discountRate,
-          typePromotionId: type,
-          PP: {
-            productId1: "",
-            ut1: "",
-            minQuantity: "",
-            productId2: "",
-            ut2: "",
-            quantity: "",
-          },
-          DRP: {
-            productId: discountRate.ProductUnitType.ProductId,
-            ut: discountRate.ProductUnitType.UnitTypeId,
-            discountRate: discountRate.discountRate,
-          },
-          MP: {
-            minCost: "",
-            discountMoney: "",
-            discountRate: "",
-            maxMoneyDiscount: "",
-          },
-          V: {
-            code: "",
-            discountMoney: "",
-            discountRate: "",
-            maxMoneyDiscount: "",
-          },
-        });
-      }
+    res = await promotionApi.getOneDRPById(id);
+    if (res.isSuccess) {
+      type = "DRP";
+      let discountRate = res.discountRate;
+      setFormState({
+        ...discountRate,
+        typePromotionId: type,
+        PP: {
+          productId1: "",
+          ut1: "",
+          minQuantity: "",
+          productId2: "",
+          ut2: "",
+          quantity: "",
+        },
+        DRP: {
+          productId: discountRate.ProductUnitType.ProductId,
+          ut: discountRate.ProductUnitType.UnitTypeId,
+          discountRate: discountRate.discountRate,
+        },
+        MP: {
+          minCost: "",
+          discountMoney: "",
+          discountRate: "",
+          maxMoneyDiscount: "",
+        },
+        V: {
+          code: "",
+          discountMoney: "",
+          discountRate: "",
+          maxMoneyDiscount: "",
+        },
+      });
     }
 
-    if (type == "V") {
-      let res = await promotionApi.getOneVById(id);
-      if (res.isSuccess) {
-        let voucher = res.voucher;
-        setFormState({
+    res = await promotionApi.getOneVById(id);
+    if (res.isSuccess) {
+      type = "V";
+      let voucher = res.voucher;
+      setFormState({
+        ...voucher,
+        typePromotionId: type,
+
+        PP: {
+          productId1: "",
+          ut1: "",
+          minQuantity: "",
+          productId2: "",
+          ut2: "",
+          quantity: "",
+          state: true,
+        },
+        DRP: {
+          productId: "",
+          ut: "",
+          discountRate: "",
+          state: true,
+        },
+        MP: {
+          minCost: "",
+          discountMoney: "",
+          discountRate: "",
+          maxMoneyDiscount: "",
+          state: true,
+        },
+        V: {
           ...voucher,
-          typePromotionId: type,
-
-          PP: {
-            productId1: "",
-            ut1: "",
-            minQuantity: "",
-            productId2: "",
-            ut2: "",
-            quantity: "",
-            state: true,
-          },
-          DRP: {
-            productId: "",
-            ut: "",
-            discountRate: "",
-            state: true,
-          },
-          MP: {
-            minCost: "",
-            discountMoney: "",
-            discountRate: "",
-            maxMoneyDiscount: "",
-            state: true,
-          },
-          V: {
-            ...voucher,
-          },
-        });
-      }
+        },
+      });
     }
   }
 
@@ -660,31 +658,32 @@ const PromotionLineModal = ({
   }
 
   function disabledDate() {
-    let min = new Date(minMaxTime.minStartDate);
-    let max = new Date(minMaxTime.maxEndDate);
-    let now = new Date();
+    if (minMaxTime) {
+      let min = new Date(minMaxTime.minStartDate);
+      let max = new Date(minMaxTime.maxEndDate);
+      let now = new Date();
 
-    if (compareDMY(max, now) < 0) {
-      return [true, true];
-    }
+      if (compareDMY(max, now) < 0) {
+        return [true, true];
+      }
 
-    if (
-      modalState.type == "update" &&
-      formState.startDate &&
-      formState.endDate
-    ) {
-      let start = new Date(formState.startDate);
-      let end = new Date(formState.endDate);
+      if (
+        modalState.type == "update" &&
+        formState.startDate &&
+        formState.endDate
+      ) {
+        let start = new Date(formState.startDate);
+        let end = new Date(formState.endDate);
 
-      if (compareDMY(start, now) <= 0) {
-        if (compareDMY(end, now) < 0) {
-          return [true, true];
-        } else {
-          return [true, false];
+        if (compareDMY(start, now) <= 0) {
+          if (compareDMY(end, now) < 0) {
+            return [true, true];
+          } else {
+            return [true, false];
+          }
         }
       }
     }
-
     return [false, false];
   }
 
@@ -699,6 +698,15 @@ const PromotionLineModal = ({
     setErrMessage(initErrMessage);
     initFormState.id = uid();
     setFormState(initFormState);
+  }
+
+  function setModalState(state) {
+    dispatch(
+      setOpen({
+        name: "PromotionLineModal",
+        modalState: state,
+      })
+    );
   }
 
   return (

@@ -158,6 +158,7 @@ const ListProduct = () => {
                 ProductUnitType: put2,
                 quantity: giftQuantity,
                 price: 0,
+                ProductPromotionId: promotionLine.id,
               });
             }
           }
@@ -242,6 +243,7 @@ const ListProduct = () => {
                   <div className="price_before">
                     {convertToVND(rowData.price)}
                   </div>
+                  <Tag color="green">-{rowData.DRPused.discountRate} %</Tag>
                   <div className="price_after">
                     {convertToVND(
                       rowData.price -
@@ -316,9 +318,6 @@ const ListProduct = () => {
                   <GiftFilled />
                 </Tag>
               );
-            }
-            if (rowData.DRPused) {
-              return <Tag color="green">-{rowData.DRPused.discountRate} %</Tag>;
             }
           }
         },

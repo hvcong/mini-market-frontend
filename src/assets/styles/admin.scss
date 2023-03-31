@@ -600,3 +600,20 @@
 .ant-select-dropdown.css-dev-only-do-not-override-16u169c {
   z-index: 100000 !important;
 }
+
+// bill cu
+.price_discount_container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+.price_before {
+  text-decoration: line-through;
+  color: #545353;
+  padding-right: 8px;
+  font-size: 12px;
+}
+.price_after {
+  font-size: 14px;
+  color: red;
+}

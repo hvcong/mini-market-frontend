@@ -15,6 +15,7 @@ import Customer from "./../components/customer/Customer";
 import Category from "./../components/category/Category";
 import ReceiveBill from "../components/receiveBill/ReceiveBill";
 import CreateBill from "../components/bill/createBill/CreateBill";
+import Order from "../components/order/Order";
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
           <Route path="customer_group" element={<CustomerGroup />} />
           <Route path="employee" element={<Employee />} />
           <Route path="create_bill" element={<CreateBill />} />
+          <Route path="orders" element={<Order />} />
         </Route>
         {/* <Route path="bills/create" element={<CreateBill />} /> */}
       </Routes>

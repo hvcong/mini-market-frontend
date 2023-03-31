@@ -80,7 +80,7 @@ const Customer = ({}) => {
       fixed: "left",
       fixedShow: true,
       render: (_, rowData) => {
-        return rowData.firstName + " " + rowData.lastName;
+        return (rowData.firstName || "") + " " + (rowData.lastName || "");
       },
     },
     {

@@ -5,6 +5,8 @@ import {
   message,
   Modal,
   Pagination,
+  Popconfirm,
+  Popover,
   Row,
   Space,
   Spin,
@@ -22,6 +24,7 @@ import {
   StopOutlined,
   DownOutlined,
   RedoOutlined,
+  MenuUnfoldOutlined,
 } from "@ant-design/icons";
 import "../../assets/styles/bill.scss";
 import { useDispatch, useSelector } from "react-redux";
@@ -29,22 +32,16 @@ import { useEffect, useState } from "react";
 import { sqlToDDmmYYY } from "./../../utils/index";
 import DropSelectColum from "./../product/DropSelectColum";
 import promotionApi from "./../../api/promotionApi";
+import { setPromotionHeaders } from "../../store/slices/promotionHeaderSlice";
 import billApi from "./../../api/billApi";
 import { setBills } from "../../store/slices/billSlice";
-import BillCUModal from "../bill/BillCUModal";
-import { setReceiveBills } from "../../store/slices/receiveBillSlice";
 import { setOpen } from "../../store/slices/modalSlice";
 
 const { Text } = Typography;
 
-const ReceiveBill = ({}) => {
+const Order = ({}) => {
   let hideLoading = null;
-  const { receiveBills, refresh, count } = useSelector(
-    (state) => state.receiveBill
-  );
-
-  const modalState = useSelector((state) => state.modal.modals.BillCUModal);
-
+  const { bills, refresh, count } = useSelector((state) => state.bill);
   const dispatch = useDispatch();
 
   const [pageState, setPageState] = useState({
@@ -52,37 +49,77 @@ const ReceiveBill = ({}) => {
     limit: 10,
   });
 
-  const [allColumns, setAllColumns] = useState([
-    {
-      title: "Mã hóa đơn",
-      dataIndex: "",
-      width: 160,
-      fixed: "left",
-      fixedShow: true,
-      render: (_, row) => (
-        <Typography.Link
-          onClick={() => {
-            onRowIdClick(row);
-          }}
-        >
-          {row.BillId}
-        </Typography.Link>
-      ),
-    },
-    {
-      title: "Ngày trả",
-      width: 200,
-      dataIndex: "createAt",
-      render: (createAt) => {
-        return sqlToDDmmYYY(createAt);
+  const [allColumns, setAllColumns] = useState([]);
+  useEffect(() => {
+    let _allCol = [
+      {
+        title: "Mã đơn hàng",
+        dataIndex: "id",
+        width: 160,
+        fixed: "left",
+        fixedShow: true,
+        render: (_, row) => (
+          <Typography.Link
+            onClick={() => {
+              onRowIdClick(row);
+            }}
+          >
+            {row.id}
+          </Typography.Link>
+        ),
       },
-    },
+      {
+        title: "Ngày tạo",
+        dataIndex: "orderDate",
+      },
 
-    {
-      title: "Ghi chú",
-      dataIndex: "note",
-    },
-  ]);
+      {
+        title: "Mã khách hàng",
+        dataIndex: "CustomerId",
+        render: (CustomerId, rowData) => {
+          return <Typography.Link>{CustomerId}</Typography.Link>;
+        },
+      },
+      {
+        title: "Xử lí",
+        width: 120,
+        fixed: "right",
+        render: () => {
+          return (
+            <Popover
+              placement="leftTop"
+              content={
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <Button
+                    size="small"
+                    style={{
+                      marginBottom: 12,
+                    }}
+                    type="primary"
+                  >
+                    Thanh toán
+                  </Button>
+                  <Button size="small" danger>
+                    Hủy đơn hàng
+                  </Button>
+                </div>
+              }
+            >
+              <Button size="small" icon={<MenuUnfoldOutlined />}></Button>
+            </Popover>
+          );
+        },
+      },
+    ];
+
+    setAllColumns(_allCol);
+    return () => {};
+  }, []);
 
   useEffect(() => {
     getBills(pageState.page, pageState.limit);
@@ -91,6 +128,7 @@ const ReceiveBill = ({}) => {
 
   useEffect(() => {
     if (refresh) {
+      console.log("refresh");
       getBills(pageState.page, pageState.limit);
     }
 
@@ -107,9 +145,9 @@ const ReceiveBill = ({}) => {
 
   async function getBills(page, limit) {
     hideLoading = message.loading("Tải dữ liệu hóa đơn...", 0);
-    let res = await billApi.getLimitReceives(page, limit);
+    let res = await billApi.getLimitBill(page, limit);
     if (res.isSuccess) {
-      dispatch(setReceiveBills(res.retrieves));
+      dispatch(setBills(res.bills));
     }
     hideLoading();
   }
@@ -123,11 +161,16 @@ const ReceiveBill = ({}) => {
   }
 
   function onRowIdClick(row) {
-    setModalState({
-      type: "view-receive",
-      visible: true,
-      rowSelected: row.id,
-    });
+    dispatch(
+      setOpen({
+        name: "BillCUModal",
+        modalState: {
+          visible: true,
+          type: "view-order",
+          idSelected: row.id,
+        },
+      })
+    );
   }
 
   useEffect(() => {
@@ -137,15 +180,6 @@ const ReceiveBill = ({}) => {
       }
     };
   }, []);
-
-  function setModalState(state) {
-    dispatch(
-      setOpen({
-        name: "BillCUModal",
-        modalState: state,
-      })
-    );
-  }
 
   return (
     <div className="products promotion">
@@ -157,8 +191,23 @@ const ReceiveBill = ({}) => {
               margin: 0,
             }}
           >
-            Danh sách hóa đơn đã trả hàng{" "}
+            Danh sách đơn đặt hàng{" "}
           </Typography.Title>
+        </div>
+        <div className="btn__item">
+          <Button
+            size="small"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              // setModalState({
+              //   type: "create",
+              //   visible: true,
+              // });
+            }}
+          >
+            Thêm mới
+          </Button>
         </div>
         <div className="btn__item">
           <DropSelectColum
@@ -172,7 +221,7 @@ const ReceiveBill = ({}) => {
 
       <Table
         columns={allColumns.filter((col) => !col.hidden)}
-        dataSource={receiveBills}
+        dataSource={bills}
         pagination={false}
         size="small"
         scroll={{
@@ -190,9 +239,8 @@ const ReceiveBill = ({}) => {
           hideOnSinglePage
         />
       </div>
-      <BillCUModal modalState={modalState} setModalState={setModalState} />
     </div>
   );
 };
 
-export default ReceiveBill;
+export default Order;

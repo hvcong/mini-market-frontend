@@ -23,7 +23,7 @@ import {
   Tag,
 } from "antd";
 import ModalCustomer from "../ModalCustomer";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import BillLineTable from "./BillLineTable";
 import CreateBill from "./createBill/CreateBill";
@@ -31,6 +31,8 @@ import billApi from "./../../api/billApi";
 import dayjs from "dayjs";
 import ListPromotion from "./ListPromotion";
 import ReceiveButton from "./ReceiveButton";
+import { setOpen } from "../../store/slices/modalSlice";
+import { convertToVND } from "../../utils";
 const dateFormat = "YYYY-MM-DD";
 
 const initFormState = {
@@ -42,29 +44,23 @@ const initFormState = {
   BillDetails: "",
   PromotionResults: [],
 };
-const initErrMessage = {};
 
-const BillCUModal = ({ modalState, setModalState }) => {
+const BillCUModal = () => {
   let hideLoading = null;
   const dispatch = useDispatch();
-
+  const modalState = useSelector((state) => state.modal.modals.BillCUModal);
   const [formState, setFormState] = useState(initFormState);
-  const [errMessage, setErrMessage] = useState(initErrMessage);
   const [receiveOpenId, setReceiveOpenId] = useState("");
   const [listKM, setListKM] = useState([]);
+  const [MPused, setMPused] = useState(null);
+
+  let isOrder = modalState.type == "order-view";
+  let type = modalState.type;
 
   useEffect(() => {
-    const { type, rowSelected, visible } = modalState;
-    if (rowSelected && visible) {
-      let billId = "";
-      if (type == "update") {
-        billId = rowSelected.id;
-      }
-      if (type == "view-receive") {
-        billId = rowSelected.BillId;
-      }
-
-      loadOneBill(billId);
+    const { type, idSelected, visible } = modalState;
+    if (idSelected && visible) {
+      loadOneBill(idSelected);
     }
     return () => {};
   }, [modalState]);
@@ -78,28 +74,6 @@ const BillCUModal = ({ modalState, setModalState }) => {
       });
     }
     hideLoading();
-  }
-
-  async function onSubmit(type, isClose) {
-    setErrMessage({});
-    let formData = {};
-
-    if (await checkData()) {
-      let res = {};
-    }
-
-    async function checkData() {
-      let isCheck = true;
-      let _errMess = {};
-
-      Object.keys(_errMess).map((key) => {
-        if (_errMess) {
-          isCheck = false;
-        }
-      });
-      setErrMessage(_errMess);
-      return isCheck;
-    }
   }
 
   function onChangeDate(strings = []) {
@@ -119,8 +93,16 @@ const BillCUModal = ({ modalState, setModalState }) => {
     clearModal();
   }
 
+  function setModalState(state) {
+    dispatch(
+      setOpen({
+        name: "BillCUModal",
+        modalState: state,
+      })
+    );
+  }
+
   function clearModal() {
-    setErrMessage(initErrMessage);
     setFormState(initFormState);
   }
 
@@ -164,6 +146,7 @@ const BillCUModal = ({ modalState, setModalState }) => {
             MoneyPromotionId,
             MoneyPromotion,
           } = result;
+          setMPused(result.MoneyPromotion);
 
           return {
             id,
@@ -210,8 +193,6 @@ const BillCUModal = ({ modalState, setModalState }) => {
         }
       }).filter((item) => item.id);
 
-      console.log(promotionResults);
-
       setListKM(promotionResults);
     }
 
@@ -229,7 +210,9 @@ const BillCUModal = ({ modalState, setModalState }) => {
         <div>
           <div className="title__container">
             <Typography.Title level={4} className="title">
-              Thông tin chi tiết hóa đơn
+              {type == "view-retrieve" && "Thông tin hóa đơn đã trả"}
+              {type == "update" && "Thông tin chi tiết hóa đơn"}
+              {type == "view-order" && "Thông tin đơn hàng"}
             </Typography.Title>
           </div>
           <div className="form__container">
@@ -237,7 +220,9 @@ const BillCUModal = ({ modalState, setModalState }) => {
               <div className="bill_form_top">
                 <div className="bill_form_left">
                   <div className="bill_form_group">
-                    <div className="bill_form_label">Mã hóa đơn</div>
+                    <div className="bill_form_label">
+                      {isOrder ? "Mã đơn đặt hàng" : "Mã hóa đơn"}
+                    </div>
                     <div className="bill_form_input_wrap">
                       <Input
                         className="bill_form_input"
@@ -249,7 +234,9 @@ const BillCUModal = ({ modalState, setModalState }) => {
                     </div>
                   </div>
                   <div className="bill_form_group">
-                    <div className="bill_form_label">Thời gian tạo</div>
+                    <div className="bill_form_label">
+                      {isOrder ? "Thời gian đặt" : "Thời gian tạo"}
+                    </div>
                     <div className="bill_form_input_wrap">
                       <DatePicker
                         className="bill_form_input"
@@ -263,13 +250,17 @@ const BillCUModal = ({ modalState, setModalState }) => {
                       <div className="bill_form_input_err"></div>
                     </div>
                   </div>
-                  <div className="bill_form_group">
-                    <div className="bill_form_label">Mã nhân viên</div>
-                    <div className="bill_form_input_wrap">
-                      <Typography.Link>{formState.EmployeeId}</Typography.Link>
-                      <div className="bill_form_input_err"></div>
+                  {!isOrder && (
+                    <div className="bill_form_group">
+                      <div className="bill_form_label">Mã nhân viên</div>
+                      <div className="bill_form_input_wrap">
+                        <Typography.Link>
+                          {formState.EmployeeId}
+                        </Typography.Link>
+                        <div className="bill_form_input_err"></div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   <div className="bill_form_group">
                     <div className="bill_form_label">Mã khách hàng</div>
                     <div className="bill_form_input_wrap">
@@ -278,18 +269,25 @@ const BillCUModal = ({ modalState, setModalState }) => {
                       <div className="bill_form_input_err"></div>
                     </div>
                   </div>
+
                   <div className="bill_form_group">
-                    <div className="bill_form_label">Tổng giá trị hóa đơn</div>
+                    <div className="bill_form_label">
+                      {isOrder
+                        ? "Tổng giá trị đơn hàng"
+                        : "Tổng giá trị hóa đơn"}
+                    </div>
                     <div className="bill_form_input_wrap">
-                      <Input
-                        className="bill_form_input"
-                        size="small"
-                        disabled
-                        value={formState.cost + " đồng"}
-                      />
+                      <Typography.Title
+                        level={5}
+                        style={{ padding: 0, margin: 0 }}
+                      >
+                        {convertToVND(Number(formState.cost)) + "  đồng"}
+                      </Typography.Title>
+
                       <div className="bill_form_input_err"></div>
                     </div>
                   </div>
+
                   <div className="bill_form_group">
                     <div className="bill_form_label">Trạng thái</div>
                     <div className="bill_form_input_wrap">
@@ -345,11 +343,7 @@ const BillCUModal = ({ modalState, setModalState }) => {
                     setOpen={(value) => {
                       setReceiveOpenId(value);
                     }}
-                    billId={
-                      modalState.visible &&
-                      modalState.rowSelected &&
-                      modalState.rowSelected.id
-                    }
+                    billId={modalState.visible && modalState.idSelected}
                     handleReceiveOke={() => {
                       setModalState({
                         visible: false,
@@ -357,14 +351,7 @@ const BillCUModal = ({ modalState, setModalState }) => {
                     }}
                   />
 
-                  <Button
-                    type="primary"
-                    onClick={() => {
-                      onSubmit("update", true);
-                    }}
-                  >
-                    Xem hóa đơn in
-                  </Button>
+                  <Button type="primary">Xem hóa đơn in</Button>
                 </>
               )}
 

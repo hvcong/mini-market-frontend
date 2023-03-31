@@ -11,7 +11,12 @@ import PriceCUModal from "../../price/PriceCUModal";
 import UnitTypeCUModal from "../../unittype/UnitTypeCUModal";
 import StoreCheckingModal from "../../store/StoreCheckingModal";
 import StoreCheckingDetail from "./../../store/StoreCheckingDetail";
+import BillCUModal from "../../bill/BillCUModal";
+import ResultDetailModal from "./../../promotion/ResultDetailModal";
+import PromotionLineModal from "../../promotion/PromotionLineModal";
 const Main = () => {
+  const modals = useSelector((state) => state.modal.modals);
+
   return (
     <div className="admin">
       <div className="header__container">
@@ -23,9 +28,13 @@ const Main = () => {
         </div>
         <div>
           {/* modals */}
+
           <UnitTypeCUModal />
           <StoreCheckingModal />
           <StoreCheckingDetail />
+          <BillCUModal />
+          <ResultDetailModal />
+          <PromotionLineModal />
         </div>
 
         <div className="right">

@@ -9,6 +9,7 @@ import { useDispatch } from "react-redux";
 import promotionApi from "./../../api/promotionApi";
 import { setPromotionLines } from "../../store/slices/promotionLineSlice";
 import { sqlToDDmmYYY } from "./../../utils/index";
+import { setOpen } from "../../store/slices/modalSlice";
 
 const PromotionLineTable = ({ promotionHeaderId, headerState }) => {
   let hideLoading = null;
@@ -18,7 +19,6 @@ const PromotionLineTable = ({ promotionHeaderId, headerState }) => {
 
   const dispatch = useDispatch();
 
-  const [modalState, setModalState] = useState({});
   const [minMaxTime, setMinMaxTime] = useState({
     minStartDate: "",
     maxEndDate: "",
@@ -31,7 +31,7 @@ const PromotionLineTable = ({ promotionHeaderId, headerState }) => {
       {
         title: "Mã KM",
         dataIndex: "id",
-        width: 120,
+        width: 160,
         fixed: "left",
         fixedShow: true,
         render: (_, row) => (
@@ -179,11 +179,18 @@ const PromotionLineTable = ({ promotionHeaderId, headerState }) => {
   }
 
   function onClickRowId(rowData) {
-    setModalState({
-      type: "update",
-      visible: true,
-      rowSelected: rowData,
-    });
+    dispatch(
+      setOpen({
+        name: "PromotionLineModal",
+        modalState: {
+          type: "update",
+          visible: true,
+          idSelected: rowData.id,
+          promotionHeaderId,
+          minMaxTime,
+        },
+      })
+    );
   }
 
   return (
@@ -204,10 +211,17 @@ const PromotionLineTable = ({ promotionHeaderId, headerState }) => {
               marginRight: "12px",
             }}
             onClick={() => {
-              setModalState({
-                type: "create",
-                visible: true,
-              });
+              dispatch(
+                setOpen({
+                  name: "PromotionLineModal",
+                  modalState: {
+                    type: "create",
+                    visible: true,
+                    promotionHeaderId,
+                    minMaxTime,
+                  },
+                })
+              );
             }}
           >
             Thêm mới một dòng
@@ -228,12 +242,6 @@ const PromotionLineTable = ({ promotionHeaderId, headerState }) => {
           y: window.innerHeight * 0.5,
         }}
         className="table"
-      />
-      <PromotionLineModal
-        modalState={modalState}
-        setModalState={setModalState}
-        promotionHeaderId={promotionHeaderId}
-        minMaxTime={minMaxTime}
       />
     </div>
   );

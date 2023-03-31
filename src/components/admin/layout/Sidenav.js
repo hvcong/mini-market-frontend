@@ -35,6 +35,7 @@ const Sidenav = () => {
       getItem(<NavLink to="bills">Hóa đơn</NavLink>, "bills"),
       getItem(<NavLink to="create_bill">Tạo hóa đơn</NavLink>, "create_bill"),
       getItem(<NavLink to="bills_receive">Trả hàng</NavLink>, "returns"),
+      getItem(<NavLink to="orders">Đơn đặt hàng</NavLink>, "orders"),
     ]),
     getItem("Kho", "store", <FileDoneOutlined />, [
       getItem(
