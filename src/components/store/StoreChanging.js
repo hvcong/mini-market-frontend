@@ -30,7 +30,12 @@ import DropSelectColum from "./../product/DropSelectColum";
 import StoreCUModal from "./StoreCUModal";
 import storeApi from "./../../api/storeApi";
 import { setStoreTrans } from "../../store/slices/storeTranSlice";
-import { antdToDmy, sqlToDDmmYYY } from "../../utils";
+import {
+  antdToDmy,
+  sqlToDDmmYYY,
+  sqlToDDmmYYYYhhMMss,
+  sqlToHHmmDDmmYYYY,
+} from "../../utils";
 
 const { Text } = Typography;
 
@@ -54,37 +59,40 @@ const StoreChanging = ({}) => {
 
   const [allColumns, setAllColumns] = useState([
     {
-      title: "Mã",
-      dataIndex: "id",
-      width: 160,
-      fixed: "left",
-      fixedShow: true,
-      render: (_, row) => <Typography.Link>{row.id}</Typography.Link>,
+      title: "Mã SP",
+      dataIndex: "ProductId",
+      render: (_, rowData) => {
+        return rowData && rowData.ProductUnitType.ProductId;
+      },
     },
     {
-      title: "Mã sản phẩm",
-      dataIndex: "ProductId",
+      title: "Tên SP",
+      render: (_, rowData) => {
+        return rowData && rowData.ProductUnitType.Product.name;
+      },
     },
     {
       title: "Phương thức",
       dataIndex: "type",
     },
     {
-      title: "Số lượng biến động",
+      title: "Mã ĐVT",
+      render: (_, rowData) => {
+        return rowData && rowData.ProductUnitType.UnitTypeId;
+      },
+    },
+    {
+      title: "SL biến động",
       dataIndex: "quantity",
     },
+
     {
       width: 200,
       title: "Thời gian",
       dataIndex: "createAt",
       render: (_, rowData) => {
-        return sqlToDDmmYYY(rowData.createAt);
+        return sqlToHHmmDDmmYYYY(rowData.createAt);
       },
-    },
-
-    {
-      title: "Mã nhân viên",
-      dataIndex: "EmployeeId",
     },
   ]);
 
@@ -129,21 +137,7 @@ const StoreChanging = ({}) => {
             Danh sách biến động kho{" "}
           </Typography.Title>
         </div>
-        <div className="btn__item">
-          <Button
-            size="small"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setModalState({
-                type: "create",
-                visible: true,
-              });
-            }}
-          >
-            Nhập kho
-          </Button>
-        </div>
+
         <div className="btn__item">
           <DropSelectColum
             allColumns={allColumns}

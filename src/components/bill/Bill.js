@@ -27,7 +27,7 @@ import {
 import "../../assets/styles/bill.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { sqlToDDmmYYY } from "./../../utils/index";
+import { convertToVND, sqlToDDmmYYY } from "./../../utils/index";
 import DropSelectColum from "./../product/DropSelectColum";
 import promotionApi from "./../../api/promotionApi";
 import { setPromotionHeaders } from "../../store/slices/promotionHeaderSlice";
@@ -72,12 +72,23 @@ const Bill = ({}) => {
       },
       {
         title: "Ngày tạo",
-        dataIndex: "orderDate",
+        dataIndex: "updatedAt",
+        render: (updatedAt, rowData) => {
+          if (updatedAt) {
+            return sqlToDDmmYYY(updatedAt);
+          } else {
+            return sqlToDDmmYYY(rowData.orderDate);
+          }
+        },
       },
 
       {
         title: "Tổng tiền",
         dataIndex: "cost",
+        align: "right",
+        render: (cost) => {
+          return convertToVND(cost);
+        },
       },
       {
         title: "Mã nhân viên",
@@ -87,12 +98,20 @@ const Bill = ({}) => {
         },
       },
       {
+        title: "Tên nhân viên",
+        dataIndex: "Employee",
+        render: (Employee) => {
+          return <Typography.Link>{Employee.name}</Typography.Link>;
+        },
+      },
+      {
         title: "Mã khách hàng",
         dataIndex: "CustomerId",
         render: (CustomerId, rowData) => {
           return <Typography.Link>{CustomerId}</Typography.Link>;
         },
       },
+
       {
         title: "Xử lí",
         width: 120,

@@ -3,6 +3,12 @@
   .main__layout {
     display: flex;
 
+    .main__layout_left {
+      width: 200px;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
     .left {
       width: 200px;
     }
@@ -616,4 +622,32 @@
 .price_after {
   font-size: 14px;
   color: red;
+}
+
+.voucher_line_modal {
+  flex: 1;
+  .voucher_line_modal_group {
+    display: flex;
+    flex: 1;
+
+    .voucher_line_modal_group_label {
+      flex: 1;
+    }
+  }
+
+  .voucher_modal_input_wrap {
+    flex: 1;
+    padding-top: 12px;
+  }
+  .voucher_modal_input {
+    width: 160px;
+  }
+  .voucher_modal_input_err {
+  }
+}
+
+.input_err {
+  color: red;
+  font-size: 12px;
+  padding-top: 2px;
 }

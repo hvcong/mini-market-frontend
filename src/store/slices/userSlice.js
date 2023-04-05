@@ -3,8 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initState = {
   account: {
     id: 1,
-    name: "But",
-    phonenumber: "0356267138",
+    name: "cong",
   },
   isLogged: true,
 };
@@ -12,8 +11,14 @@ const initState = {
 export const userSlice = createSlice({
   name: "user",
   initialState: initState,
-  reducers: {},
+  reducers: {
+    employeeLoginOke: (state, action) => {
+      console.log(action.payload);
+      state.account = action.payload;
+      state.isLogged = true;
+    },
+  },
 });
 
-export const {} = userSlice.actions;
+export const { employeeLoginOke } = userSlice.actions;
 export default userSlice.reducer;

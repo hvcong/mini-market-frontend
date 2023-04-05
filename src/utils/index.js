@@ -1,4 +1,7 @@
 import dayjs from "dayjs";
+import productApi from "../api/productApi";
+import imageApi from "../api/imageApi";
+import handleAfter from "./handleStore";
 export function sqlToDDmmYYY(date) {
   var myDate = new Date(date);
 
@@ -16,15 +19,30 @@ export function sqlToDDmmYYY(date) {
   return d + "/" + m + "/" + y;
 }
 
+export function sqlToHHmmDDmmYYYY(date) {
+  var myDate = new Date(date);
+  let d = myDate.getDate();
+  let m = myDate.getMonth() + 1;
+  let y = myDate.getFullYear();
+  let hh = myDate.getHours();
+  let minutes = myDate.getMinutes();
+  if (d < 10) {
+    d = "0" + d;
+  }
+  if (m < 10) {
+    m = "0" + m;
+  }
+
+  return hh + ":" + minutes + " , " + d + "/" + m + "/" + y;
+}
+
 // export function ddMMyyToSql(date) {
 //   // return new Date(date).toISOString().slice(0, 19).replace("T", " ");
 // }
 
 export function sqlToAntd(date) {
   let result = sqlToDDmmYYY(date);
-  console.log(date);
   result = dayjs(result, "DD/MM/YYYY");
-  console.log(result);
   if (isNaN(result.$D)) {
     return "";
   }
@@ -76,7 +94,9 @@ export function convertToVND(value) {
 }
 
 export function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  let string =
+    Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
+  return string.toUpperCase();
 }
 
 export function codeVocherGenarate() {
@@ -136,3 +156,48 @@ export function formatDateJsToYMD(date) {
     console.log("date wrong");
   }
 }
+
+export function isVietnamesePhoneNumberValid(number) {
+  return /(((\+|)84)|0)(3|5|7|8|9)+([0-9]{8})\b/.test(number);
+}
+
+export function isEmailValid(email) {
+  return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+}
+
+export async function getPUTid(productId, utId) {
+  let res = await productApi.findOneById(productId);
+  if (!res.isSuccess) {
+    return;
+  }
+
+  let putId = res.product.ProductUnitTypes.filter(
+    (item) => item.UnitTypeId == utId
+  )[0].id;
+  return putId;
+}
+
+export const uploadImage = {
+  one: async (file) => {
+    if (file) {
+      let res = await imageApi.uploadOne(file);
+      if (res.uri) {
+        return res.uri;
+      }
+    }
+    return "";
+  },
+  many: async (fileList = []) => {
+    let result = [];
+
+    for (const file of fileList) {
+      let res = await imageApi.uploadOne(file);
+      if (res.uri) {
+        result.push(res.uri);
+      }
+    }
+    return result;
+  },
+};
+
+export { handleAfter };

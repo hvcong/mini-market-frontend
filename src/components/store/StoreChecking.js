@@ -24,7 +24,7 @@ import {
 } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { sqlToDDmmYYY } from "../../utils/index";
+import { sqlToDDmmYYY, sqlToHHmmDDmmYYYY } from "../../utils/index";
 import priceHeaderApi from "../../api/priceHeaderApi";
 import DropSelectColum from "../product/DropSelectColum";
 import PriceCUModal from "../price/PriceCUModal";
@@ -78,7 +78,6 @@ const StoreChecking = ({}) => {
     },
     {
       title: "Tên nhân viên",
-      hidden: true,
       render: (_, rowData) => {
         if (rowData) {
           return rowData.Employee.name;
@@ -91,7 +90,7 @@ const StoreChecking = ({}) => {
       title: "Thời gian kiểm",
       dataIndex: "createAt",
       render: (createAt) => {
-        return sqlToDDmmYYY(createAt);
+        return sqlToHHmmDDmmYYYY(createAt);
       },
     },
     {
@@ -131,10 +130,10 @@ const StoreChecking = ({}) => {
   function onRowIdClick(row) {
     dispatch(
       setOpen({
-        name: "StoreCheckingDetail",
+        name: "StoreCheckingModal",
         modalState: {
           visible: true,
-          type: "update",
+          type: "view",
           idSelected: row.id,
         },
       })

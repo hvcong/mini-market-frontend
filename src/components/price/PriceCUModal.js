@@ -220,26 +220,41 @@ const PriceCUModal = ({ modalState, setModalState }) => {
         let isCheck = true;
         // kiểm tra trùng
         let res = await priceHeaderApi.getAllOnActive();
+        let thisHeader = formState;
+        let start1 = new Date(thisHeader.startDate);
+        let end1 = new Date(thisHeader.endDate);
 
         let isExist = false;
         if (res.isSuccess) {
           let headers = res.headers || [];
           // loop through each header
           for (const header of headers) {
-            // loop through each line in a header
-            let priceLines = header.Prices || [];
+            let start2 = new Date(header.startDate);
+            let end2 = new Date(header.endDate);
 
-            for (const line of priceLines) {
-              console.log(priceLines);
-              for (const _lineThisHeader of formState.Prices || []) {
-                if (
-                  _lineThisHeader.ProductUnitTypeId == line.ProductUnitTypeId
-                ) {
-                  isExist = true;
-                  isCheck = false;
-                  message.error(
-                    `Sản phẩm "${line.ProductUnitType.Product.name} với đơn vị ${line.ProductUnitType.UnitType.name}" đang được bán ở bảng ${header.title} `
-                  );
+            let is1 =
+              compareDMY(end2, start1) >= 0 && compareDMY(end2, end1) >= 0;
+            let is2 =
+              compareDMY(start1, start2) >= 0 && compareDMY(start1, end2) <= 0;
+            let is3 =
+              compareDMY(start1, start2) <= 0 && compareDMY(end2, end1) <= 0;
+            console.log(is1, is2, is3);
+
+            if (is1 || is2 || is3) {
+              // loop through each line in a header
+              let priceLines = header.Prices || [];
+
+              for (const line of priceLines) {
+                for (const _lineThisHeader of formState.Prices || []) {
+                  if (
+                    _lineThisHeader.ProductUnitTypeId == line.ProductUnitTypeId
+                  ) {
+                    isExist = true;
+                    isCheck = false;
+                    message.error(
+                      `Sản phẩm "${line.ProductUnitType.Product.name} với đơn vị ${line.ProductUnitType.UnitType.name}" đang được bán ở bảng ${header.title} `
+                    );
+                  }
                 }
               }
             }
@@ -309,7 +324,7 @@ const PriceCUModal = ({ modalState, setModalState }) => {
       let now = new Date();
 
       // đã quá hạn
-      if (compareDMY(end, now) <= 0) {
+      if (compareDMY(end, now) < 0) {
         return true;
       }
 
@@ -470,11 +485,18 @@ const PriceCUModal = ({ modalState, setModalState }) => {
         return;
       }
 
-      let res = await priceHeaderApi.updateOne({
-        id: formState.id,
-        endDate: formState.endDate,
-      });
-      if (res.isSuccess) {
+      if (modalState.type == "update") {
+        let res = await priceHeaderApi.updateOne({
+          id: formState.id,
+          endDate: formState.endDate,
+        });
+        if (res.isSuccess) {
+          setFormState({
+            ...formState,
+            endDate: string,
+          });
+        }
+      } else {
         setFormState({
           ...formState,
           endDate: string,

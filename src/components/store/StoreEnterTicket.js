@@ -10,6 +10,7 @@ import {
   Spin,
   Switch,
   Table,
+  Tag,
   Tooltip,
   Typography,
 } from "antd";
@@ -21,30 +22,28 @@ import {
   HolderOutlined,
   StopOutlined,
   DownOutlined,
-  RedoOutlined,
 } from "@ant-design/icons";
-import "../../assets/styles/bill.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { sqlToDDmmYYY } from "./../../utils/index";
-import DropSelectColum from "./../product/DropSelectColum";
-import promotionApi from "./../../api/promotionApi";
-import billApi from "./../../api/billApi";
-import { setBills } from "../../store/slices/billSlice";
-import BillCUModal from "../bill/BillCUModal";
-import { setReceiveBills } from "../../store/slices/receiveBillSlice";
+import { sqlToDDmmYYY } from "../../utils/index";
+import priceHeaderApi from "../../api/priceHeaderApi";
+import DropSelectColum from "../product/DropSelectColum";
+import PriceCUModal from "../price/PriceCUModal";
+import StoreTransationDetailModal from "../StoreTransationDetailModal";
+import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
+import StoreCUModal from "./StoreCUModal";
+import storeApi from "../../api/storeApi";
+import { setStoreTickets } from "../../store/slices/storeTicketSlice";
+import StoreCheckingModal from "./StoreCheckingModal";
 import { setOpen } from "../../store/slices/modalSlice";
+import { setStoreEnterTickets } from "../../store/slices/storeEnterTicketSlice";
 
 const { Text } = Typography;
 
-const ReceiveBill = ({}) => {
-  let hideLoading = null;
-  const { receiveBills, refresh, count } = useSelector(
-    (state) => state.receiveBill
+const StoreEnterTicket = ({}) => {
+  const { storeEnterTickets, refresh, count } = useSelector(
+    (state) => state.storeEnterTicket
   );
-
-  const modalState = useSelector((state) => state.modal.modals.BillCUModal);
-
   const dispatch = useDispatch();
 
   const [pageState, setPageState] = useState({
@@ -54,8 +53,8 @@ const ReceiveBill = ({}) => {
 
   const [allColumns, setAllColumns] = useState([
     {
-      title: "Mã hóa đơn",
-      dataIndex: "",
+      title: "Mã phiếu nhập kho",
+      dataIndex: "id",
       width: 160,
       fixed: "left",
       fixedShow: true,
@@ -65,19 +64,37 @@ const ReceiveBill = ({}) => {
             onRowIdClick(row);
           }}
         >
-          {row.BillId}
+          {row.id}
         </Typography.Link>
       ),
     },
+
     {
-      title: "Ngày trả",
+      title: "Mã nhân viên",
+      dataIndex: "EmployeeId",
+      render: (_, rowData) => {
+        if (rowData) {
+          return <Typography.Link>{rowData.EmployeeId}</Typography.Link>;
+        }
+      },
+    },
+    {
+      title: "Tên nhân viên",
+      render: (_, rowData) => {
+        if (rowData) {
+          return rowData.Employee.name;
+        }
+      },
+    },
+
+    {
       width: 200,
+      title: "Thời gian tạo",
       dataIndex: "createAt",
       render: (createAt) => {
         return sqlToDDmmYYY(createAt);
       },
     },
-
     {
       title: "Ghi chú",
       dataIndex: "note",
@@ -85,33 +102,23 @@ const ReceiveBill = ({}) => {
   ]);
 
   useEffect(() => {
-    getBills(pageState.page, pageState.limit);
+    getInputTickets(pageState.page, pageState.limit);
     return () => {};
   }, [pageState.page]);
 
   useEffect(() => {
     if (refresh) {
-      getBills(pageState.page, pageState.limit);
+      getInputTickets(pageState.page, pageState.limit);
     }
 
     return () => {};
   }, [refresh]);
 
-  useEffect(() => {
-    return () => {
-      if (hideLoading) {
-        hideLoading();
-      }
-    };
-  }, []);
-
-  async function getBills(page, limit) {
-    hideLoading = message.loading("Tải dữ liệu hóa đơn...", 0);
-    let res = await billApi.getLimitReceives(page, limit);
+  async function getInputTickets(page, limit) {
+    let res = await storeApi.getLimitInputTicket(page, limit);
     if (res.isSuccess) {
-      dispatch(setReceiveBills(res.retrieves));
+      dispatch(setStoreEnterTickets(res.inputs));
     }
-    hideLoading();
   }
 
   // pagination handle
@@ -123,32 +130,20 @@ const ReceiveBill = ({}) => {
   }
 
   function onRowIdClick(row) {
-    setModalState({
-      type: "view-retrieve",
-      visible: true,
-      idSelected: row.BillId,
-    });
-  }
-
-  useEffect(() => {
-    return () => {
-      if (hideLoading) {
-        hideLoading();
-      }
-    };
-  }, [modalState]);
-
-  function setModalState(state) {
     dispatch(
       setOpen({
-        name: "BillCUModal",
-        modalState: state,
+        name: "StoreCUModal",
+        modalState: {
+          visible: true,
+          type: "view",
+          idSelected: row.id,
+        },
       })
     );
   }
 
   return (
-    <div className="products promotion">
+    <div className="products">
       <div className="table__header">
         <div className="left">
           <Typography.Title
@@ -157,8 +152,28 @@ const ReceiveBill = ({}) => {
               margin: 0,
             }}
           >
-            Danh sách hóa đơn đã trả hàng{" "}
+            Danh sách phiếu nhập kho
           </Typography.Title>
+        </div>
+        <div className="btn__item">
+          <Button
+            size="small"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              dispatch(
+                setOpen({
+                  name: "StoreCUModal",
+                  modalState: {
+                    type: "create",
+                    visible: true,
+                  },
+                })
+              );
+            }}
+          >
+            Nhập kho
+          </Button>
         </div>
         <div className="btn__item">
           <DropSelectColum
@@ -172,7 +187,7 @@ const ReceiveBill = ({}) => {
 
       <Table
         columns={allColumns.filter((col) => !col.hidden)}
-        dataSource={receiveBills}
+        dataSource={storeEnterTickets}
         pagination={false}
         size="small"
         scroll={{
@@ -190,9 +205,8 @@ const ReceiveBill = ({}) => {
           hideOnSinglePage
         />
       </div>
-      <BillCUModal modalState={modalState} setModalState={setModalState} />
     </div>
   );
 };
 
-export default ReceiveBill;
+export default StoreEnterTicket;

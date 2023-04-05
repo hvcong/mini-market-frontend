@@ -1,4 +1,4 @@
-import { Select } from "antd";
+import { Select, Tag } from "antd";
 import React, { useState } from "react";
 import { useEffect } from "react";
 import unitTypeApi from "./../../api/unitTypeApi";
@@ -37,7 +37,7 @@ const UnitTypeSelectByProductId = ({ disabledValues, productId, ...props }) => {
         });
         return {
           value: ut.id,
-          label: ut.name,
+          label: <>{ut.name}</>,
           disabled: isDisabled,
         };
       })}

@@ -2,6 +2,7 @@ import { Tabs } from "antd";
 import { useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
+import { uid } from "./../../../utils/index";
 import {
   addTab,
   removeOneTab,
@@ -13,7 +14,7 @@ const TabsCreateBill = () => {
   const dispatch = useDispatch();
 
   const { tabItems, activeKey } = tabState;
-  const newTabIndex = useRef(1);
+  const newTabIndex = useRef(2);
 
   const onChange = (newActiveKey) => {
     dispatch(setActiveKeyTab(newActiveKey));
@@ -22,9 +23,9 @@ const TabsCreateBill = () => {
   const onEdit = (targetKey, action) => {
     if (action === "add") {
       let _newTab = {
-        label: "Hóa đơn " + (newTabIndex.current + 1),
+        label: "Hóa đơn " + newTabIndex.current++,
         children: "abd",
-        key: `newTab${newTabIndex.current++}`,
+        key: uid(),
       };
       dispatch(addTab(_newTab));
     } else {

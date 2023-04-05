@@ -27,7 +27,6 @@ const AddressSelectItem = ({
     }
 
     if (type == "ward") {
-      console.log(districtId, cityId);
       if (districtId && cityId) {
         setDisabled(false);
       } else {
@@ -44,12 +43,12 @@ const AddressSelectItem = ({
       if (res.isSuccess) {
         setList(res.cities);
       }
-    } else if (type == "district") {
+    } else if (type == "district" && cityId) {
       let res = await addressApi.getAllDistrictByCityId(cityId);
       if (res.isSuccess) {
         setList(res.districts);
       }
-    } else if (type == "ward") {
+    } else if (type == "ward" && districtId) {
       let res = await addressApi.getAllWardByDistrictId(districtId);
       if (res.isSuccess) {
         setList(res.wards);

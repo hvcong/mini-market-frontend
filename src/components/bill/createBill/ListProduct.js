@@ -10,18 +10,32 @@ import ListProductItem from "./ListProductItem";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addOneProductToActiveTab,
+  clearOneTab,
   removeOneProductLine,
 } from "../../../store/slices/createBillSlice";
 import { Button, Empty, message, Table, Tag, Typography } from "antd";
 import promotionApi from "./../../../api/promotionApi";
 import { compareDMY, convertToVND } from "./../../../utils/index";
 import BillInfor from "./BillInfor";
+import userApi from "../../../api/userApi";
 
 const ListProduct = () => {
-  const { activeKey } = useSelector((state) => state.createBill.tabState);
+  const { activeKey, tabItems = [] } = useSelector(
+    (state) => state.createBill.tabState
+  );
+  let customerPhone = "";
+  tabItems.map((item) => {
+    if (item.key == activeKey) {
+      customerPhone = item.customerPhone;
+    }
+  });
+
   const list =
     useSelector((state) => state.createBill.listState[activeKey]) || [];
   const dispatch = useDispatch();
+  const [customer, setCustomer] = useState({
+    TypeCustomerId: "BT",
+  });
 
   const [listPromotionLinesOnActive, setListPromotionLinesOnActive] = useState(
     []
@@ -33,6 +47,7 @@ const ListProduct = () => {
   async function loadPromotionLinesActive() {
     let res = await promotionApi.getAllOnActive();
     let listLinePromotions = [];
+
     if (res.isSuccess) {
       let promotions = res.promotions || [];
 
@@ -40,10 +55,21 @@ const ListProduct = () => {
         let start = new Date(promotion.startDate);
         let end = new Date(promotion.endDate);
         let now = new Date();
+        let typeCustomers = promotion.TypeCustomers || [];
+        let isCheckType = false;
+
+        typeCustomers.map((type) => {
+          console.log(type);
+          if (type.id == customer.TypeCustomerId) {
+            isCheckType = true;
+          }
+        });
+        if (!isCheckType) {
+          break;
+        }
 
         if (compareDMY(start, now) <= 0 && compareDMY(end, now) >= 0) {
           // những header đang sử dụng
-
           (promotion.ProductPromotions || []).map((linePP) => {
             let start2 = new Date(linePP.startDate);
             let end2 = new Date(linePP.endDate);
@@ -123,10 +149,32 @@ const ListProduct = () => {
   }
 
   useEffect(() => {
+    if (customerPhone) {
+      loadCustomerByPhone(customerPhone);
+    }
+
+    return () => {};
+  }, [customerPhone]);
+
+  async function loadCustomerByPhone(phone) {
+    let res = await userApi.getOneCustomerByPhone(phone);
+    if (res.isSuccess) {
+      setCustomer({
+        TypeCustomerId: "BT",
+        ...res.customer,
+      });
+    } else {
+      setCustomer({
+        TypeCustomerId: "BT",
+      });
+    }
+  }
+
+  useEffect(() => {
     loadPromotionLinesActive();
 
     return () => {};
-  }, []);
+  }, [customer]);
 
   useEffect(() => {
     let _tableData = [];
@@ -134,7 +182,7 @@ const ListProduct = () => {
     // first row for calculate
     _tableData.push({ isFirstRow: true });
 
-    // _tableData.push(...list);
+    _tableData.push(...list);
 
     listPromotionLinesOnActive.map((promotionLine) => {
       // kiểm tra khách hàng này có được áp dụng ko?
@@ -171,13 +219,14 @@ const ListProduct = () => {
         list.map((priceLine) => {
           let put3 = priceLine.ProductUnitType;
           if (put1.id == put3.id) {
-            _tableData.push({
-              ...priceLine,
-              DRPused: promotionLine,
-            });
-          } else {
-            _tableData.push({
-              ...priceLine,
+            _tableData = _tableData.map((rowData) => {
+              if (rowData.ProductUnitTypeId == put3.id) {
+                return {
+                  ...rowData,
+                  DRPused: promotionLine,
+                };
+              }
+              return rowData;
             });
           }
         });
@@ -325,7 +374,13 @@ const ListProduct = () => {
     ]);
 
     return () => {};
-  }, [list]);
+  }, [list, listPromotionLinesOnActive]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearOneTab());
+    };
+  }, []);
 
   return (
     <div className="list_product">
@@ -342,12 +397,6 @@ const ListProduct = () => {
           listPromotionLinesOnActive={listPromotionLinesOnActive}
         />
       </div>
-      {/* {list &&
-        list.map((item, index) => {
-          return <ListProductItem data={item} index={index} key={index} />;
-        })}
-
-      {list.length == 0 && <Empty description={false} />} */}
     </div>
   );
 };

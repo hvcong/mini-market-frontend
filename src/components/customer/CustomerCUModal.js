@@ -28,6 +28,7 @@ import addressApi from "./../../api/addressApi";
 import userApi from "../../api/userApi";
 import { useDispatch } from "react-redux";
 import { setRefreshCustomer } from "../../store/slices/customerSlice";
+import { isEmailValid, isVietnamesePhoneNumberValid } from "../../utils";
 
 const initFormState = {
   id: "",
@@ -193,6 +194,26 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
       if (!phonenumber) {
         _errMess.phonenumber = "Không được bỏ trống!";
         isCheck = false;
+      } else {
+        let is = isVietnamesePhoneNumberValid(phonenumber);
+        if (!is) {
+          _errMess.phonenumber = "Số điện thoại không hợp lệ!";
+          isCheck = false;
+        }
+
+        let res = await userApi.getOneCustomerByPhone(phonenumber);
+        if (res.isSuccess) {
+          _errMess.phonenumber = "Số điện thoại đã được sử dụng!";
+          isCheck = false;
+        }
+      }
+
+      if (email) {
+        let is = isEmailValid(email);
+        if (!is) {
+          _errMess.email = "Email không hợp lệ!";
+          isCheck = false;
+        }
       }
 
       if (!typeCustomerId) {

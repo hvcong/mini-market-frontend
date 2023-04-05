@@ -81,7 +81,7 @@ const ListPromotion = ({ listKM = [] }) => {
               {result.isSuccess ? (
                 <Tag color="green">Thành công</Tag>
               ) : (
-                <Tag color="red">Thất bại</Tag>
+                <Tag color="red">Không thành công</Tag>
               )}
             </div>
             <div className="bill_form_promotion_item_note">{result.note}</div>

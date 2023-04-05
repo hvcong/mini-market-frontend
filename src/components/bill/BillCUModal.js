@@ -33,6 +33,7 @@ import ListPromotion from "./ListPromotion";
 import ReceiveButton from "./ReceiveButton";
 import { setOpen } from "../../store/slices/modalSlice";
 import { convertToVND } from "../../utils";
+import { setRefreshBills } from "../../store/slices/billSlice";
 const dateFormat = "YYYY-MM-DD";
 
 const initFormState = {
@@ -54,8 +55,7 @@ const BillCUModal = () => {
   const [listKM, setListKM] = useState([]);
   const [MPused, setMPused] = useState(null);
 
-  let isOrder = modalState.type == "order-view";
-  let type = modalState.type;
+  let type = formState.type;
 
   useEffect(() => {
     const { type, idSelected, visible } = modalState;
@@ -68,12 +68,12 @@ const BillCUModal = () => {
   async function loadOneBill(billId) {
     hideLoading = message.loading("Đang tải dữ liệu hóa đơn...", 0);
     let res = await billApi.getOneBillById(billId);
+    hideLoading();
     if (res.isSuccess) {
       setFormState({
         ...res.bill,
       });
     }
-    hideLoading();
   }
 
   function onChangeDate(strings = []) {
@@ -199,6 +199,34 @@ const BillCUModal = () => {
     return () => {};
   }, [formState]);
 
+  async function orderToBill(billId) {
+    hideLoading = message.loading("Đang xử lí...");
+    let res = await billApi.updateType(billId, "success");
+    if (res.isSuccess) {
+      message.info("Thao tác thành công", 3);
+      closeModal();
+
+      dispatch(setRefreshBills());
+    } else {
+      message.info("Có lỗi xảy ra, vui lòng thử lại!", 3);
+    }
+    hideLoading();
+  }
+
+  async function cancelOrder(billId) {
+    hideLoading = message.loading("Đang xử lí...");
+    let res = await billApi.updateType(billId, "cancel");
+    if (res.isSuccess) {
+      message.info("Thao tác thành công", 3);
+
+      closeModal();
+      dispatch(setRefreshBills());
+    } else {
+      message.info("Có lỗi xảy ra, vui lòng thử lại!", 3);
+    }
+    hideLoading();
+  }
+
   return (
     <div className="bill_modal">
       <ModalCustomer
@@ -210,9 +238,9 @@ const BillCUModal = () => {
         <div>
           <div className="title__container">
             <Typography.Title level={4} className="title">
-              {type == "view-retrieve" && "Thông tin hóa đơn đã trả"}
-              {type == "update" && "Thông tin chi tiết hóa đơn"}
-              {type == "view-order" && "Thông tin đơn hàng"}
+              {type == "retrieve" && "Thông tin hóa đơn đã trả"}
+              {type == "success" && "Thông tin chi tiết hóa đơn"}
+              {type == "pending" || (type == "cancel" && "Thông tin đơn hàng")}
             </Typography.Title>
           </div>
           <div className="form__container">
@@ -221,7 +249,7 @@ const BillCUModal = () => {
                 <div className="bill_form_left">
                   <div className="bill_form_group">
                     <div className="bill_form_label">
-                      {isOrder ? "Mã đơn đặt hàng" : "Mã hóa đơn"}
+                      {type == "order-view" ? "Mã đơn đặt hàng" : "Mã hóa đơn"}
                     </div>
                     <div className="bill_form_input_wrap">
                       <Input
@@ -235,7 +263,9 @@ const BillCUModal = () => {
                   </div>
                   <div className="bill_form_group">
                     <div className="bill_form_label">
-                      {isOrder ? "Thời gian đặt" : "Thời gian tạo"}
+                      {type == "cancel" || type == "pending"
+                        ? "Thời gian đặt"
+                        : "Thời gian tạo"}
                     </div>
                     <div className="bill_form_input_wrap">
                       <DatePicker
@@ -250,7 +280,8 @@ const BillCUModal = () => {
                       <div className="bill_form_input_err"></div>
                     </div>
                   </div>
-                  {!isOrder && (
+
+                  {type != "order-view" && (
                     <div className="bill_form_group">
                       <div className="bill_form_label">Mã nhân viên</div>
                       <div className="bill_form_input_wrap">
@@ -272,7 +303,7 @@ const BillCUModal = () => {
 
                   <div className="bill_form_group">
                     <div className="bill_form_label">
-                      {isOrder
+                      {type == "order-view"
                         ? "Tổng giá trị đơn hàng"
                         : "Tổng giá trị hóa đơn"}
                     </div>
@@ -292,33 +323,56 @@ const BillCUModal = () => {
                     <div className="bill_form_label">Trạng thái</div>
                     <div className="bill_form_input_wrap">
                       <div className="bill_form_input_state_success">
-                        {modalState.type != "view-receive" && (
+                        {type == "success" && (
                           <Tag style={{ fontSize: "13px" }} color="green">
                             Thành công
                           </Tag>
                         )}
-                      </div>
-                      <div className="bill_form_input_state_error">
-                        {modalState.type == "view-receive" && (
+                        {type == "retrieve" && (
                           <Tag style={{ fontSize: "13px" }} color="volcano">
-                            Thất bại, đã trả hàng
+                            Đã trả hàng
+                          </Tag>
+                        )}
+                        {type == "pending" && (
+                          <Tag style={{ fontSize: "13px" }} color="green">
+                            Đang chờ xử lí
+                          </Tag>
+                        )}
+                        {type == "cancel" && (
+                          <Tag style={{ fontSize: "13px" }} color="volcano">
+                            Đã hủy
                           </Tag>
                         )}
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="bill_form_promotion">
-                  <div className="bill_form_promotion_title">
-                    <Typography.Title level={5}>
-                      Các khuyến mãi đã áp dụng
-                    </Typography.Title>
+                <div className="bill_form_right">
+                  <div className="bill_form_promotion">
+                    <div className="bill_form_promotion_title">
+                      <Typography.Title level={5}>
+                        Các khuyến mãi đã áp dụng
+                      </Typography.Title>
+                    </div>
+                    <div className="bill_form_promotion_list">
+                      {formState.PromotionResults && (
+                        <ListPromotion listKM={listKM} />
+                      )}
+                    </div>
                   </div>
-                  <div className="bill_form_promotion_list">
-                    {formState.PromotionResults && (
-                      <ListPromotion listKM={listKM} />
-                    )}
-                  </div>
+                  {type == "retrieve" && (
+                    <div className="bill_form_note">
+                      <div className="bill_form_note_label">
+                        Ghi chú trả hàng
+                      </div>
+                      <Input.TextArea
+                        disabled
+                        value={
+                          formState.RetrieveBill && formState.RetrieveBill.note
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="bill_form_bottom">
@@ -336,7 +390,7 @@ const BillCUModal = () => {
                 marginTop: "12px",
               }}
             >
-              {modalState.type != "view-receive" && (
+              {type == "success" && (
                 <>
                   <ReceiveButton
                     open={receiveOpenId}
@@ -352,6 +406,27 @@ const BillCUModal = () => {
                   />
 
                   <Button type="primary">Xem hóa đơn in</Button>
+                </>
+              )}
+
+              {type == "pending" && (
+                <>
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      orderToBill(formState.id);
+                    }}
+                  >
+                    Thanh toán
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      cancelOrder(formState.id);
+                    }}
+                    danger
+                  >
+                    Hủy đơn hàng
+                  </Button>
                 </>
               )}
 

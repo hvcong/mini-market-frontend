@@ -4,10 +4,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { Button, Typography } from "antd";
 import DropSelectColum from "../product/DropSelectColum";
 import { Table } from "antd";
-import { sqlToDDmmYYY } from "../../utils";
+import { convertToVND, sqlToDDmmYYY } from "../../utils";
 import priceLineApi from "../../api/priceLineApi";
 import { setPriceLines } from "../../store/slices/priceLineSlice";
-import { PlusOutlined } from "@ant-design/icons";
+import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import PriceLineModal from "./priceLineModal";
 
 const PriceLineTable = ({
@@ -26,26 +26,6 @@ const PriceLineTable = ({
 
   const [allColumns, setAllColumns] = useState([
     {
-      title: "Mã giá",
-      dataIndex: "id",
-      width: 120,
-      fixed: "left",
-      fixedShow: true,
-      render: (_, row) => (
-        <Typography.Link
-          onClick={() => {
-            setModalState({
-              type: "update",
-              visible: true,
-              rowSelected: row,
-            });
-          }}
-        >
-          {row.id}
-        </Typography.Link>
-      ),
-    },
-    {
       title: "Mã sản phẩm",
       width: 160,
       render: (_, rowData) => {
@@ -61,7 +41,6 @@ const PriceLineTable = ({
     {
       title: "Tên sản phẩm",
       width: 160,
-      hidden: true,
       render: (_, rowData) => {
         if (rowData) {
           return rowData.ProductUnitType.Product.name;
@@ -97,6 +76,28 @@ const PriceLineTable = ({
       title: "Giá",
       dataIndex: "price",
       width: 120,
+      align: "right",
+      render: (price) => {
+        return convertToVND(price);
+      },
+    },
+    {
+      title: "Hành động",
+      dataIndex: "id",
+      width: 80,
+      fixed: "right",
+      fixedShow: true,
+      render: (_, row) => (
+        <EditOutlined
+          onClick={() => {
+            setModalState({
+              type: "update",
+              visible: true,
+              rowSelected: row,
+            });
+          }}
+        />
+      ),
     },
   ]);
 
@@ -150,7 +151,7 @@ const PriceLineTable = ({
                 visible: true,
               });
             }}
-            // disabled={isDisabledAddButton}
+            disabled={isDisabledAddButton}
           >
             Thêm mới một dòng
           </Button>

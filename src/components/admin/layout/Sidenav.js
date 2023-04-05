@@ -22,8 +22,8 @@ function getItem(label, key, icon, children, type) {
 const Sidenav = () => {
   const items = [
     getItem("Sản phẩm", "sub1", <AppstoreOutlined />, [
-      getItem(<NavLink to="products">Danh sách</NavLink>, "products"),
-      getItem(<NavLink to="category">Nhóm sản phẩm</NavLink>, "category"),
+      getItem(<NavLink to="products">Danh sách SP</NavLink>, "products"),
+      getItem(<NavLink to="category">Nhóm SP</NavLink>, "category"),
       getItem(<NavLink to="unitType">Đơn vị tính</NavLink>, "unitTypes"),
     ]),
     getItem(
@@ -43,6 +43,10 @@ const Sidenav = () => {
         "store_change"
       ),
       getItem(<NavLink to="store_check">Kiểm kê kho</NavLink>, "store_cal"),
+      getItem(
+        <NavLink to="store_tickets">Phiếu nhập kho</NavLink>,
+        "store_tiket"
+      ),
     ]),
     getItem(
       <NavLink to="promotion">Khuyến mãi</NavLink>,
@@ -76,10 +80,10 @@ const Sidenav = () => {
   return (
     <div
       style={{
-        height: "100%",
         position: "fixed",
         width: "200px",
         overflowY: "auto",
+        height: "100vh",
       }}
       className="sidenav"
     >
@@ -90,6 +94,7 @@ const Sidenav = () => {
         items={items}
         style={{
           height: "100%",
+          overflowY: "auto",
         }}
         onSelect={(item) => {
           console.log(item);

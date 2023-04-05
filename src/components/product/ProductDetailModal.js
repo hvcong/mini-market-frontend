@@ -18,6 +18,7 @@ import {
   InputNumber,
   Divider,
   message,
+  Image,
 } from "antd";
 import ModalCustomer from "../ModalCustomer";
 import { PlusOutlined } from "@ant-design/icons";
@@ -30,14 +31,13 @@ import { useDispatch } from "react-redux";
 import { refreshProducts, setRefresh } from "../../store/slices/productSlice";
 import CategoryDetailModal from "../category/CategoryDetailModal";
 import unitTypeApi from "./../../api/unitTypeApi";
+import { uploadImage } from "../../utils";
 const { Text } = Typography;
 
 const initFormState = {
   id: "",
   name: "",
-  images: [
-    "https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png",
-  ],
+  images: [],
   description: "",
   state: true,
   subCategoryId: "",
@@ -50,6 +50,7 @@ const initFormState = {
       state: true,
     },
   ],
+  fileList: [],
 };
 
 const initErrMessage = {
@@ -89,7 +90,6 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
     if (res.isSuccess) {
       unitList = res.unitTypes;
     }
-    console.log(unitList);
 
     let _errMess = { ...errMessage };
     _errMess.unitList = (unitList || []).map((item) => {
@@ -119,13 +119,14 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
   }
 
   async function onSubmit(type, isClose) {
-    let is = await checkForm(type);
+    let is = await checkData(type);
     // xóa những id == ""
+    let listImageUris = formState.fileList.map((file) => file.uri);
     if (is) {
       let formData = {
         id: formState.id,
         name: formState.name,
-        images: formState.images,
+        images: listImageUris,
         description: formState.description,
         quantity: formState.quantity,
         state: formState.state,
@@ -136,8 +137,8 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
           };
         }),
       };
-      let res = null;
       console.log(formData);
+      let res = {};
 
       if (type == "create") {
         res = await productApi.addOne(formData);
@@ -171,7 +172,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
     }
   }
 
-  async function checkForm(type) {
+  async function checkData(type) {
     let isCheck = true;
     let _errMess = { ...errMessage };
     const {
@@ -198,12 +199,12 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
       _errMess.name = "";
     }
 
-    if (images && images.length <= 0) {
-      _errMess.images = "Phải có ít nhất 1 hình ảnh!";
-      isCheck = false;
-    } else {
-      _errMess.images = "";
-    }
+    // if (images && images.length <= 0) {
+    //   _errMess.images = "Phải có ít nhất 1 hình ảnh!";
+    //   isCheck = false;
+    // } else {
+    //   _errMess.images = "";
+    // }
 
     if (!categoryId) {
       _errMess.categoryId = "Không được bỏ trống!";
@@ -406,8 +407,36 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                   <p style={{ paddingBottom: "4px", paddingTop: "4px" }}>
                     Hình ảnh
                   </p>
-                  <UploadImageProduct />
-                  <div className="input__err">{errMessage.images}</div>
+
+                  {modalState.type == "create" ? (
+                    <>
+                      <UploadImageProduct
+                        fileList={formState.fileList}
+                        setFileList={(newFileList) => {
+                          setFormState({
+                            ...formState,
+                            fileList: newFileList,
+                          });
+                        }}
+                      />
+                      <div className="input__err">{errMessage.images}</div>
+                    </>
+                  ) : (
+                    ((formState && formState.images) || []).map((image) => {
+                      console.log(image.uri);
+
+                      return (
+                        <div
+                          style={{
+                            display: "inline-block",
+                            padding: 12,
+                          }}
+                        >
+                          <Image width={100} height={100} src={image.uri} />
+                        </div>
+                      );
+                    })
+                  )}
                 </Col>
                 <Col span={24}>
                   <UnitTypeList

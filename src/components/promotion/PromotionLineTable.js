@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { message, Table, Typography } from "antd";
+import { message, Switch, Table, Typography } from "antd";
 import { Button } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import DropSelectColum from "../product/DropSelectColum";
@@ -8,21 +8,20 @@ import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import promotionApi from "./../../api/promotionApi";
 import { setPromotionLines } from "../../store/slices/promotionLineSlice";
-import { sqlToDDmmYYY } from "./../../utils/index";
+import { compareDMY, sqlToDDmmYYY } from "./../../utils/index";
 import { setOpen } from "../../store/slices/modalSlice";
 
-const PromotionLineTable = ({ promotionHeaderId, headerState }) => {
+const PromotionLineTable = ({
+  promotionHeaderId,
+  headerState,
+  isDisabledAddButton,
+}) => {
   let hideLoading = null;
   const { promotionLines, refresh, count } = useSelector(
     (state) => state.promotionLine
   );
 
   const dispatch = useDispatch();
-
-  const [minMaxTime, setMinMaxTime] = useState({
-    minStartDate: "",
-    maxEndDate: "",
-  });
 
   const [allColumns, setAllColumns] = useState([]);
 
@@ -89,20 +88,48 @@ const PromotionLineTable = ({ promotionHeaderId, headerState }) => {
         },
       },
       {
-        title: "Trạng thái",
+        title: "Tình trạng áp dụng",
         dataIndex: "state",
         render: (_, rowData) => {
           if (rowData) {
             if (!headerState) {
               return <div style={{ color: "red" }}>Đã ngưng</div>;
             } else {
-              return rowData.state ? (
-                <div style={{ color: "green" }}>Đang hoạt động</div>
-              ) : (
-                <div style={{ color: "red" }}>Đã ngưng</div>
-              );
+              let start = new Date(rowData.startDate);
+              let end = new Date(rowData.endDate);
+              let now = new Date();
+              let state = rowData.state;
+
+              if (compareDMY(end, now) < 0) {
+                return <div style={{ color: "red" }}>Đã ngưng</div>;
+              }
+              if (compareDMY(start, now) > 0) {
+                return <div style={{ color: "gold" }}>Sắp tới</div>;
+              }
+
+              if (compareDMY(start, now) <= 0 && compareDMY(end, now) >= 0) {
+                if (state) {
+                  return <div style={{ color: "green" }}>Đang áp dụng</div>;
+                } else {
+                  return <div style={{ color: "purple" }}>Tạm ngưng</div>;
+                }
+              }
             }
           }
+        },
+      },
+      {
+        title: "Trạng thái",
+        dataIndex: "state",
+        render: (state) => {
+          return (
+            <Switch
+              checkedChildren="On"
+              unCheckedChildren="Off"
+              checked={state}
+              disabled
+            />
+          );
         },
       },
     ]);
@@ -137,11 +164,6 @@ const PromotionLineTable = ({ promotionHeaderId, headerState }) => {
     let res = await promotionApi.getOneHeaderById(promotionHeaderId);
 
     if (res.isSuccess) {
-      setMinMaxTime({
-        minStartDate: res.promotion.startDate,
-        maxEndDate: res.promotion.endDate,
-      });
-
       let _listLines = [];
 
       res.promotion.ProductPromotions.map((item) => {
@@ -187,7 +209,6 @@ const PromotionLineTable = ({ promotionHeaderId, headerState }) => {
           visible: true,
           idSelected: rowData.id,
           promotionHeaderId,
-          minMaxTime,
         },
       })
     );
@@ -210,6 +231,7 @@ const PromotionLineTable = ({ promotionHeaderId, headerState }) => {
             style={{
               marginRight: "12px",
             }}
+            disabled={isDisabledAddButton}
             onClick={() => {
               dispatch(
                 setOpen({
@@ -218,7 +240,6 @@ const PromotionLineTable = ({ promotionHeaderId, headerState }) => {
                     type: "create",
                     visible: true,
                     promotionHeaderId,
-                    minMaxTime,
                   },
                 })
               );

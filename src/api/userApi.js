@@ -1,7 +1,18 @@
 import axiosClient from "./axiosClient";
 class UserApi {
+  logIn(formData) {
+    let url = `auth/login`;
+    return axiosClient.post(url, formData);
+  }
+  //
+
   getAllCustomer() {
     let url = "user/get";
+    return axiosClient.get(url);
+  }
+
+  getOneCustomerByPhone(phone) {
+    let url = `user/getPhone?phonenumber=${phone}`;
     return axiosClient.get(url);
   }
 

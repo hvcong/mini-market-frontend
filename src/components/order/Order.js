@@ -12,6 +12,7 @@ import {
   Spin,
   Switch,
   Table,
+  Tag,
   Tooltip,
   Typography,
 } from "antd";
@@ -29,13 +30,14 @@ import {
 import "../../assets/styles/bill.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { sqlToDDmmYYY } from "./../../utils/index";
+import { sqlToDDmmYYY, sqlToHHmmDDmmYYYY } from "./../../utils/index";
 import DropSelectColum from "./../product/DropSelectColum";
 import promotionApi from "./../../api/promotionApi";
 import { setPromotionHeaders } from "../../store/slices/promotionHeaderSlice";
 import billApi from "./../../api/billApi";
-import { setBills } from "../../store/slices/billSlice";
+import { setBills, setRefreshBills } from "../../store/slices/billSlice";
 import { setOpen } from "../../store/slices/modalSlice";
+import storeApi from "../../api/storeApi";
 
 const { Text } = Typography;
 
@@ -69,8 +71,11 @@ const Order = ({}) => {
         ),
       },
       {
-        title: "Ngày tạo",
+        title: "Ngày đặt",
         dataIndex: "orderDate",
+        render: (orderDate) => {
+          return sqlToHHmmDDmmYYYY(orderDate);
+        },
       },
 
       {
@@ -81,38 +86,62 @@ const Order = ({}) => {
         },
       },
       {
+        title: "Trạng thái",
+        dataIndex: "type",
+        render: (type) => {
+          if (type == "pending") {
+            return <Tag color="green">Đang chờ xử lí</Tag>;
+          } else {
+            return <Tag color="error">Đã hủy </Tag>;
+          }
+        },
+      },
+      {
         title: "Xử lí",
         width: 120,
         fixed: "right",
-        render: () => {
-          return (
-            <Popover
-              placement="leftTop"
-              content={
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <Button
-                    size="small"
+        render: (_, rowData) => {
+          let type = rowData.type;
+          if (type == "pending")
+            return (
+              <Popover
+                placement="leftTop"
+                content={
+                  <div
                     style={{
-                      marginBottom: 12,
+                      display: "flex",
+                      flexDirection: "column",
                     }}
-                    type="primary"
                   >
-                    Thanh toán
-                  </Button>
-                  <Button size="small" danger>
-                    Hủy đơn hàng
-                  </Button>
-                </div>
-              }
-            >
-              <Button size="small" icon={<MenuUnfoldOutlined />}></Button>
-            </Popover>
-          );
+                    <>
+                      <Button
+                        size="small"
+                        style={{
+                          marginBottom: 12,
+                        }}
+                        type="primary"
+                        onClick={() => {
+                          orderToBill(rowData.id);
+                        }}
+                      >
+                        Thanh toán
+                      </Button>
+                      <Button
+                        size="small"
+                        danger
+                        onClick={() => {
+                          cancelOrder(rowData.id);
+                        }}
+                      >
+                        Hủy đơn hàng
+                      </Button>
+                    </>
+                  </div>
+                }
+              >
+                <Button size="small" icon={<MenuUnfoldOutlined />}></Button>
+              </Popover>
+            );
         },
       },
     ];
@@ -122,14 +151,14 @@ const Order = ({}) => {
   }, []);
 
   useEffect(() => {
-    getBills(pageState.page, pageState.limit);
+    getOrders(pageState.page, pageState.limit);
     return () => {};
   }, [pageState.page]);
 
   useEffect(() => {
     if (refresh) {
       console.log("refresh");
-      getBills(pageState.page, pageState.limit);
+      getOrders(pageState.page, pageState.limit);
     }
 
     return () => {};
@@ -143,9 +172,9 @@ const Order = ({}) => {
     };
   }, []);
 
-  async function getBills(page, limit) {
+  async function getOrders(page, limit) {
     hideLoading = message.loading("Tải dữ liệu hóa đơn...", 0);
-    let res = await billApi.getLimitBill(page, limit);
+    let res = await billApi.getLimitOrders(page, limit);
     if (res.isSuccess) {
       dispatch(setBills(res.bills));
     }
@@ -166,11 +195,64 @@ const Order = ({}) => {
         name: "BillCUModal",
         modalState: {
           visible: true,
-          type: "view-order",
+          type: "order-view",
           idSelected: row.id,
         },
       })
     );
+  }
+
+  async function orderToBill(billId) {
+    hideLoading = message.loading("Đang xử lí...");
+    let res = await billApi.updateType(billId, "success");
+    if (res.isSuccess) {
+      message.info("Thao tác thành công", 3);
+      createStoreTranAfterOrderToBill(billId);
+      dispatch(setRefreshBills());
+    } else {
+      message.info("Có lỗi xảy ra, vui lòng thử lại!", 3);
+    }
+    hideLoading();
+  }
+
+  async function cancelOrder(billId) {
+    hideLoading = message.loading("Đang xử lí...");
+    let res = await billApi.updateType(billId, "cancel");
+    if (res.isSuccess) {
+      message.info("Thao tác thành công", 3);
+      dispatch(setRefreshBills());
+    } else {
+      message.info("Có lỗi xảy ra, vui lòng thử lại!", 3);
+    }
+    hideLoading();
+  }
+
+  async function createStoreTranAfterOrderToBill(billId) {
+    let res = await billApi.getOneBillById(billId);
+    let bill = res.bill || {};
+    let billDetails = bill.BillDetails || [];
+    let employeeId = bill.EmployeeId;
+
+    let storeTrans = [];
+
+    billDetails.map((detailItem) => {
+      let quantity = detailItem.quantity;
+      let productId = detailItem.Price.ProductUnitType.ProductId;
+      let convertionQuantity =
+        detailItem.Price.ProductUnitType.UnitType.convertionQuantity;
+
+      storeTrans.push({
+        quantity: quantity * convertionQuantity,
+        productId: productId,
+        type: "Bán hàng online",
+        employeeId: employeeId,
+      });
+    });
+
+    // create store
+    storeApi.addMany({
+      data: storeTrans,
+    });
   }
 
   useEffect(() => {

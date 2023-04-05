@@ -153,21 +153,39 @@ const PromotionLineModal = () => {
     (state) => state.modal.modals["PromotionLineModal"]
   );
   const promotionHeaderId = modalState.promotionHeaderId;
-  const minMaxTime = modalState.minMaxTime;
 
   const [formState, setFormState] = useState(initFormState);
   const [errMessage, setErrMessage] = useState(initErrMessage);
+  const [minMaxTime, setMinMaxTime] = useState();
 
   useEffect(() => {
     const { type, idSelected, visible } = modalState;
+    if (visible) {
+      loadMinMaxTime();
+    }
 
     if (idSelected && visible) {
       loadPromotionLine(idSelected);
-    } else if (type == "create" && visible) {
     }
 
     return () => {};
   }, [modalState]);
+
+  useEffect(() => {
+    if (modalState.type == "create" && modalState.visible && minMaxTime) {
+      let now = new Date();
+      let min = new Date(minMaxTime.min);
+      let max = new Date(minMaxTime.max);
+
+      setFormState({
+        ...formState,
+        startDate:
+          compareDMY(min, now) > 0 ? min : now.setDate(now.getDate() + 1),
+        endDate: max,
+      });
+    }
+    return () => {};
+  }, [minMaxTime]);
 
   useEffect(() => {
     if (formState.V) {
@@ -321,6 +339,18 @@ const PromotionLineModal = () => {
         V: {
           ...voucher,
         },
+      });
+    }
+  }
+
+  async function loadMinMaxTime() {
+    let res = await promotionApi.getOneHeaderById(promotionHeaderId);
+    if (res.isSuccess) {
+      let startDate = res.promotion.startDate;
+      let endDate = res.promotion.endDate;
+      setMinMaxTime({
+        min: startDate,
+        max: endDate,
       });
     }
   }
@@ -659,14 +689,13 @@ const PromotionLineModal = () => {
 
   function disabledDate() {
     if (minMaxTime) {
-      let min = new Date(minMaxTime.minStartDate);
-      let max = new Date(minMaxTime.maxEndDate);
+      console.log(minMaxTime);
+      let min = new Date(minMaxTime.min);
+      let max = new Date(minMaxTime.max);
       let now = new Date();
-
       if (compareDMY(max, now) < 0) {
         return [true, true];
       }
-
       if (
         modalState.type == "update" &&
         formState.startDate &&
@@ -674,7 +703,6 @@ const PromotionLineModal = () => {
       ) {
         let start = new Date(formState.startDate);
         let end = new Date(formState.endDate);
-
         if (compareDMY(start, now) <= 0) {
           if (compareDMY(end, now) < 0) {
             return [true, true];
@@ -714,7 +742,7 @@ const PromotionLineModal = () => {
       <ModalCustomer
         visible={modalState.visible}
         style={{
-          width: "869px",
+          width: "80%",
         }}
       >
         <div>
@@ -729,27 +757,6 @@ const PromotionLineModal = () => {
             <div className="promotion_line_form">
               <div className="promotion_line_form_top">
                 <div className="promotion_line_form_left">
-                  <div className="promotion_line_form_group">
-                    <div className="promotion_line_form_label">Mã KM</div>
-                    <div className="promotion_line_form_input_wrap">
-                      <Input
-                        className="promotion_line_form_input"
-                        size="small"
-                        disabled
-                        value={formState.id}
-                        status={errMessage.id && "error"}
-                        onChange={({ target }) => {
-                          setFormState({
-                            ...formState,
-                            id: target.value,
-                          });
-                        }}
-                      />
-                      <div className="promotion_line_form_input_err">
-                        {errMessage.id}
-                      </div>
-                    </div>
-                  </div>
                   <div className="promotion_line_form_group">
                     <div className="promotion_line_form_label">
                       Loại khuyến mãi
@@ -774,6 +781,30 @@ const PromotionLineModal = () => {
                       </div>
                     </div>
                   </div>
+                  {formState.typePromotionId != "V" && (
+                    <div className="promotion_line_form_group">
+                      <div className="promotion_line_form_label">Mã KM</div>
+                      <div className="promotion_line_form_input_wrap">
+                        <Input
+                          className="promotion_line_form_input"
+                          size="small"
+                          disabled
+                          value={formState.id}
+                          status={errMessage.id && "error"}
+                          onChange={({ target }) => {
+                            setFormState({
+                              ...formState,
+                              id: target.value,
+                            });
+                          }}
+                        />
+                        <div className="promotion_line_form_input_err">
+                          {errMessage.id}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="promotion_line_form_group">
                     <div className="promotion_line_form_label">Thời gian</div>
                     <div className="promotion_line_form_input_wrap">
@@ -792,18 +823,20 @@ const PromotionLineModal = () => {
                             });
                           }
                         }}
-                        // disabledDate={(val) => {
-                        //   let min = new Date(minMaxTime.minStartDate);
-                        //   let max = new Date(minMaxTime.maxEndDate);
-                        //   let value = new Date(antdToYmd(val));
-                        //   let now = new Date();
+                        disabledDate={(val) => {
+                          if (minMaxTime) {
+                            let min = new Date(minMaxTime.min);
+                            let max = new Date(minMaxTime.max);
+                            let value = new Date(antdToYmd(val));
+                            let now = new Date();
 
-                        //   return (
-                        //     compareDMY(value, now) <= 0 ||
-                        //     compareDMY(value, min) < 0 ||
-                        //     compareDMY(value, max) > 0
-                        //   );
-                        // }}
+                            return (
+                              compareDMY(value, now) <= 0 ||
+                              compareDMY(value, min) < 0 ||
+                              compareDMY(value, max) > 0
+                            );
+                          }
+                        }}
                       />
                       <div className="promotion_line_form_input_err">
                         {errMessage.time}

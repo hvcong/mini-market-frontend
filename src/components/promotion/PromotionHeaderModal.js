@@ -33,7 +33,7 @@ import CustomerGroupSelect from "./../customerGroup/CustomerGroupSelect";
 import PromotionLineModal from "./PromotionLineModal";
 import { setRefreshPromotionHeaders } from "../../store/slices/promotionHeaderSlice";
 import { setRefreshPromotionLines } from "../../store/slices/promotionLineSlice";
-import { compareDMY } from "../../utils";
+import { antdToYmd, compareDMY, sqlToAntd } from "../../utils";
 import dayjs from "dayjs";
 
 const initFormState = {
@@ -79,6 +79,17 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
 
     if (type == "update" && rowSelected && visible) {
       getOneHeaderById(rowSelected.id);
+    }
+
+    if (type == "create" && visible) {
+      let now = new Date();
+      now.setDate(now.getDate() + 1);
+
+      setFormState({
+        ...formState,
+        startDate: now,
+        endDate: now,
+      });
     }
 
     return () => {};
@@ -229,33 +240,10 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
 
   async function handleOnChangeState(is) {
     if (modalState.type == "create") {
-      // to active
-      if (is) {
-        if (!formState.startDate || !formState.endDate) {
-          message.error("Vui lòng chọn ngày bắt đầu và kết thúc trước!", 3);
-          return;
-        }
-
-        // khi tạo ngày bắt đầu phải == now mới được active
-        let now = new Date();
-        let start = new Date(formState.startDate);
-
-        let result = compareDMY(now, start);
-
-        if (result >= 0) {
-          setFormState({
-            ...formState,
-            state: is,
-          });
-        } else {
-          message.error("Ngày bắt đầu phải bé hơn hoặc bằng ngày hiện tại!", 3);
-        }
-      } else {
-        setFormState({
-          ...formState,
-          state: is,
-        });
-      }
+      setFormState({
+        ...formState,
+        state: is,
+      });
     }
 
     if (modalState.type == "update") {
@@ -266,62 +254,18 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
        */
 
       if (is) {
-        let isCheck = true;
-        let start = formState.startDate;
-        let end = formState.endDate;
+        // to active header
+        let res = await promotionApi.updateOneHeader(formState.id, {
+          state: true,
+        });
 
-        if (compareDMY(new Date(start), new Date()) > 0) {
-          isCheck = false;
-          message.error("Ngày bắt đầu phải bé hơn hoặc bằng ngày hiện tại!", 3);
-        }
-
-        if (compareDMY(new Date(end), new Date()) < 1) {
-          isCheck = false;
-          message.error("Ngày kết thúc phải lớn hơn ngày hiện tại!", 3);
-        }
-
-        // kiểm tra trùng
-        // let res = await priceHeaderApi.getAllOnActive();
-
-        // let isExist = false;
-        // if (res.isSuccess) {
-        //   let headers = res.headers || [];
-        //   // loop through each header
-        //   for (const header of headers) {
-        //     // loop through each line in a header
-        //     let priceLines = header.Prices || [];
-
-        //     for (const line of priceLines) {
-        //       console.log(priceLines);
-        //       for (const _lineThisHeader of formState.Prices || []) {
-        //         if (
-        //           _lineThisHeader.ProductUnitTypeId == line.ProductUnitTypeId
-        //         ) {
-        //           isExist = true;
-        //           isCheck = false;
-        //           message.error(
-        //             `Sản phẩm "${line.ProductUnitType.Product.name} với đơn vị ${line.ProductUnitType.UnitType.name}" đang được bán ở bảng ${header.title} `
-        //           );
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
-
-        if (isCheck) {
-          // to active header
-          let res = await promotionApi.updateOneHeader(formState.id, {
+        if (res.isSuccess) {
+          setFormState({
+            ...formState,
             state: true,
           });
-
-          if (res.isSuccess) {
-            setFormState({
-              ...formState,
-              state: true,
-            });
-            message.info("Chương trình khuyến mãi đã bắt đầu sử dụng.", 3);
-            dispatch(setRefreshPromotionHeaders());
-          }
+          message.info("Chương trình khuyến mãi đã bắt đầu sử dụng.", 3);
+          dispatch(setRefreshPromotionHeaders());
         }
       } else {
         let res = await promotionApi.updateOneHeader(formState.id, {
@@ -371,22 +315,58 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
     }
   }
 
-  function disabledStartDate() {
-    if (modalState.type == "update") {
-      // đang active thì ko đc chỉnh ngày bắt đầu
+  function disableAddNewPriceLine(startDate, endDate, state) {
+    if (state) {
+      return true;
+    }
+    if (startDate && endDate) {
+      let start = new Date(startDate);
+      let end = new Date(endDate);
+      let now = new Date();
+
+      // đã quá hạn
+      if (compareDMY(end, now) < 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function disableStartDate() {
+    if (
+      modalState.type == "update" &&
+      formState.startDate &&
+      formState.endDate
+    ) {
       if (formState.state) {
         return true;
       }
 
-      // ko active
+      let now = new Date();
+      let start = new Date(formState.startDate);
+      let end = new Date(formState.endDate);
 
-      let start = formState.startDate;
-      if (compareDMY(new Date(start), new Date()) < 0) {
+      // start <= now ko được chỉnh sửa
+      if (compareDMY(start, now) <= 0) {
         return true;
       }
-
-      // đang ko active
     }
+  }
+
+  function disValueStartDate(val) {
+    let now = new Date();
+    let value = new Date(antdToYmd(val));
+    let isDisable = false;
+    let end = new Date(formState.endDate);
+
+    if (modalState.type == "update") {
+      isDisable = compareDMY(value, end) > 0 || compareDMY(value, now) <= 0;
+    } else {
+      isDisable = compareDMY(value, now) <= 0;
+    }
+
+    return isDisable;
   }
 
   function disableEndDate() {
@@ -396,24 +376,69 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
       }
     } else {
       // when update
+      if (formState.state) {
+        return true;
+      }
+
+      if (formState.startDate && formState.endDate) {
+        let start = new Date(formState.startDate);
+        let end = new Date(formState.endDate);
+        let now = new Date();
+
+        // nếu đang sử dụng thì ko đc chỉnh sửa
+        if (
+          compareDMY(start, now) <= 0 &&
+          compareDMY(end, now) >= 0 &&
+          formState.state
+        ) {
+          return true;
+        }
+
+        // nếu end < now thì ko được
+        if (compareDMY(end, now) < 0) {
+          return true;
+        }
+      }
     }
   }
 
+  function disValueEndDate(val) {
+    let isDisable = false;
+
+    if (formState.startDate) {
+      let st = new Date(formState.startDate);
+      let now = new Date();
+      let value = "";
+      try {
+        value = new Date(antdToYmd(val));
+      } catch (ex) {
+        console.log("exception");
+      }
+      if (value) {
+        if (modalState.type == "create") {
+          isDisable = compareDMY(value, st) < 0;
+        } else {
+          isDisable = compareDMY(value, st) < 0 || compareDMY(value, now) < 0;
+        }
+      }
+    }
+    return isDisable;
+  }
   async function handleOnChangeEndDate(string) {
-    let st = new Date(formState.startDate);
-    let now = new Date();
     if (string) {
-      if (compareDMY(st, new Date(string)) >= 0) {
-        message.error("Ngày kết thúc phải lớn hơn ngày bắt đầu!", 3);
+      let start = new Date(formState.startDate);
+      let end = new Date(string);
+      let now = new Date();
+      if (compareDMY(end, start) < 0) {
+        message.error("Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu!");
         return;
       }
 
-      if (compareDMY(new Date(string), now) <= 0) {
-        message.error("Ngày kết thúc phải lớn hơn ngày hiện tại!", 3);
+      if (compareDMY(end, now) < 0) {
+        message.error("Ngày kết thúc phải lớn hơn ngày hiện tại!");
         return;
       }
 
-      console.log("herer");
       //oke when update
       if (modalState.type == "update") {
         let res = await promotionApi.updateOneHeader(formState.id, {
@@ -455,14 +480,14 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
           <div className="form__container">
             <div className="promotion_header_form">
               <div className="promotion_header_form_top">
-                <div className="promotion_header_form_first">
+                {/* <div className="promotion_header_form_first">
                   <div className="promotion_header_form_group">
                     <div className="promotion_header_form_input_wrap">
                       <ImageUpload />
                       <div className="promotion_header_form_input_err"></div>
                     </div>
                   </div>
-                </div>
+                </div> */}
                 <div className="promotion_header_form_left">
                   <div className="promotion_header_form_group">
                     <div className="promotion_header_form_label">Mã CTKM</div>
@@ -514,28 +539,11 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
                         className="promotion_header_form_date"
                         size="small"
                         onChange={handleOnChangeStartDate}
-                        disabledDate={(current) => {
-                          let now = new Date();
-                          if (modalState.type == "update") {
-                            let end = new Date(formState.endDate);
-                            end.setDate(end.getDate() - 1);
-                            return (
-                              (current &&
-                                current <
-                                  dayjs(now.setDate(now.getDate() - 1))) ||
-                              (current && current >= dayjs(end))
-                            );
-                          }
-                          return (
-                            current &&
-                            current < dayjs(now.setDate(now.getDate() - 1))
-                          );
-                        }}
+                        disabledDate={disValueStartDate}
                         value={
-                          formState.startDate &&
-                          dayjs(formState.startDate, "YYYY-MM-DD")
+                          formState.startDate && sqlToAntd(formState.startDate)
                         }
-                        disabled={disabledStartDate()}
+                        disabled={disableStartDate()}
                         status={errMessage.startDate && "error"}
                       />
                       <div className="promotion_header_form_input_err">
@@ -552,23 +560,9 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
                         className="promotion_header_form_date"
                         size="small"
                         onChange={handleOnChangeEndDate}
-                        disabledDate={(current) => {
-                          let isDisable = false;
-                          if (modalState.type == "create") {
-                            let st = new Date(formState.startDate);
-                            isDisable =
-                              current <= dayjs(st.setDate(st.getDate()));
-                          } else {
-                            let st = new Date(formState.startDate);
-                            isDisable =
-                              current <= dayjs(st.setDate(st.getDate())) ||
-                              current <= dayjs(new Date());
-                          }
-                          return isDisable;
-                        }}
+                        disabledDate={disValueEndDate}
                         value={
-                          formState.endDate &&
-                          dayjs(formState.endDate, "YYYY-MM-DD")
+                          formState.endDate && sqlToAntd(formState.endDate)
                         }
                         disabled={disableEndDate()}
                         status={errMessage.endDate && "error"}
@@ -657,6 +651,11 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
                     modalState.rowSelected && modalState.rowSelected.id
                   }
                   headerState={formState.state}
+                  isDisabledAddButton={disableAddNewPriceLine(
+                    formState.startDate,
+                    formState.endDate,
+                    formState.state
+                  )}
                 />
               )}
             </div>

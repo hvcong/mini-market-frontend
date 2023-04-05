@@ -11,6 +11,22 @@ class StoreApi {
     return axiosClient.get(url);
   }
 
+  // ticket input
+  addOneInputTicket(formData) {
+    let url = "input/add";
+    return axiosClient.post(url, formData);
+  }
+
+  getOneInputById(id) {
+    let url = `input/one?id=${id}`;
+    return axiosClient.get(url);
+  }
+
+  getLimitInputTicket(page = 1, limit = 10) {
+    let url = `input/get?_page=${page}&_limit=${limit}`;
+    return axiosClient.get(url);
+  }
+
   // ticket store
   getLimitTiket(page = 1, limit = 10) {
     let url = `ticket/get?_page=${page}&_limit=${limit}`;

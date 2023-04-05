@@ -16,7 +16,7 @@ const initState = {
       // list bill product item
     ],
   },
-  refresh: false,
+  refresh: true,
 };
 
 export const createBillState = createSlice({
@@ -139,6 +139,9 @@ export const createBillState = createSlice({
         return item;
       });
       state.tabState.tabItems = _tabItems;
+    },
+    setRefreshTabCreateBill: (state, action) => {
+      state.refresh = true;
     },
   },
 });

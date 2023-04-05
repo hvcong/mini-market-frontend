@@ -26,3 +26,34 @@
     z-index: 102;
   }
 }
+
+.store_checking_modal_detail_form_top {
+  display: flex;
+  font-size: 13px;
+  .store_checking_modal_detail_form_left {
+    flex: 1;
+  }
+
+  .store_checking_modal_form_group {
+    display: flex;
+    padding-bottom: 12px;
+  }
+
+  .store_checking_modal_form_label {
+    width: 140px;
+  }
+
+  .store_checking_modal_form_input_wrap {
+  }
+
+  .store_checking_modal_form_input_number {
+  }
+
+  .store_checking_modal_detail_form_right {
+    .store_checking_modal_form_label {
+      width: 70px;
+    }
+  }
+}
+.store_checking_modal_detail_form_bottom {
+}

@@ -122,7 +122,10 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
     tableData.map((row) => {
       if (!row.isFirstRow) {
         if (!row.isPromotion) {
-          priceIds.push(row.id);
+          priceIds.push({
+            id: row.id,
+            quantity: row.quantity,
+          });
         }
       }
     });
@@ -132,6 +135,7 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
       customerPhonenumber: customerPhone,
       EmployeeId: account.id,
       priceIds,
+      type: "success",
     };
 
     if (await checkData()) {
@@ -176,7 +180,7 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
         detailItem.Price.ProductUnitType.UnitType.convertionQuantity;
 
       storeTrans.push({
-        quantity: quantity * convertionQuantity,
+        quantity: -(quantity * convertionQuantity),
         productId: productId,
         type: "Bán hàng",
         employeeId: employeeId,

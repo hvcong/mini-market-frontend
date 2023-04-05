@@ -30,6 +30,7 @@ let initDataTable = [
 ];
 
 const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
+  console.log(BillDetails);
   let hideLoading = null;
   const dispatch = useDispatch();
   const [tableData, setTableData] = useState(initDataTable);

@@ -27,13 +27,15 @@ import UnitTypeSelect from "../common/UnitTypeSelect";
 import { DeleteOutlined } from "@ant-design/icons";
 import { PlusOutlined } from "@ant-design/icons";
 import ProductIdIInputSearchSelect from "../common/ProductIdIInputSearchSelect";
-import { uid } from "../../utils";
+import { getPUTid, handleAfter, sqlToAntd, uid } from "../../utils";
 import productApi from "../../api/productApi";
 import unitTypeApi from "./../../api/unitTypeApi";
 import { useDispatch, useSelector } from "react-redux";
 import storeApi from "./../../api/storeApi";
 import UnitTypeSelectByProductId from "../promotion/UnitTypeSelectByProductId";
 import { setRefreshStoreTrans } from "../../store/slices/storeTranSlice";
+import { setOpen } from "../../store/slices/modalSlice";
+import { setRefreshStoreEnterTickets } from "../../store/slices/storeEnterTicketSlice";
 
 const lastItemOfTable = {
   isLastRow: true,
@@ -56,16 +58,25 @@ const initErrMessage = {
   // },
 };
 
+const initFormState = {
+  id: "",
+  createAt: "",
+  EmployeeId: "",
+  EmployeeName: "",
+  note: "",
+};
+
 const ddMMyyyy = "DD/MM/YYYY";
 
-const StoreCUModal = ({ modalState, setModalState }) => {
+const StoreCUModal = () => {
   let hideLoading = null;
   const dispatch = useDispatch();
-
+  const { account } = useSelector((state) => state.user);
+  const modalState = useSelector((state) => state.modal.modals["StoreCUModal"]);
   const [allColumns, setAllColumns] = useState([]);
   const [dataTable, setDataTable] = useState(initDataTable);
   const [errMessage, setErrMessage] = useState(initErrMessage);
-  const { account } = useSelector((state) => state.user);
+  const [formState, setFormState] = useState(initFormState);
 
   useEffect(() => {
     let _allColumns = [
@@ -77,17 +88,19 @@ const StoreCUModal = ({ modalState, setModalState }) => {
         fixedShow: true,
         render: (_, rowData) => {
           if (rowData.isLastRow) {
-            return (
-              <Button
-                icon={<PlusOutlined style={{ fontSize: "12px" }} />}
-                type="dashed"
-                onClick={() => {
-                  onAddNewRow();
-                }}
-              >
-                Thêm mới một dòng
-              </Button>
-            );
+            if (modalState.type != "view") {
+              return (
+                <Button
+                  icon={<PlusOutlined style={{ fontSize: "12px" }} />}
+                  type="dashed"
+                  onClick={() => {
+                    onAddNewRow();
+                  }}
+                >
+                  Thêm mới một dòng
+                </Button>
+              );
+            }
           } else {
             return (
               <Button
@@ -101,6 +114,7 @@ const StoreCUModal = ({ modalState, setModalState }) => {
                 }
                 size="small"
                 danger
+                disabled={modalState.type == "view"}
               />
             );
           }
@@ -131,6 +145,7 @@ const StoreCUModal = ({ modalState, setModalState }) => {
                     errMessage[rowData.id].product &&
                     "error"
                   }
+                  disabled={modalState.type == "view"}
                 />
                 <div className="store_changing_err">
                   {errMessage[rowData.id] && errMessage[rowData.id].product}
@@ -182,7 +197,10 @@ const StoreCUModal = ({ modalState, setModalState }) => {
                     disableListValuesUTSelect(rowData.product.id)
                   }
                   value={rowData.utSelectedId}
-                  disabled={!(rowData.product && rowData.product.id)}
+                  disabled={
+                    !(rowData.product && rowData.product.id) ||
+                    modalState.type == "view"
+                  }
                   size="small"
                 />
                 <div className="store_changing_err">
@@ -218,6 +236,7 @@ const StoreCUModal = ({ modalState, setModalState }) => {
                     errMessage[rowData.id].quantity &&
                     "error"
                   }
+                  disabled={modalState.type == "view"}
                 />
                 <div className="store_changing_err">
                   {errMessage[rowData.id] && errMessage[rowData.id].quantity}
@@ -232,7 +251,7 @@ const StoreCUModal = ({ modalState, setModalState }) => {
     setAllColumns(_allColumns);
 
     return () => {};
-  }, [dataTable, errMessage]);
+  }, [dataTable, errMessage, modalState]);
 
   function disableListValuesUTSelect(productId) {
     let list = [];
@@ -284,6 +303,7 @@ const StoreCUModal = ({ modalState, setModalState }) => {
       let _dataTable = [...dataTable];
       _dataTable[index].product = product;
       _dataTable[index].listUTs = listUTs;
+      _dataTable[index].utSelectedId = "";
       setDataTable(_dataTable);
     } else {
       let _dataTable = [...dataTable];
@@ -309,47 +329,37 @@ const StoreCUModal = ({ modalState, setModalState }) => {
 
   async function onSubmit(type, isClose) {
     if (checkData()) {
-      let _data = {
-        // productId:quantity
-      };
+      let inputDetails = [];
+      let formData = {};
+      let res = {};
 
-      dataTable.map((item) => {
-        if (item.isLastRow) {
-          return;
-        } else {
-          let quantity = item.quantity;
-          let productId = item.product.id;
-          let utList = item.listUTs;
-          let utSelectedId = item.utSelectedId;
-          let convertionQuantity =
-            utList.filter((ut) => ut.id == utSelectedId)[0]
-              ?.convertionQuantity || 0;
-
-          if (_data[productId]) {
-            _data[productId] += quantity * convertionQuantity;
-          } else {
-            _data[productId] = 0;
-            _data[productId] += quantity * convertionQuantity;
+      for (const rowData of dataTable) {
+        if (!rowData.isLastRow) {
+          let putId = await getPUTid(rowData.product.id, rowData.utSelectedId);
+          if (putId) {
+            inputDetails.push({
+              ProductUnitTypeId: putId,
+              quantity: rowData.quantity,
+            });
           }
         }
-      });
-
-      let productIds = Object.keys(_data);
-
-      let formData = {
-        data: productIds.map((productId) => ({
-          quantity: _data[productId],
-          productId,
-          type: "Nhập kho",
-          employeeId: account?.id,
-        })),
-      };
+      }
 
       hideLoading = message.loading("Đang cập nhật kho...", 0);
-      let res = await storeApi.addMany(formData);
+
+      formData = {
+        id: formState.id,
+        EmployeeId: formState.EmployeeId,
+        createAt: formState.createAt,
+        note: formState.note,
+        inputDetails,
+      };
+      console.log(formData);
+      res = await storeApi.addOneInputTicket(formData);
       if (res.isSuccess) {
         message.info("Nhập kho thành công");
-        dispatch(setRefreshStoreTrans());
+        dispatch(setRefreshStoreEnterTickets());
+        handleAfter.createInputTicket(formState.id);
 
         if (isClose) {
           closeModal();
@@ -359,6 +369,8 @@ const StoreCUModal = ({ modalState, setModalState }) => {
       } else {
         message.error("Có lỗi xảy ra, vui lòng thử lại");
       }
+    } else {
+      message.error("Vui lòng điền đầy đủ thông tin!");
     }
 
     if (hideLoading) {
@@ -374,7 +386,6 @@ const StoreCUModal = ({ modalState, setModalState }) => {
 
       if (dataTable.length == 1) {
         isCheck = false;
-        message.warning("Vui lòng thêm các dòng nhập kho!");
       } else {
         dataTable.map((row) => {
           if (!row.isLastRow) {
@@ -416,18 +427,163 @@ const StoreCUModal = ({ modalState, setModalState }) => {
   function clearModal() {
     setDataTable(initDataTable);
     setErrMessage({});
+    setFormState(initFormState);
+  }
+
+  function setModalState(state) {
+    dispatch(
+      setOpen({
+        name: "StoreCUModal",
+        modalState: state,
+      })
+    );
+  }
+
+  useEffect(() => {
+    if (modalState.type == "create" && modalState.visible) {
+      setFormState({
+        ...formState,
+        id: "WHT" + uid(),
+        EmployeeId: account.id,
+        EmployeeName: account.name,
+        createAt: new Date(),
+      });
+    }
+
+    if (modalState.type == "view" && modalState.visible) {
+      loadDetailStoreEnterTicket(modalState.idSelected);
+    }
+    return () => {};
+  }, [modalState]);
+
+  async function loadDetailStoreEnterTicket(id) {
+    let res = {};
+
+    res = await storeApi.getOneInputById(id);
+    if (res.isSuccess) {
+      let storeEnterTicket = res.input || {};
+      // load data to form
+      setFormState({
+        id: storeEnterTicket.id,
+        EmployeeId: storeEnterTicket.EmployeeId,
+        EmployeeName: storeEnterTicket.Employee.name,
+        createAt: storeEnterTicket.createAt,
+        note: storeEnterTicket.note,
+      });
+
+      // load data to table
+      let _dataTable = [];
+
+      let inputDetails = storeEnterTicket.InputDetails || [];
+
+      inputDetails.map((inputDetail) => {
+        _dataTable.push({
+          id: inputDetail.id,
+          product: inputDetail.ProductUnitType.Product,
+          listUTs: [],
+          quantity: inputDetail.quantity,
+          utSelectedId: inputDetail.ProductUnitType.UnitTypeId,
+        });
+      });
+
+      setDataTable(_dataTable);
+    }
   }
 
   return (
     <div className="price__modal">
-      <ModalCustomer visible={modalState.visible}>
+      <ModalCustomer
+        visible={modalState.visible}
+        style={{
+          width: "98%",
+        }}
+      >
         <div>
           <div className="title__container">
             <Typography.Title level={4} className="title">
-              {modalState.type == "update" ? "" : "Nhập kho"}
+              {modalState.type == "create"
+                ? "Tạo phiếu nhập kho"
+                : "Xem thông tin phiếu nhập kho"}
             </Typography.Title>
           </div>
           <div className="form__container">
+            <div className="store_checking_modal_detail_form_top">
+              <div className="store_checking_modal_detail_form_left">
+                <div className="store_checking_modal_form_group">
+                  <div className="store_checking_modal_form_label">
+                    Mã phiếu kiểm
+                  </div>
+                  <div className="store_checking_modal_form_input_wrap">
+                    <Input
+                      className="store_checking_modal_form_input_number"
+                      size="small"
+                      disabled={true}
+                      value={formState.id}
+                    />
+                  </div>
+                </div>
+                <div className="store_checking_modal_form_group">
+                  <div className="store_checking_modal_form_label">
+                    Mã nhân viên kiểm
+                  </div>
+                  <div className="store_checking_modal_form_input_wrap">
+                    <Typography.Link
+                      className="store_checking_modal_form_input_number"
+                      size="small"
+                    >
+                      {formState.EmployeeId}
+                    </Typography.Link>
+                  </div>
+                </div>
+                <div className="store_checking_modal_form_group">
+                  <div className="store_checking_modal_form_label">
+                    Tên nhân viên
+                  </div>
+                  <div className="store_checking_modal_form_input_wrap">
+                    {formState.EmployeeName}
+                  </div>
+                </div>
+
+                <div className="store_checking_modal_form_group">
+                  <div className="store_checking_modal_form_label">
+                    Thời gian tạo phiếu
+                  </div>
+                  <div className="store_checking_modal_form_input_wrap">
+                    <DatePicker
+                      className="store_checking_modal_form_input_number"
+                      size="small"
+                      disabled={true}
+                      value={
+                        formState.createAt && sqlToAntd(formState.createAt)
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="store_checking_modal_detail_form_right">
+                <div className="store_checking_modal_form_group">
+                  <div className="store_checking_modal_form_label">Ghi chú</div>
+                  <div className="store_checking_modal_form_input_wrap">
+                    <Input.TextArea
+                      className="store_checking_modal_form_input_number"
+                      size="small"
+                      style={{
+                        height: 90,
+                        width: 700,
+                      }}
+                      value={formState.note}
+                      onChange={({ target }) => {
+                        setFormState({
+                          ...formState,
+                          note: target.value,
+                        });
+                      }}
+                      disabled={modalState.type == "view"}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="table__header">
               <div className="left">
                 <Typography.Title
@@ -466,39 +622,25 @@ const StoreCUModal = ({ modalState, setModalState }) => {
                 width: "100%",
               }}
             >
-              {modalState.type == "create" ? (
+              {modalState.type == "create" && (
                 <>
-                  <Button
-                    type="primary"
-                    onClick={() => {
-                      onSubmit("create");
-                    }}
-                  >
-                    Lưu & Thêm mới
-                  </Button>
                   <Button
                     type="primary"
                     onClick={() => {
                       onSubmit("create", true);
                     }}
                   >
-                    Lưu & Đóng
+                    Hoàn tất
                   </Button>
                 </>
-              ) : (
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    onSubmit("create", true);
-                  }}
-                >
-                  Cập nhật
-                </Button>
               )}
               <Button
                 type="primary"
                 danger
-                onClick={() => setModalState({ visible: false })}
+                onClick={() => {
+                  clearModal();
+                  setModalState({ visible: false });
+                }}
               >
                 Hủy bỏ
               </Button>

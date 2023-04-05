@@ -84,11 +84,6 @@ const Employee = ({}) => {
       title: "Số điện thoại",
       dataIndex: "phonenumber",
     },
-
-    {
-      title: "Email",
-      dataIndex: "email",
-    },
   ]);
 
   useEffect(() => {

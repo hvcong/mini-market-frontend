@@ -34,6 +34,11 @@ const initState = {
       promotionHeaderId: "",
       minMaxTime: "",
     },
+    StoreCUModal: {
+      visible: false,
+      type: "",
+      idSelected: "",
+    },
   },
 };
 
@@ -42,7 +47,6 @@ export const modalSlice = createSlice({
   initialState: initState,
   reducers: {
     setOpen: (state, action) => {
-      console.log(action);
       state.modals[action.payload.name] = action.payload.modalState;
     },
   },

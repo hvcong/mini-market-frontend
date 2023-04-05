@@ -1,5 +1,6 @@
 import { DatePicker, Space } from "antd";
 import dayjs from "dayjs";
+import { sqlToAntd } from "../../utils";
 const { RangePicker } = DatePicker;
 
 const dateFormat = "YYYY-MM-DD";
@@ -17,8 +18,8 @@ const DatePickerCustom = ({ onChangeDate, value, ...props }) => {
       value={
         value &&
         value.length && [
-          value[0] && dayjs(value[0], dateFormat),
-          value[1] && dayjs(value[1], dateFormat),
+          value[0] && sqlToAntd(value[0]),
+          value[1] && sqlToAntd(value[1]),
         ]
       }
     />

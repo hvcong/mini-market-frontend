@@ -22,7 +22,7 @@ import {
 } from "antd";
 import ModalCustomer from "../ModalCustomer";
 import unitTypeApi from "./../../api/unitTypeApi";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setRefreshUnitType } from "../../store/slices/unitTypeSlice";
 import ProductIdSelect from "../promotion/ProductIdSelect";
 import UnitTypeSelectByProductId from "../promotion/UnitTypeSelectByProductId";
@@ -41,36 +41,41 @@ const initErrMessage = {};
 
 const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
   let hideLoading = null;
+  const { priceLines, refresh } = useSelector((state) => state.priceLine);
   const dispatch = useDispatch();
   const [formState, setFormState] = useState(initFormState);
   const [errMessage, setErrMessage] = useState(initErrMessage);
 
   useEffect(() => {
     let { type, rowSelected, visible } = modalState;
-    if (type == "update" && rowSelected && visible) {
-      setFormState({
-        price: rowSelected.price,
-        productId: rowSelected.ProductUnitType.ProductId,
-        utId: rowSelected.ProductUnitType.UnitTypeId,
-        ListPricesHeader: rowSelected.ListPricesHeader,
-      });
-    } else if (visible && type == "create") {
+    if (visible && type == "create") {
       loadOneHeaderById(headerPriceId);
+    } else if (rowSelected && visible) {
+      loadOneHeaderById(headerPriceId, rowSelected);
     }
 
     return () => {};
-  }, [modalState]);
+  }, [modalState, headerPriceId]);
 
-  async function loadOneHeaderById(headerId) {
+  async function loadOneHeaderById(headerId, rowSelected) {
     let res = await priceHeaderApi.getOneById(headerId);
     if (res.isSuccess) {
       let header = res.header || {};
-      setFormState({
-        price: 0,
-        productId: "",
-        utId: "",
-        ListPricesHeader: header,
-      });
+      if (rowSelected) {
+        setFormState({
+          price: rowSelected.price,
+          productId: rowSelected.ProductUnitType.ProductId,
+          utId: rowSelected.ProductUnitType.UnitTypeId,
+          ListPricesHeader: header,
+        });
+      } else {
+        setFormState({
+          price: 0,
+          productId: "",
+          utId: "",
+          ListPricesHeader: header,
+        });
+      }
     }
   }
 
@@ -142,86 +147,14 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
       }
 
       if (formState.productId && formState.utId) {
-        let thisHeader = formState.ListPricesHeader;
-        let start1 = new Date(thisHeader.startDate);
-        let end1 = new Date(thisHeader.endDate);
-
-        let res = await priceHeaderApi.getAllOnActive();
         let putId = await getPUTid(formState.productId, formState.utId);
-        let isExist = false;
-        if (res.isSuccess) {
-          let headers = res.headers || [];
-          // loop through each header
-          for (const header of headers) {
-            let start2 = new Date(header.startDate);
-            let end2 = new Date(header.endDate);
-            console.log("headerId:", header.id);
-            console.log("start1:", start1);
-            console.log("end1:", end1);
-            console.log("start2:", start2);
-            console.log("end2:", end2);
-
-            let is1 =
-              compareDMY(end2, start1) >= 0 && compareDMY(end2, end1) >= 0;
-            let is2 =
-              compareDMY(start1, start2) >= 0 && compareDMY(start1, end2) <= 0;
-            let is3 =
-              compareDMY(start1, start2) <= 0 && compareDMY(end2, end1) <= 0;
-
-            console.log(is1, is2, is3);
-            if (is1 || is2 || is3) {
-              console.log(header.id);
-              // loop through each line in a header
-              let priceLines = header.Prices || [];
-              for (const line of priceLines) {
-                if (line.ProductUnitTypeId == putId) {
-                  if (header.id == headerPriceId) {
-                    message.error(
-                      `Sản phẩm và đơn vị này đang sử dụng ở bảng giá này`
-                    );
-                  } else {
-                    message.error(
-                      `Sản phẩm và đơn vị này đang sử dụng ở bảng giá "${header.title}"`
-                    );
-                  }
-                  isExist = true;
-                  isCheck = false;
-                  break;
-                }
-              }
-            }
-            // if (isExist) {
-            //   break;
-            // }
+        priceLines.map((item) => {
+          if (item.ProductUnitTypeId == putId) {
+            isCheck = false;
+            message.error("Sản phẩm và đơn vị đã tồn tại trong bảng này");
           }
-        }
+        });
       }
-
-      // thêm vào bảng giá chưa active
-      // if (
-      //   formState.productId &&
-      //   formState.utId &&
-      //   !formState.ListPricesHeader.state
-      // ) {
-      //   // kiểm tra xem đã nằm trong bảng này hay chưa
-      //   let isExist = false;
-      //   let putId = await getPUTid(formState.productId, formState.utId);
-      //   console.log(putId);
-      //   let res = await priceHeaderApi.getOneById(headerPriceId);
-      //   if (res.isSuccess) {
-      //     let header = res.header || {};
-      //     let Prices = header.Prices || [];
-
-      //     for (const line of Prices) {
-      //       if (line.ProductUnitTypeId == putId) {
-      //         isExist = true;
-      //         isCheck = false;
-      //         message.error("Sẩn phẩm với đơn vị đã tồn tại trong bảng này!");
-      //         break;
-      //       }
-      //     }
-      //   }
-      // }
 
       Object.keys(_errMess).map((key) => {
         if (_errMess[key]) {
@@ -342,7 +275,7 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
                       });
                     }}
                     status={errMessage.productId && "error"}
-                    // disabled={disabledProductId()}
+                    disabled={disabledProductId()}
                   />
                   <div className="price_line_form_input_err">
                     {errMessage.productId}
@@ -365,7 +298,7 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
                       });
                     }}
                     status={errMessage.utId && "error"}
-                    // disabled={disabledUT()}
+                    disabled={disabledUT()}
                   />
                   <div className="price_line_form_input_err">
                     {errMessage.utId}
@@ -389,7 +322,7 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
                     }}
                     min={0}
                     status={errMessage.price && "error"}
-                    // disabled={disabledPrice()}
+                    disabled={disabledPrice()}
                   />
                   <div className="price_line_form_input_err">
                     {errMessage.price}

@@ -97,7 +97,7 @@ const Price = ({}) => {
       render: (_, header) => <>{sqlToDDmmYYY(header.endDate)}</>,
     },
     {
-      title: "Trạng thái",
+      title: "Tình trạng sử dụng",
       dataIndex: "state",
       render: (_, header) => {
         let start = new Date(header.startDate);
@@ -107,7 +107,7 @@ const Price = ({}) => {
         if (
           header.state &&
           compareDMY(start, now) <= 0 &&
-          compareDMY(end, now) > 0
+          compareDMY(end, now) >= 0
         ) {
           return (
             <Tag
@@ -138,10 +138,25 @@ const Price = ({}) => {
               }}
               color="red"
             >
-              Đã hết hạn
+              Đã ngưng
             </Tag>
           );
         }
+      },
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "state",
+
+      render: (state) => {
+        return (
+          <Switch
+            checkedChildren="On"
+            unCheckedChildren="Off"
+            checked={state}
+            disabled
+          />
+        );
       },
     },
   ]);

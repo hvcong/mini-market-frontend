@@ -25,6 +25,7 @@ import unitTypeApi from "./../../api/unitTypeApi";
 import userApi from "./../../api/userApi";
 import { useDispatch } from "react-redux";
 import { setRefreshEmployees } from "../../store/slices/employeeSlice";
+import { isEmailValid, isVietnamesePhoneNumberValid } from "../../utils";
 
 const initFormState = {
   id: "",
@@ -117,10 +118,26 @@ const EmployeeCUModal = ({ modalState, setModalState }) => {
       if (!phonenumber) {
         _errMess.phonenumber = "Không được bỏ trống!";
         isCheck = false;
-      } else if (type == "create") {
-        let res = await userApi.getOneEmployeeByPhone(phonenumber);
-        if (res.isSuccess) {
-          _errMess.phonenumber = "Số điện thoại đã tồn tại!";
+      } else {
+        let is = isVietnamesePhoneNumberValid(phonenumber);
+        if (!is) {
+          _errMess.phonenumber = "Số điện thoại không hợp lệ!";
+          isCheck = false;
+        }
+
+        if (type == "create") {
+          let res = await userApi.getOneEmployeeByPhone(phonenumber);
+          if (res.isSuccess) {
+            _errMess.phonenumber = "Số điện thoại đã được sử dụng!";
+            isCheck = false;
+          }
+        }
+      }
+
+      if (email) {
+        let is = isEmailValid(email);
+        if (!is) {
+          _errMess.email = "Email không hợp lệ!";
           isCheck = false;
         }
       }
@@ -203,7 +220,7 @@ const EmployeeCUModal = ({ modalState, setModalState }) => {
                   </div>
                 </div>
               </div>
-              <div className="employee_form_group">
+              {/* <div className="employee_form_group">
                 <div className="employee_form_label">Email</div>
                 <div className="employee_form_input_wrap">
                   <Input
@@ -222,7 +239,7 @@ const EmployeeCUModal = ({ modalState, setModalState }) => {
                     {errMessage.email}
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
             <Space
               style={{

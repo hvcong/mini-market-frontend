@@ -12,7 +12,7 @@ import { PlusOutlined } from "@ant-design/icons";
 const CustomerSelect = ({ style }) => {
   const { activeKey } = useSelector((state) => state.createBill.tabState);
   const { tabItems } = useSelector((state) => state.createBill.tabState) || [];
-  let customerPhone = "";
+  let customerPhone = "0";
   tabItems.map((item) => {
     if (item.key == activeKey) {
       customerPhone = item.customerPhone;

@@ -97,7 +97,12 @@ const Customer = ({}) => {
       width: 260,
       dataIndex: "address",
       render: (_, rowData) => {
-        if (rowData.HomeAddress) {
+        if (
+          rowData.HomeAddress &&
+          rowData.HomeAddress.Ward &&
+          rowData.HomeAddress.Ward.District &&
+          rowData.HomeAddress.Ward.District.City
+        ) {
           let _addr = rowData.HomeAddress.homeAddress;
           _addr += " " + rowData.HomeAddress.Ward.name;
           _addr += " " + rowData.HomeAddress.Ward.District.name;

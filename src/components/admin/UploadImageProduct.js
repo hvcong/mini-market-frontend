@@ -1,5 +1,5 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { message, Modal, Upload } from "antd";
+import { Modal, Upload } from "antd";
 import { useState } from "react";
 const getBase64 = (file) =>
   new Promise((resolve, reject) => {
@@ -8,26 +8,10 @@ const getBase64 = (file) =>
     reader.onload = () => resolve(reader.result);
     reader.onerror = (error) => reject(error);
   });
-const UploadImageProduct = () => {
+const UploadImageProduct = ({ fileList = [], setFileList }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
   const [previewTitle, setPreviewTitle] = useState("");
-  const [fileList, setFileList] = useState([
-    // {
-    //   uid: "-1",
-    //   name: "image.png",
-    //   status: "done",
-    //   url: "https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png",
-    // },
-    // {
-    //   uid: "-2",
-    //   name: "image.png",
-    //   url: "https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png",
-    // },
-  ]);
-
-  const handleCancel = () => setPreviewOpen(false);
-
   const handlePreview = async (file) => {
     if (!file.url && !file.preview) {
       file.preview = await getBase64(file.originFileObj);
@@ -38,24 +22,25 @@ const UploadImageProduct = () => {
       file.name || file.url.substring(file.url.lastIndexOf("/") + 1)
     );
   };
-
-  const handleChange = ({ fileList: newFileList }) => {
-    let lst = [];
-    newFileList.map((file) => {
-      if (
-        file.type === "image/png" ||
-        file.type === "image/gif" ||
-        file.type === "image/jpeg" ||
-        file.type === "image/jpg"
-      ) {
-        lst = [...lst, file];
-      } else {
-        message.error(`${file.name} is not a image file`);
-      }
-    });
-
-    setFileList(lst);
+  const handleChange = ({ fileList: newFileList, ...infor }) => {
+    console.log(infor.event);
+    if (!infor.event && infor.file && infor.file.response) {
+      let _newList = newFileList.map((file) => {
+        if (file.uid == infor.file.uid) {
+          return {
+            ...file,
+            uri: infor.file.response.uri,
+          };
+        } else {
+          return file;
+        }
+      });
+      setFileList(_newList.filter((item) => item));
+    } else {
+      setFileList(newFileList);
+    }
   };
+
   const uploadButton = (
     <div>
       <PlusOutlined />
@@ -68,40 +53,20 @@ const UploadImageProduct = () => {
       </div>
     </div>
   );
-
-  function beforeUpload(file) {
-    const isPNG = file.type === "image/png";
-    if (!isPNG) {
-    }
-    return false;
-  }
-
-  function onRemove(file) {
-    const index = fileList.indexOf(file);
-    const newFileList = fileList.slice();
-    newFileList.splice(index, 1);
-    setFileList(newFileList);
-  }
-
   return (
     <>
       <Upload
+        action="http://localhost:3000/images/post"
         listType="picture-card"
         fileList={fileList}
         onPreview={handlePreview}
         onChange={handleChange}
-        beforeUpload={beforeUpload}
-        onRemove={onRemove}
-        multiple={true}
+        accept=".png,.jpg,.jpeg"
+        multiple
       >
         {fileList.length >= 8 ? null : uploadButton}
       </Upload>
-      <Modal
-        open={previewOpen}
-        title={previewTitle}
-        footer={null}
-        onCancel={handleCancel}
-      >
+      <Modal open={previewOpen} title={previewTitle} footer={null}>
         <img
           alt="example"
           style={{
