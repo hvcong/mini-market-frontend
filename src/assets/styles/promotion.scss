@@ -64,6 +64,7 @@
     .promotion_line_form_group {
       display: flex;
       padding-bottom: 12px;
+      min-height: 38px;
     }
     .promotion_line_form_label {
       width: 120px;
@@ -116,6 +117,20 @@
 
     .promotion_line_form_bottom_right {
       margin-left: 100px;
+    }
+
+    .promotion_line_form_bottom_budget {
+      .promotion_line_form_bottom_budget_list {
+        display: flex;
+      }
+      .promotion_line_form_group {
+        margin-right: 100px;
+      }
+    }
+    .promotion_line_form_bottom_item_gift {
+      border: 1px solid #ddd;
+      padding: 4px 12px;
+      border-radius: 4px;
     }
   }
 }

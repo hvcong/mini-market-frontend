@@ -8,6 +8,10 @@ const initState = {
         label: "Hóa đơn 1",
         key: "1",
         customerPhone: "0",
+        newPhoneInput: "",
+        isShowNewCustomer: false,
+        voucherUsed: null,
+        voucherInput: "",
       },
     ],
   },
@@ -143,6 +147,66 @@ export const createBillState = createSlice({
     setRefreshTabCreateBill: (state, action) => {
       state.refresh = true;
     },
+
+    setNewPhoneInput: (state, action) => {
+      let _tabItems = state.tabState.tabItems;
+      let activeKey = state.tabState.activeKey;
+      _tabItems = _tabItems.map((item) => {
+        if (item.key == activeKey) {
+          return {
+            ...item,
+            newPhoneInput: action.payload,
+          };
+        }
+        return item;
+      });
+      state.tabState.tabItems = _tabItems;
+    },
+
+    setIsShowNewCustomer: (state, action) => {
+      let _tabItems = state.tabState.tabItems;
+      let activeKey = state.tabState.activeKey;
+      _tabItems = _tabItems.map((item) => {
+        if (item.key == activeKey) {
+          return {
+            ...item,
+            isShowNewCustomer: action.payload,
+            customerPhone: "",
+          };
+        }
+        return item;
+      });
+      state.tabState.tabItems = _tabItems;
+    },
+
+    setVoucherUsed: (state, action) => {
+      let _tabItems = state.tabState.tabItems;
+      let activeKey = state.tabState.activeKey;
+      _tabItems = _tabItems.map((item) => {
+        if (item.key == activeKey) {
+          return {
+            ...item,
+            voucherUsed: action.payload,
+          };
+        }
+        return item;
+      });
+      state.tabState.tabItems = _tabItems;
+    },
+    setVoucherInput: (state, action) => {
+      let _tabItems = state.tabState.tabItems;
+      let activeKey = state.tabState.activeKey;
+      _tabItems = _tabItems.map((item) => {
+        if (item.key == activeKey) {
+          return {
+            ...item,
+            voucherInput: action.payload,
+          };
+        }
+        return item;
+      });
+      state.tabState.tabItems = _tabItems;
+    },
   },
 });
 
@@ -156,5 +220,9 @@ export const {
   onChangeCustomerPhone,
   removeAllProductOnActiveTab,
   clearOneTab,
+  setNewPhoneInput,
+  setIsShowNewCustomer,
+  setVoucherUsed,
+  setVoucherInput,
 } = createBillState.actions;
 export default createBillState.reducer;

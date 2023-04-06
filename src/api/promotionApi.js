@@ -86,7 +86,7 @@ class PromotionApi {
   }
 
   getOneVByCode(code) {
-    let url = `voucher/get?code=VCLFRR5P89F2YW`;
+    let url = `voucher/get?code=${code}`;
     return axiosClient.get(url);
   }
   // updateOneV(id, formData) {

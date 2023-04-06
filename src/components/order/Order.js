@@ -30,7 +30,11 @@ import {
 import "../../assets/styles/bill.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { sqlToDDmmYYY, sqlToHHmmDDmmYYYY } from "./../../utils/index";
+import {
+  handleAfter,
+  sqlToDDmmYYY,
+  sqlToHHmmDDmmYYYY,
+} from "./../../utils/index";
 import DropSelectColum from "./../product/DropSelectColum";
 import promotionApi from "./../../api/promotionApi";
 import { setPromotionHeaders } from "../../store/slices/promotionHeaderSlice";
@@ -207,7 +211,7 @@ const Order = ({}) => {
     let res = await billApi.updateType(billId, "success");
     if (res.isSuccess) {
       message.info("Thao tác thành công", 3);
-      createStoreTranAfterOrderToBill(billId);
+      handleAfter.handleAfterOrderToBill(billId);
       dispatch(setRefreshBills());
     } else {
       message.info("Có lỗi xảy ra, vui lòng thử lại!", 3);
@@ -225,34 +229,6 @@ const Order = ({}) => {
       message.info("Có lỗi xảy ra, vui lòng thử lại!", 3);
     }
     hideLoading();
-  }
-
-  async function createStoreTranAfterOrderToBill(billId) {
-    let res = await billApi.getOneBillById(billId);
-    let bill = res.bill || {};
-    let billDetails = bill.BillDetails || [];
-    let employeeId = bill.EmployeeId;
-
-    let storeTrans = [];
-
-    billDetails.map((detailItem) => {
-      let quantity = detailItem.quantity;
-      let productId = detailItem.Price.ProductUnitType.ProductId;
-      let convertionQuantity =
-        detailItem.Price.ProductUnitType.UnitType.convertionQuantity;
-
-      storeTrans.push({
-        quantity: quantity * convertionQuantity,
-        productId: productId,
-        type: "Bán hàng online",
-        employeeId: employeeId,
-      });
-    });
-
-    // create store
-    storeApi.addMany({
-      data: storeTrans,
-    });
   }
 
   useEffect(() => {

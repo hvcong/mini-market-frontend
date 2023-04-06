@@ -164,6 +164,41 @@
         }
       }
     }
+
+    .bill_infor_voucher {
+      padding: 4px;
+      .bill_infor_voucher_top {
+        display: flex;
+        align-items: center;
+      }
+      .bill_infor_voucher_top_label {
+        padding-right: 18px;
+      }
+      .bill_infor_voucher_top_value {
+        flex: 1;
+        text-align: right;
+        color: #018547;
+      }
+      .bill_infor_voucher_input_wrap {
+        width: 160px;
+        padding-top: 4px;
+      }
+      .bill_infor_voucher_input {
+      }
+
+      .bill_infor_voucher_result {
+        display: flex;
+        align-items: center;
+        padding: 3px 4px 0;
+        cursor: pointer;
+        .close_icon {
+          color: red;
+        }
+      }
+      .bill_infor_voucher_result_icon {
+        color: #018547;
+      }
+    }
   }
   .footer {
   }

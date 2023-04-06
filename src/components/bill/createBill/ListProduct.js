@@ -24,9 +24,13 @@ const ListProduct = () => {
     (state) => state.createBill.tabState
   );
   let customerPhone = "";
+  let newPhoneInput = "";
+  let isShowNewCustomer = false;
   tabItems.map((item) => {
     if (item.key == activeKey) {
       customerPhone = item.customerPhone;
+      newPhoneInput = item.newPhoneInput;
+      isShowNewCustomer = item.isShowNewCustomer;
     }
   });
 
@@ -44,7 +48,7 @@ const ListProduct = () => {
   const [allColumns, setAllColumns] = useState();
   const [tableData, setTableData] = useState([]);
 
-  async function loadPromotionLinesActive() {
+  async function loadPromotionLinesActiveCanUsed() {
     let res = await promotionApi.getAllOnActive();
     let listLinePromotions = [];
 
@@ -58,14 +62,14 @@ const ListProduct = () => {
         let typeCustomers = promotion.TypeCustomers || [];
         let isCheckType = false;
 
+        // kiểm tra khách hàng này có dược áp dụng hay không
         typeCustomers.map((type) => {
-          console.log(type);
           if (type.id == customer.TypeCustomerId) {
             isCheckType = true;
           }
         });
         if (!isCheckType) {
-          break;
+          continue;
         }
 
         if (compareDMY(start, now) <= 0 && compareDMY(end, now) >= 0) {
@@ -149,12 +153,16 @@ const ListProduct = () => {
   }
 
   useEffect(() => {
-    if (customerPhone) {
+    if (isShowNewCustomer && newPhoneInput) {
+      setCustomer({
+        TypeCustomerId: "BT",
+      });
+    } else {
       loadCustomerByPhone(customerPhone);
     }
 
     return () => {};
-  }, [customerPhone]);
+  }, [customerPhone, isShowNewCustomer, newPhoneInput]);
 
   async function loadCustomerByPhone(phone) {
     let res = await userApi.getOneCustomerByPhone(phone);
@@ -171,7 +179,7 @@ const ListProduct = () => {
   }
 
   useEffect(() => {
-    loadPromotionLinesActive();
+    loadPromotionLinesActiveCanUsed();
 
     return () => {};
   }, [customer]);
@@ -185,8 +193,6 @@ const ListProduct = () => {
     _tableData.push(...list);
 
     listPromotionLinesOnActive.map((promotionLine) => {
-      // kiểm tra khách hàng này có được áp dụng ko?
-
       // PP promotion
       if (promotionLine.promotionType == "PP") {
         let put1 = promotionLine.ProductUnitType;
@@ -204,7 +210,7 @@ const ListProduct = () => {
               _tableData.push({
                 isPromotion: true,
                 ProductUnitType: put2,
-                quantity: giftQuantity,
+                quantity: giftQuantity * promotionLine.GiftProduct.quantity,
                 price: 0,
                 ProductPromotionId: promotionLine.id,
               });

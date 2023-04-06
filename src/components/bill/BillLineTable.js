@@ -35,6 +35,7 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
   const dispatch = useDispatch();
   const [tableData, setTableData] = useState(initDataTable);
   const [MPused, setMPused] = useState(null);
+  const [Vused, setVused] = useState(null);
 
   const [allColumns, setAllColumns] = useState([]);
 
@@ -60,6 +61,9 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
           utId: bLine.Price.ProductUnitType.UnitType.id,
         });
       });
+
+      setMPused(null);
+      setVused(null);
 
       try {
         // nhung khuyến mãi được áp dụng
@@ -95,11 +99,11 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
           if (isSuccess && type == "MP") {
             setMPused(result.MoneyPromotion);
             _dataTable.splice(1, 0, {
-              isSecondRow: true,
+              isMPusedRow: true,
               isColNotData: true,
             });
           }
-
+          // DRP
           if (isSuccess && type == "DRP") {
             let proDRP = result.DiscountRateProduct;
 
@@ -114,6 +118,15 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
               }
 
               return row;
+            });
+          }
+
+          // V
+          if (isSuccess && type == "V") {
+            setVused(result.Voucher);
+            _dataTable.splice(1, 0, {
+              isVusedRow: true,
+              isColNotData: true,
             });
           }
         });
@@ -142,8 +155,12 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
         dataIndex: "productName",
         width: 200,
         render: (productName, rowData) => {
-          if (rowData.isSecondRow && MPused) {
+          if (rowData.isMPusedRow && MPused) {
             return <Typography.Link>{MPused.title}</Typography.Link>;
+          }
+
+          if (rowData.isVusedRow && Vused) {
+            return <Typography.Link>{Vused.title}</Typography.Link>;
           }
 
           return productName;
@@ -160,8 +177,10 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
       {
         title: "Số lượng",
         dataIndex: "quantity",
-        render: (quantity) => {
-          return quantity;
+        render: (quantity, rowData) => {
+          if (!rowData.isFirstRow) {
+            return quantity || 1;
+          }
         },
       },
 
@@ -198,6 +217,7 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
         align: "right",
         render: (_, rowData) => {
           let discountOnBill = 0;
+          let discountByVoucher = 0;
           let costBeforeDiscount = 0;
           if (!rowData.isColNotData && rowData) {
             let total = 0;
@@ -245,18 +265,41 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
             }
           }
 
+          // tính giảm giá  voucher
+          if (Vused) {
+            if (Vused.type == "discountMoney") {
+              discountByVoucher = Vused.discountMoney || 0;
+
+              if (costBeforeDiscount - discountOnBill - discountByVoucher < 0) {
+                discountByVoucher = costBeforeDiscount - discountOnBill;
+              }
+            }
+          }
+
           // render
-          if (rowData.isSecondRow) {
+          if (rowData.isMPusedRow) {
             return (
               <Typography.Title level={5} style={{ margin: 0, padding: 0 }}>
                 {"-" + convertToVND(discountOnBill)}
               </Typography.Title>
             );
           }
+
+          if (rowData.isVusedRow) {
+            return (
+              <Typography.Title level={5} style={{ margin: 0, padding: 0 }}>
+                {"-" + convertToVND(discountByVoucher)}
+              </Typography.Title>
+            );
+          }
+
           if (rowData.isFirstRow) {
+            console.log(costBeforeDiscount);
             return (
               <Typography.Title level={4} style={{ margin: 0, padding: 0 }}>
-                {convertToVND(costBeforeDiscount - discountOnBill)}
+                {convertToVND(
+                  costBeforeDiscount - discountOnBill - discountByVoucher
+                )}
               </Typography.Title>
             );
           }
@@ -296,7 +339,7 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
               );
             }
 
-            if (rowData.isSecondRow && MPused) {
+            if (rowData.isMPusedRow && MPused) {
               return (
                 <Tag
                   color="green"
@@ -311,6 +354,32 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
                           type: "view",
                           visible: true,
                           idSelected: MPused.id,
+                          promotionHeaderId: rowData.PromotionHeaderId,
+                        },
+                      })
+                    );
+                  }}
+                >
+                  <BulbOutlined />
+                </Tag>
+              );
+            }
+
+            if (rowData.isVusedRow && Vused) {
+              return (
+                <Tag
+                  color="green"
+                  style={{
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    dispatch(
+                      setOpen({
+                        name: "PromotionLineModal",
+                        modalState: {
+                          type: "view",
+                          visible: true,
+                          idSelected: Vused.id,
                           promotionHeaderId: rowData.PromotionHeaderId,
                         },
                       })

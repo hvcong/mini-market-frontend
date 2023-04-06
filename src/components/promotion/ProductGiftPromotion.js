@@ -1,31 +1,65 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Input, InputNumber } from "antd";
 import { Typography } from "antd";
 import { GiftOutlined } from "@ant-design/icons";
 import UnitTypeSelectByProductId from "./UnitTypeSelectByProductId";
 import ProductIdSelect from "./ProductIdSelect";
+import productApi from "../../api/productApi";
 
 const ProductGiftPromotion = ({
   formState = {},
   setFormState,
   errMessage = {},
   modalType,
+  disabledInput,
 }) => {
+  const [productName1, setProductName1] = useState("");
+  const [productName2, setProductName2] = useState("");
+
+  useEffect(() => {
+    if (formState.productId1) {
+      getProductById1(formState.productId1);
+    }
+    if (formState.productId2) {
+      getProductById2(formState.productId2);
+    }
+    return () => {};
+  }, [formState.productId1, formState.productId2]);
+
+  async function getProductById1(id) {
+    let res = await productApi.findOneById(id);
+    if (res.isSuccess) {
+      setProductName1(res.product.name);
+    }
+  }
+  async function getProductById2(id) {
+    let res = await productApi.findOneById(id);
+    if (res.isSuccess) {
+      setProductName2(res.product.name);
+    }
+  }
+
   return (
     <>
       <Typography.Title level={5} className="promotion_line_form_bottom_title">
-        Mua sản phẩm tặng sản phẩm
+        Mua sản phẩm tặng sản phẩm (SP)
       </Typography.Title>
       <div className="promotion_line_form_bottom">
-        <div className="promotion_line_form_bottom_left">
+        <div className="promotion_line_form_bottom_left promotion_line_form_bottom_item_gift">
+          <Typography.Title
+            level={5}
+            className="promotion_line_form_bottom_title"
+          >
+            SP mua
+          </Typography.Title>
           <div className="promotion_line_form_group">
-            <div className="promotion_line_form_label">Mã sản phẩm</div>
+            <div className="promotion_line_form_label">Mã SP</div>
             <div className="promotion_line_form_input_wrap">
               <ProductIdSelect
                 className="promotion_line_form_input"
                 size="small"
                 value={formState.productId1}
-                disabled={modalType == "update"}
+                disabled={disabledInput("productId")}
                 onChange={(value) => {
                   console.log(value);
                   setFormState({
@@ -41,12 +75,18 @@ const ProductGiftPromotion = ({
             </div>
           </div>
           <div className="promotion_line_form_group">
+            <div className="promotion_line_form_label">Tên SP</div>
+            <div className="promotion_line_form_input_wrap">
+              <div className="promotion_line_form_input">{productName1}</div>
+            </div>
+          </div>
+          <div className="promotion_line_form_group">
             <div className="promotion_line_form_label">Đơn vị tính </div>
             <div className="promotion_line_form_input_wrap">
               <UnitTypeSelectByProductId
                 className="promotion_line_form_input"
                 size="small"
-                disabled={modalType == "update"}
+                disabled={disabledInput("utId")}
                 value={formState.ut1}
                 productId={formState.productId1}
                 onChange={(value) => {
@@ -68,7 +108,7 @@ const ProductGiftPromotion = ({
               <InputNumber
                 className="promotion_line_form_input"
                 size="small"
-                disabled={modalType == "update"}
+                disabled={disabledInput("minQuantity")}
                 value={formState.minQuantity}
                 onChange={(value) => {
                   if (value) {
@@ -87,16 +127,22 @@ const ProductGiftPromotion = ({
             </div>
           </div>
         </div>
-        <div className="promotion_line_form_bottom_right">
+        <div className="promotion_line_form_bottom_right promotion_line_form_bottom_item_gift">
+          <Typography.Title
+            level={5}
+            className="promotion_line_form_bottom_title"
+          >
+            SP tặng
+          </Typography.Title>
           <div className="promotion_line_form_group">
             <div className="promotion_line_form_label">
-              <GiftOutlined /> Mã sản phẩm
+              <GiftOutlined /> Mã SP
             </div>
             <div className="promotion_line_form_input_wrap">
               <ProductIdSelect
                 className="promotion_line_form_input"
                 size="small"
-                disabled={modalType == "update"}
+                disabled={disabledInput("productId")}
                 value={formState.productId2}
                 onChange={(value) => {
                   console.log(value);
@@ -114,13 +160,21 @@ const ProductGiftPromotion = ({
           </div>
           <div className="promotion_line_form_group">
             <div className="promotion_line_form_label">
+              <GiftOutlined /> Tên SP
+            </div>
+            <div className="promotion_line_form_input_wrap">
+              <div className="promotion_line_form_input">{productName2}</div>
+            </div>
+          </div>
+          <div className="promotion_line_form_group">
+            <div className="promotion_line_form_label">
               <GiftOutlined /> Đơn vị tính
             </div>
             <div className="promotion_line_form_input_wrap">
               <UnitTypeSelectByProductId
                 className="promotion_line_form_input"
                 size="small"
-                disabled={modalType == "update"}
+                disabled={disabledInput("utId")}
                 value={formState.ut2}
                 productId={formState.productId2}
                 onChange={(value) => {
@@ -138,13 +192,13 @@ const ProductGiftPromotion = ({
           </div>
           <div className="promotion_line_form_group">
             <div className="promotion_line_form_label">
-              <GiftOutlined /> Số lượng tặng
+              <GiftOutlined /> Số lượng
             </div>
             <div className="promotion_line_form_input_wrap">
               <InputNumber
                 className="promotion_line_form_input"
                 size="small"
-                disabled={modalType == "update"}
+                disabled={disabledInput("quantity")}
                 value={formState.quantity}
                 onChange={(value) => {
                   if (value) {

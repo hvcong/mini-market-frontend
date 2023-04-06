@@ -1,6 +1,8 @@
 import { message } from "antd";
 import storeApi from "../api/storeApi";
 import productApi from "../api/productApi";
+import billApi from "../api/billApi";
+import promotionApi from "../api/promotionApi";
 
 class HandleAfter {
   async createInputTicket(inputId) {
@@ -70,6 +72,133 @@ class HandleAfter {
       };
       res = await storeApi.addMany(formData);
     }
+  }
+
+  async handleStoreTranAfterCreateBill(billId, tableData, MPused, voucherUsed) {
+    let res = await billApi.getOneBillById(billId);
+    let bill = res.bill || {};
+    let billDetails = bill.BillDetails || [];
+    let employeeId = bill.EmployeeId;
+
+    let storeTrans = [];
+
+    billDetails.map((billDetail) => {
+      storeTrans.push({
+        quantity: -billDetail.quantity,
+        ProductUnitTypeId: billDetail.Price.ProductUnitTypeId,
+        type: "Bán hàng",
+        employeeId: employeeId,
+      });
+    });
+
+    // tạo promotion result, và xử lí kho sau khi áp dụng khuyến mãi
+    for (const row of tableData) {
+      /// PP result
+      if (row.isPromotion && row.ProductPromotionId) {
+        let res = await promotionApi.addResult({
+          isSuccess: true,
+          note: "Được khuyến mãi khi mua hàng",
+          BillId: billId,
+          ProductPromotionId: row.ProductPromotionId,
+        });
+        if (res.isSuccess) {
+          storeTrans.push({
+            quantity: -row.quantity,
+            ProductUnitTypeId: row.ProductUnitType.id,
+            type: "Khuyến mãi bán hàng",
+            employeeId: employeeId,
+          });
+        }
+      }
+
+      if (row.DRPused) {
+        promotionApi.addResult({
+          isSuccess: true,
+          note: "Được khuyến mãi khi mua hàng",
+          BillId: billId,
+          DiscountRateProductId: row.DRPused.id,
+        });
+      }
+    }
+
+    if (MPused) {
+      promotionApi.addResult({
+        isSuccess: true,
+        note: "Được khuyến mãi khi mua hàng",
+        BillId: billId,
+        MoneyPromotionId: MPused.id,
+      });
+    }
+
+    if (voucherUsed) {
+      promotionApi.addResult({
+        isSuccess: true,
+        note: "Được khuyến mãi khi mua hàng",
+        BillId: billId,
+        VoucherId: voucherUsed.id,
+      });
+    }
+
+    // create store
+    storeApi.addMany({
+      data: storeTrans,
+    });
+  }
+
+  async handleAfterOrderToBill(billId) {
+    let res = await billApi.getOneBillById(billId);
+    let bill = res.bill || {};
+    let billDetails = bill.BillDetails || [];
+    let employeeId = bill.EmployeeId;
+
+    let storeTrans = [];
+
+    billDetails.map((billDetail) => {
+      storeTrans.push({
+        quantity: -billDetail.quantity,
+        ProductUnitTypeId: billDetail.Price.ProductUnitTypeId,
+        type: "Bán hàng",
+        employeeId: employeeId,
+      });
+    });
+
+    // tạo store của khuyến mãi
+
+    let promotionResults = bill.PromotionResults || [];
+
+    promotionResults.map((result) => {
+      if (result.isSuccess) {
+        let ProductPromotion = res.ProductPromotion;
+
+        if (ProductPromotion) {
+          let put1Id = ProductPromotion.ProductUnitTypeId;
+          let minQuantity = ProductPromotion.minQuantity;
+          let put2Id = ProductPromotion.GiftProduct.ProductUnitTypeId;
+          let quantityGift = ProductPromotion.GiftProduct.quantity;
+
+          billDetails.map((item) => {
+            let put3Id = item.Price.ProductUnitTypeId;
+            let quantity = item.quantity;
+            let quantitTran =
+              ((quantity - (quantity % minQuantity)) / minQuantity) *
+              quantityGift;
+
+            if (put3Id == put1Id) {
+              storeTrans.push({
+                quantity: -quantitTran,
+                ProductUnitTypeId: put2Id,
+                type: "Khuyến mãi bán hàng",
+                employeeId: employeeId,
+              });
+            }
+          });
+        }
+      }
+    });
+    // create store
+    storeApi.addMany({
+      data: storeTrans,
+    });
   }
 }
 

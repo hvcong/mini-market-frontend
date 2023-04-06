@@ -726,6 +726,7 @@ const PromotionLineModal = () => {
     setErrMessage(initErrMessage);
     initFormState.id = uid();
     setFormState(initFormState);
+    loadMinMaxTime();
   }
 
   function setModalState(state) {
@@ -735,6 +736,50 @@ const PromotionLineModal = () => {
         modalState: state,
       })
     );
+  }
+
+  function disabledInput(name) {
+    if (
+      modalState.type == "update" &&
+      formState.startDate &&
+      formState.endDate
+    ) {
+      let start = new Date(formState.startDate);
+      let end = new Date(formState.endDate);
+      let now = new Date();
+
+      //đã hết hạn
+      if (compareDMY(end, now) < 0) {
+        return true;
+      }
+
+      if (name == "endDate") {
+        return false;
+      }
+      if (name == "typePromotionId") {
+        return true;
+      }
+
+      if (name == "id") {
+        return true;
+      }
+
+      // đang sử dụng
+      if (compareDMY(start, now) <= 0) {
+        if (name == "state") return false;
+        if (name == "title") return false;
+        if (name == "description") return false;
+
+        return true;
+      }
+
+      // sắp tới sử dụng
+      return false;
+    }
+
+    if (modalState.type == "view") {
+      return true;
+    }
   }
 
   return (
@@ -748,9 +793,10 @@ const PromotionLineModal = () => {
         <div>
           <div className="title__container">
             <Typography.Title level={4} className="title">
-              {modalState.type == "update"
-                ? "Cập nhật thông tin một dòng khuyến mãi"
-                : "Thêm mới một dòng khuyến mãi"}
+              {modalState.type == "update" &&
+                "Cập nhật thông tin một dòng khuyến mãi"}
+              {modalState.type == "view" && "Xem thông tin chi tiết khuyến mãi"}
+              {modalState.type == "create" && "Thêm mới một dòng khuyến mãi"}
             </Typography.Title>
           </div>
           <div className="form__container">
@@ -774,7 +820,7 @@ const PromotionLineModal = () => {
                             typePromotionId: value,
                           });
                         }}
-                        disabled={modalState.type == "update"}
+                        disabled={disabledInput("typePromotionId")}
                       />
                       <div className="promotion_line_form_input_err">
                         {errMessage.typePromotionId}
@@ -788,7 +834,7 @@ const PromotionLineModal = () => {
                         <Input
                           className="promotion_line_form_input"
                           size="small"
-                          disabled
+                          disabled={disabledInput("id")}
                           value={formState.id}
                           status={errMessage.id && "error"}
                           onChange={({ target }) => {
@@ -813,7 +859,10 @@ const PromotionLineModal = () => {
                         size="small"
                         value={[formState.startDate, formState.endDate]}
                         status={errMessage.time && "error"}
-                        disabled={disabledDate()}
+                        disabled={[
+                          disabledInput("startDate"),
+                          disabledInput("endDate"),
+                        ]}
                         onChangeDate={(strings) => {
                           if (strings) {
                             setFormState({
@@ -851,6 +900,7 @@ const PromotionLineModal = () => {
                       <Input
                         className="promotion_line_form_input"
                         size="small"
+                        disabled={disabledInput("title")}
                         value={formState.title}
                         status={errMessage.title && "error"}
                         onChange={({ target }) => {
@@ -876,6 +926,7 @@ const PromotionLineModal = () => {
                           height: 28,
                           marginBottom: 12,
                         }}
+                        disabled={disabledInput("description")}
                         size="small"
                         placeholder="Mô tả về dòng khuyến mãi"
                         value={formState.description}
@@ -900,6 +951,7 @@ const PromotionLineModal = () => {
                             state: value,
                           });
                         }}
+                        disabled={disabledInput("state")}
                       />
                       <div className="promotion_line_form_input_err"></div>
                     </div>
@@ -926,6 +978,7 @@ const PromotionLineModal = () => {
                           PP: value,
                         });
                       }}
+                      disabledInput={disabledInput}
                     />
                   )}
                   {formState.typePromotionId == "MP" && (
@@ -945,6 +998,7 @@ const PromotionLineModal = () => {
                           MP: value,
                         });
                       }}
+                      disabledInput={disabledInput}
                     />
                   )}
                   {formState.typePromotionId == "DRP" && (
@@ -964,6 +1018,7 @@ const PromotionLineModal = () => {
                           DRP: value,
                         });
                       }}
+                      disabledInput={disabledInput}
                     />
                   )}
                   {formState.typePromotionId == "V" && (
@@ -983,6 +1038,7 @@ const PromotionLineModal = () => {
                           V: value,
                         });
                       }}
+                      disabledInput={disabledInput}
                     />
                   )}
                 </div>

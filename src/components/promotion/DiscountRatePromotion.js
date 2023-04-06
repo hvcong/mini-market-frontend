@@ -1,15 +1,33 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Input, InputNumber } from "antd";
 import { Typography } from "antd";
 import ProductIdSelect from "./ProductIdSelect";
 import UnitTypeSelectByProductId from "./UnitTypeSelectByProductId";
+import productApi from "../../api/productApi";
 
 const DiscountRatePromotion = ({
   formState = {},
   setFormState,
   errMessage = {},
   modalType,
+  disabledInput,
 }) => {
+  const [productName, setProductName] = useState("");
+
+  useEffect(() => {
+    if (formState.productId) {
+      getProductById(formState.productId);
+    }
+    return () => {};
+  }, [formState.productId]);
+
+  async function getProductById(id) {
+    let res = await productApi.findOneById(id);
+    if (res.isSuccess) {
+      setProductName(res.product.name);
+    }
+  }
+
   return (
     <>
       <Typography.Title level={5} className="promotion_line_form_bottom_title">
@@ -23,6 +41,7 @@ const DiscountRatePromotion = ({
               <ProductIdSelect
                 className="promotion_line_form_input"
                 size="small"
+                disabled={disabledInput("productId")}
                 value={formState.productId}
                 onChange={(value) => {
                   console.log(value);
@@ -31,7 +50,6 @@ const DiscountRatePromotion = ({
                     productId: value,
                   });
                 }}
-                disabled={modalType == "update"}
                 status={errMessage.productId && "error"}
               />
               <div className="promotion_line_form_input_err">
@@ -40,12 +58,18 @@ const DiscountRatePromotion = ({
             </div>
           </div>
           <div className="promotion_line_form_group">
+            <div className="promotion_line_form_label">Tên sản phẩm</div>
+            <div className="promotion_line_form_input_wrap">
+              <div className="promotion_line_form_input">{productName}</div>
+            </div>
+          </div>
+          <div className="promotion_line_form_group">
             <div className="promotion_line_form_label">Đơn vị tính</div>
             <div className="promotion_line_form_input_wrap">
               <UnitTypeSelectByProductId
                 className="promotion_line_form_input"
                 size="small"
-                disabled={modalType == "update"}
+                disabled={disabledInput("utId")}
                 value={formState.ut}
                 productId={formState.productId}
                 onChange={(value) => {
@@ -69,7 +93,7 @@ const DiscountRatePromotion = ({
               <InputNumber
                 className="promotion_line_form_input"
                 size="small"
-                disabled={modalType == "update"}
+                disabled={disabledInput("quantity")}
                 value={formState.discountRate}
                 onChange={(value) => {
                   if (value) {

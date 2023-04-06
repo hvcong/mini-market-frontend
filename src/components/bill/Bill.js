@@ -101,7 +101,7 @@ const Bill = ({}) => {
         title: "Tên nhân viên",
         dataIndex: "Employee",
         render: (Employee) => {
-          return <Typography.Link>{Employee.name}</Typography.Link>;
+          return <Typography.Link>{Employee && Employee.name}</Typography.Link>;
         },
       },
       {

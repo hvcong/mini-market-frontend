@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   addTab,
   onChangeCustomerPhone,
+  setIsShowNewCustomer,
+  setNewPhoneInput,
 } from "../../../store/slices/createBillSlice";
 import HighlightedText from "../../HighlightedText";
 import { PlusOutlined } from "@ant-design/icons";
@@ -13,9 +15,13 @@ const CustomerSelect = ({ style }) => {
   const { activeKey } = useSelector((state) => state.createBill.tabState);
   const { tabItems } = useSelector((state) => state.createBill.tabState) || [];
   let customerPhone = "0";
+  let newPhoneInput = "";
+  let isShowNewCustomer = false;
   tabItems.map((item) => {
     if (item.key == activeKey) {
-      customerPhone = item.customerPhone;
+      customerPhone = item.customerPhone || "0";
+      newPhoneInput = item.newPhoneInput;
+      isShowNewCustomer = item.isShowNewCustomer;
     }
   });
 
@@ -36,15 +42,43 @@ const CustomerSelect = ({ style }) => {
   const [fetching, setFetching] = useState(false);
 
   const handleSearch = (input) => {
+    if (input && input.length > 10) {
+      return;
+    }
+
+    if (input && input.length == 10) {
+      dispatch(setNewPhoneInput(input));
+    }
+    if (input && input.length > 0 && input.length < 10) {
+      dispatch(setNewPhoneInput(""));
+    }
     setInput(input);
 
     // fetching data here
     fetchData(input, setData, setFetching);
   };
   const handleChange = async (value) => {
+    console.log(value);
     setInput(value);
+    dispatch(setNewPhoneInput(""));
     dispatch(onChangeCustomerPhone(value));
   };
+
+  useEffect(() => {
+    if (
+      newPhoneInput &&
+      newPhoneInput.length == 10 &&
+      data &&
+      data.length < 1
+    ) {
+      dispatch(setIsShowNewCustomer(true));
+    }
+
+    if (!newPhoneInput) {
+      dispatch(setIsShowNewCustomer(false));
+    }
+    return () => {};
+  }, [newPhoneInput, data]);
 
   return (
     <div
@@ -61,9 +95,17 @@ const CustomerSelect = ({ style }) => {
         style={{
           width: "160px",
         }}
-        value={customerPhone}
+        value={newPhoneInput ? newPhoneInput : customerPhone}
         defaultActiveFirstOption
         showArrow={false}
+        onFocus={() => {
+          handleSearch("");
+        }}
+        onBlur={() => {
+          if (newPhoneInput && newPhoneInput.length == 10) {
+            dispatch(setIsShowNewCustomer(true));
+          }
+        }}
         filterOption={false}
         onSearch={handleSearch}
         onChange={handleChange}
@@ -87,8 +129,8 @@ const CustomerSelect = ({ style }) => {
           label: item.label,
         }))}
       />
-      {/* <div className="add_new_customer">
-        {customerPhone && customerPhone.length == 10 && (
+      <div className="add_new_customer">
+        {isShowNewCustomer && (
           <Tag
             color="green"
             style={{
@@ -99,7 +141,7 @@ const CustomerSelect = ({ style }) => {
             KH mới
           </Tag>
         )}
-      </div> */}
+      </div>
     </div>
   );
 };
@@ -107,9 +149,8 @@ const CustomerSelect = ({ style }) => {
 async function fetchData(input, setData, setFetching) {
   setFetching(true);
   let data = [];
-  console.log(input);
 
-  let res = await userApi.getAllCustomerLikePhone(input);
+  let res = await userApi.getAllCustomerLikePhone(input || "0");
   if (res.isSuccess) {
     let listCus = res.customers;
     listCus = listCus.filter((item) => item.phonenumber != "0");

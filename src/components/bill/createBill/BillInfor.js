@@ -1,4 +1,6 @@
 import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
   GiftFilled,
   GiftOutlined,
   GiftTwoTone,
@@ -9,16 +11,17 @@ import React, { useEffect, useState } from "react";
 import CustomerSelect from "./CustomerSelect";
 import EmployeeSelect from "./EmployeeSelect";
 import { useDispatch, useSelector } from "react-redux";
-import { convertToVND } from "../../../utils/index";
+import { compareDMY, convertToVND, handleAfter } from "../../../utils/index";
 import billApi from "../../../api/billApi";
 import { sqlToDDmmYYY } from "./../../../utils/index";
 import {
-  addOneProductToActiveTab,
   clearOneTab,
-  removeAllProductOnActiveTab,
+  setVoucherInput,
+  setVoucherUsed,
 } from "../../../store/slices/createBillSlice";
 import storeApi from "../../../api/storeApi";
 import promotionApi from "../../../api/promotionApi";
+import { setOpen } from "../../../store/slices/modalSlice";
 
 const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
   const { account, isLogged } = useSelector((state) => state.user);
@@ -28,9 +31,17 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
   const { tabItems = [] } = useSelector((state) => state.createBill.tabState);
 
   let customerPhone = "0";
+  let newPhoneInput = "";
+  let isShowNewCustomer = false;
+  let voucherUsed = null;
+  let voucherInput = "";
   tabItems.map((item) => {
     if (item.key == activeKey) {
-      customerPhone = item.customerPhone;
+      customerPhone = item.customerPhone || "0";
+      newPhoneInput = item.newPhoneInput;
+      isShowNewCustomer = item.isShowNewCustomer;
+      voucherInput = item.voucherInput;
+      voucherUsed = item.voucherUsed;
     }
   });
 
@@ -40,17 +51,30 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
     subTotal: 0,
     discountOnProduct: 0,
     discountOnBill: 0,
+    discountByVoucher: 0,
     total: 0,
     customerTake: 0,
   });
 
-  const { subTotal, discountOnProduct, discountOnBill, total, customerTake } =
-    amountMoney;
+  const {
+    subTotal,
+    discountOnProduct,
+    discountOnBill,
+    discountByVoucher,
+    total,
+    customerTake,
+  } = amountMoney;
 
   useEffect(() => {
     calAmountMoney();
     return () => {};
-  }, [tableData, listPromotionLinesOnActive]);
+  }, [tableData, listPromotionLinesOnActive, voucherUsed]);
+
+  useEffect(() => {
+    dispatch(setVoucherInput(""));
+    dispatch(setVoucherUsed(null));
+    return () => {};
+  }, [newPhoneInput, customerPhone, isShowNewCustomer]);
 
   function calAmountMoney() {
     let subTotal = 0;
@@ -65,8 +89,8 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
         }
       }
     });
-    let discountOnProduct = 0;
     let discountOnBill = 0;
+    let discountByVoucher = 0;
     let MPused = null;
 
     listPromotionLinesOnActive.map((promotionLine) => {
@@ -103,13 +127,33 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
 
     setMPused(MPused);
 
+    if (voucherUsed) {
+      if (voucherUsed.type == "discountMoney") {
+        discountByVoucher = voucherUsed.discountMoney;
+      }
+
+      if (voucherUsed.type == "discountRate") {
+      }
+    }
+
     // Số tiền cần trả
-    let total = subTotal - discountOnBill - discountOnProduct;
+    let total = subTotal - discountOnBill;
+    if (total < discountByVoucher) {
+      discountByVoucher = total;
+      total = 0;
+    } else {
+      total = total - discountByVoucher;
+    }
+
+    if (total < 0) {
+      total = 0;
+    }
 
     setAmountMoney({
       ...amountMoney,
       discountOnProduct,
       discountOnBill,
+      discountByVoucher,
       subTotal,
       total,
     });
@@ -130,9 +174,16 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
       }
     });
 
+    let phone = "";
+    if (isShowNewCustomer && newPhoneInput) {
+      phone = newPhoneInput;
+    } else {
+      phone = customerPhone || "0";
+    }
+
     let formData = {
       cost: total,
-      customerPhonenumber: customerPhone,
+      customerPhonenumber: phone,
       EmployeeId: account.id,
       priceIds,
       type: "success",
@@ -146,10 +197,12 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
         let billId = res.bill.id;
 
         // xử lí kho
-        createStoreTranAfterCreateBill(billId);
-
-        // xứ lí khuyến mãi
-        handlePromotionResult(billId, tableData);
+        handleAfter.handleStoreTranAfterCreateBill(
+          billId,
+          tableData,
+          MPused,
+          voucherUsed
+        );
 
         clearBill();
       } else {
@@ -165,64 +218,32 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
     }
   }
 
-  async function createStoreTranAfterCreateBill(billId) {
-    let res = await billApi.getOneBillById(billId);
-    let bill = res.bill || {};
-    let billDetails = bill.BillDetails || [];
-    let employeeId = bill.EmployeeId;
+  async function handleChangeVoucherInput(input) {
+    dispatch(setVoucherInput(input));
+    if (input) {
+      let res = await promotionApi.getOneVByCode(input);
+      if (res.isSuccess) {
+        let voucher = res.voucher;
 
-    let storeTrans = [];
+        let start = new Date(voucher.startDate);
+        let end = new Date(voucher.endDate);
+        let now = new Date();
+        let state = voucher.state;
+        console.log(listPromotionLinesOnActive);
 
-    billDetails.map((detailItem) => {
-      let quantity = detailItem.quantity;
-      let productId = detailItem.Price.ProductUnitType.ProductId;
-      let convertionQuantity =
-        detailItem.Price.ProductUnitType.UnitType.convertionQuantity;
-
-      storeTrans.push({
-        quantity: -(quantity * convertionQuantity),
-        productId: productId,
-        type: "Bán hàng",
-        employeeId: employeeId,
-      });
-    });
-
-    // create store
-    storeApi.addMany({
-      data: storeTrans,
-    });
-  }
-
-  async function handlePromotionResult(billId, tableData) {
-    console.log(tableData);
-    tableData.map((row) => {
-      /// PP result
-      if (row.isPromotion && row.ProductPromotionId) {
-        promotionApi.addResult({
-          isSuccess: true,
-          note: "Được khuyến mãi khi mua hàng",
-          BillId: billId,
-          ProductPromotionId: row.ProductPromotionId,
-        });
+        if (compareDMY(start, now) <= 0 && compareDMY(end, now) >= 0 && state) {
+          // kiểm tra xem khách hàng này có được áp dụng hay không
+          listPromotionLinesOnActive.map((promotionLine) => {
+            if (promotionLine.promotionType == "V") {
+              if (promotionLine.id == voucher.id) {
+                dispatch(setVoucherUsed(voucher));
+              }
+            }
+          });
+        }
+      } else {
+        dispatch(setVoucherUsed(null));
       }
-
-      if (row.DRPused) {
-        promotionApi.addResult({
-          isSuccess: true,
-          note: "Được khuyến mãi khi mua hàng",
-          BillId: billId,
-          DiscountRateProductId: row.DRPused.id,
-        });
-      }
-    });
-
-    if (MPused) {
-      promotionApi.addResult({
-        isSuccess: true,
-        note: "Được khuyến mãi khi mua hàng",
-        BillId: billId,
-        MoneyPromotionId: MPused.id,
-      });
     }
   }
 
@@ -274,6 +295,49 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
             />
           }
           -{convertToVND(discountOnBill)}
+        </div>
+      </div>
+      <div className="bill_infor_voucher">
+        <div className="bill_infor_voucher_top">
+          <div className="bill_infor_voucher_top_label">Phiếu giảm giá</div>
+          <div className="bill_infor_voucher_input_wrap">
+            <Input
+              className="bill_infor_voucher_input"
+              size="small"
+              value={voucherInput}
+              onChange={({ target }) => {
+                handleChangeVoucherInput(target.value);
+              }}
+              placeholder="Nhập mã CODE"
+            />
+          </div>
+          <div className="bill_infor_voucher_result">
+            {voucherUsed && (
+              <CheckCircleOutlined
+                className="bill_infor_voucher_result_icon"
+                onClick={() => {
+                  dispatch(
+                    setOpen({
+                      name: "PromotionLineModal",
+                      modalState: {
+                        type: "view",
+                        visible: true,
+                        idSelected: voucherUsed.id,
+                        promotionHeaderId: voucherUsed.PromotionHeaderId,
+                      },
+                    })
+                  );
+                }}
+              />
+            )}
+
+            {!voucherUsed && voucherInput && (
+              <CloseCircleOutlined className="bill_infor_voucher_result_icon close_icon" />
+            )}
+          </div>
+          <div className="bill_infor_voucher_top_value">
+            -{convertToVND(discountByVoucher)}
+          </div>
         </div>
       </div>
       <div className="row">
