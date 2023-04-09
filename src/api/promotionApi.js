@@ -41,6 +41,11 @@ class PromotionApi {
     return axiosClient.put(url, formData);
   }
 
+  deleteOnePP(id) {
+    let url = `productPromotion/delete?id=${id}`;
+    return axiosClient.delete(url);
+  }
+
   // line DRP
   addOneDRP(formData) {
     let url = `discount/add`;
@@ -55,6 +60,10 @@ class PromotionApi {
   updateOneDRP(id, formData) {
     let url = `discount/update?id=${id}`;
     return axiosClient.put(url, formData);
+  }
+  deleteOneDRP(id) {
+    let url = `discount/delete?id=${id}`;
+    return axiosClient.delete(url);
   }
 
   // line MP
@@ -73,11 +82,26 @@ class PromotionApi {
     return axiosClient.put(url, formData);
   }
 
+  deleteOneMP(id) {
+    let url = `moneyPromotion/delete?id=${id}`;
+    return axiosClient.delete(url);
+  }
+
   // line V
 
   addOneV(formData) {
     let url = `voucher`;
     return axiosClient.post(url, formData);
+  }
+
+  updateOneV(id, formData) {
+    let url = `voucher/update?id=${id}`;
+    return axiosClient.put(url, formData);
+  }
+
+  deleteOneV(id) {
+    let url = `voucher/delete?id=${id}`;
+    return axiosClient.delete(url);
   }
 
   getOneVById(id) {

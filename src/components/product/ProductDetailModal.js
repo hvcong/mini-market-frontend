@@ -234,13 +234,6 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
       } else {
         _errMess.unitList[index].convertionQuantity = "";
       }
-      if (convertionQuantity == 1 && index != 0) {
-        _errMess.unitList[index].convertionQuantity =
-          "Chỉ một đơn vị cơ duy nhất!";
-        isCheck = false;
-      } else {
-        _errMess.unitList[index].convertionQuantity = "";
-      }
     });
 
     // validate with database
@@ -365,6 +358,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                           });
                         }}
                         status={errMessage.categoryId && "error"}
+                        disabled={modalState.type != "create"}
                       />
                       <div className="input__err">{errMessage.categoryId}</div>
                     </Col>
@@ -379,6 +373,9 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                           setFormState({ ...formState, subCategoryId: id })
                         }
                         status={errMessage.subCategoryId && "error"}
+                        disabled={
+                          modalState.type != "create" || !formState.categoryId
+                        }
                       />
                       <div className="input__err">
                         {errMessage.subCategoryId}

@@ -11,6 +11,7 @@ const SelectSubCategory = ({
   setIdSubCateSelected,
   idCategorySelected,
   idSelected,
+  ...props
 }) => {
   const cate = useSelector((state) => state.cate);
   const dispatch = useDispatch();
@@ -47,10 +48,10 @@ const SelectSubCategory = ({
   return (
     <>
       <Select
+        {...props}
         style={{
           width: "100%",
         }}
-        disabled={!idCategorySelected}
         placeholder="--Nhóm sản phẩm (cấp 2) --"
         onChange={setIdSubCateSelected}
         dropdownRender={(menu) => (

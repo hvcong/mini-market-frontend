@@ -84,10 +84,10 @@ const AdminProducts = ({}) => {
       fixed: "left",
       fixedShow: true,
     },
-    {
-      title: "Số lượng",
-      dataIndex: "quantity",
-    },
+    // {
+    //   title: "Số lượng",
+    //   dataIndex: "quantity",
+    // },
 
     {
       title: "Đơn vị tính",

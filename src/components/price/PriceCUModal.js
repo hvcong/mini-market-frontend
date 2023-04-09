@@ -55,7 +55,7 @@ const initErrMessage = {};
 
 const ddMMyyyy = "DD/MM/YYYY";
 
-const PriceCUModal = ({ modalState, setModalState }) => {
+const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
   let hideLoading = null;
   const dispatch = useDispatch();
 
@@ -191,110 +191,6 @@ const PriceCUModal = ({ modalState, setModalState }) => {
     };
   }, []);
 
-  async function handleOnChangeState(is) {
-    if (modalState.type == "create") {
-      // to active
-      if (is) {
-        if (!formState.startDate || !formState.endDate) {
-          message.error("Vui lòng chọn ngày bắt đầu và kết thúc trước!");
-          return;
-        }
-        setFormState({
-          ...formState,
-          state: is,
-        });
-      } else {
-        setFormState({
-          ...formState,
-          state: is,
-        });
-      }
-    }
-
-    if (
-      modalState.type == "update" &&
-      formState.startDate &&
-      formState.endDate
-    ) {
-      if (is) {
-        let isCheck = true;
-        // kiểm tra trùng
-        let res = await priceHeaderApi.getAllOnActive();
-        let thisHeader = formState;
-        let start1 = new Date(thisHeader.startDate);
-        let end1 = new Date(thisHeader.endDate);
-
-        let isExist = false;
-        if (res.isSuccess) {
-          let headers = res.headers || [];
-          // loop through each header
-          for (const header of headers) {
-            let start2 = new Date(header.startDate);
-            let end2 = new Date(header.endDate);
-
-            let is1 =
-              compareDMY(end2, start1) >= 0 && compareDMY(end2, end1) >= 0;
-            let is2 =
-              compareDMY(start1, start2) >= 0 && compareDMY(start1, end2) <= 0;
-            let is3 =
-              compareDMY(start1, start2) <= 0 && compareDMY(end2, end1) <= 0;
-            console.log(is1, is2, is3);
-
-            if (is1 || is2 || is3) {
-              // loop through each line in a header
-              let priceLines = header.Prices || [];
-
-              for (const line of priceLines) {
-                for (const _lineThisHeader of formState.Prices || []) {
-                  if (
-                    _lineThisHeader.ProductUnitTypeId == line.ProductUnitTypeId
-                  ) {
-                    isExist = true;
-                    isCheck = false;
-                    message.error(
-                      `Sản phẩm "${line.ProductUnitType.Product.name} với đơn vị ${line.ProductUnitType.UnitType.name}" đang được bán ở bảng ${header.title} `
-                    );
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        if (isCheck) {
-          // to active header
-          let res = await priceHeaderApi.updateOne({
-            id: formState.id,
-            state: true,
-          });
-
-          if (res.isSuccess) {
-            setFormState({
-              ...formState,
-              state: true,
-            });
-            message.info("Áp dụng bảng giá thành công");
-            dispatch(setRefreshPriceHeaders());
-          }
-        }
-      } else {
-        let res = await priceHeaderApi.updateOne({
-          id: formState.id,
-          state: false,
-        });
-
-        if (res.isSuccess) {
-          setFormState({
-            ...formState,
-            state: false,
-          });
-          message.info("Tạm dừng bảng giá thành công");
-          dispatch(setRefreshPriceHeaders());
-        }
-      }
-    }
-  }
-
   function disableChangeState(startDate, endDate) {
     if (startDate && endDate) {
       let start = new Date(startDate);
@@ -304,11 +200,6 @@ const PriceCUModal = ({ modalState, setModalState }) => {
       // đã quá hạn
       if (compareDMY(end, now) < 0) {
         return true;
-      }
-
-      // chưa tới hạn
-      if (compareDMY(start, now) > 0) {
-        return false;
       }
     }
     return false;
@@ -517,6 +408,43 @@ const PriceCUModal = ({ modalState, setModalState }) => {
     return putId;
   }
 
+  function disabledItem(name, typeModalItem) {
+    if (modalState.type == "update") {
+      let start = new Date(formState.startDate);
+      let end = new Date(formState.endDate);
+      let now = new Date();
+
+      if (formState.state) {
+        return true;
+      }
+
+      if (name == "productId") {
+        if (typeModalItem == "update") return true;
+      }
+      if (name == "utId") {
+        if (typeModalItem == "update") return true;
+      }
+
+      // đã hết hạn
+      if (compareDMY(end, now) < 0) {
+        return true;
+      }
+
+      // đang sử dụng
+      if (compareDMY(start, now) <= 0) {
+        return true;
+      }
+
+      // tương lai
+      if (compareDMY(start, now) > 0) {
+        return false;
+      }
+    }
+
+    if (modalState.type == "create") {
+    }
+  }
+
   return (
     <div className="price__modal">
       <ModalCustomer
@@ -609,19 +537,31 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                   <div className="input_err">{errMessage.endDate}</div>
                 </div>
               </div>
-              <div className="input__container">
-                <Text className="input__label">Trạng thái</Text>
-                <Switch
-                  checkedChildren="On"
-                  unCheckedChildren="Off"
-                  checked={formState.state}
-                  onChange={handleOnChangeState}
-                  disabled={disableChangeState(
-                    formState.startDate,
-                    formState.endDate
-                  )}
-                />
-              </div>
+              {modalState.type == "update" && (
+                <div className="input__container">
+                  <Text className="input__label">Trạng thái</Text>
+                  <Switch
+                    checkedChildren="On"
+                    unCheckedChildren="Off"
+                    checked={formState.state}
+                    onChange={async (is) => {
+                      let result = await handleOnChangeState(is, formState.id);
+                      if (result) {
+                        dispatch(
+                          setFormState({
+                            ...formState,
+                            state: is,
+                          })
+                        );
+                      }
+                    }}
+                    disabled={disableChangeState(
+                      formState.startDate,
+                      formState.endDate
+                    )}
+                  />
+                </div>
+              )}
             </div>
             {modalState.type == "update" && (
               <PriceLineTable
@@ -633,6 +573,8 @@ const PriceCUModal = ({ modalState, setModalState }) => {
                   formState.endDate,
                   formState.state
                 )}
+                disabledItem={disabledItem}
+                headerState={formState.state}
               />
             )}
 

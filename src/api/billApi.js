@@ -13,6 +13,7 @@ class BillApi {
 
   getOneBillById(id) {
     let url = `bill/getId?id=${id}`;
+
     return axiosClient.get(url);
   }
 

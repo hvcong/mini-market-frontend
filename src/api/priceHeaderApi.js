@@ -2,7 +2,6 @@ import axiosClient from "./axiosClient";
 
 class PriceHeaderApi {
   getMany(page, limit) {
-    console.log(page, limit);
     let url = `priceHeader/get?_page=${page}&_limit=${limit}`;
     return axiosClient.get(url);
   }

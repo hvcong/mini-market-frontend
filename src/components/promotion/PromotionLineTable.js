@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { message, Switch, Table, Typography } from "antd";
 import { Button } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import DropSelectColum from "../product/DropSelectColum";
 import PromotionLineModal from "./PromotionLineModal";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import promotionApi from "./../../api/promotionApi";
-import { setPromotionLines } from "../../store/slices/promotionLineSlice";
+import {
+  setPromotionLines,
+  setRefreshPromotionLines,
+} from "../../store/slices/promotionLineSlice";
 import { compareDMY, sqlToDDmmYYY } from "./../../utils/index";
 import { setOpen } from "../../store/slices/modalSlice";
 
@@ -30,14 +33,17 @@ const PromotionLineTable = ({
       {
         title: "Mã KM",
         dataIndex: "id",
+
         width: 160,
-        fixed: "left",
         fixedShow: true,
-        render: (_, row) => (
-          <Typography.Link onClick={() => onClickRowId(row)}>
-            {row.id}
-          </Typography.Link>
-        ),
+        render: (id, rowData) => {
+          if (rowData.type == "V") {
+            console.log(rowData);
+            return rowData.code;
+          } else {
+            return id;
+          }
+        },
       },
       {
         title: "Tên KM",
@@ -66,6 +72,7 @@ const PromotionLineTable = ({
       {
         title: "Mô tả",
         dataIndex: "description",
+        hidden: true,
         width: 200,
       },
       {
@@ -92,50 +99,86 @@ const PromotionLineTable = ({
         dataIndex: "state",
         render: (_, rowData) => {
           if (rowData) {
-            if (!headerState) {
-              return <div style={{ color: "red" }}>Đã ngưng</div>;
-            } else {
-              let start = new Date(rowData.startDate);
-              let end = new Date(rowData.endDate);
-              let now = new Date();
-              let state = rowData.state;
+            let start = new Date(rowData.startDate);
+            let end = new Date(rowData.endDate);
+            let now = new Date();
+            let state = rowData.state;
 
-              if (compareDMY(end, now) < 0) {
-                return <div style={{ color: "red" }}>Đã ngưng</div>;
-              }
-              if (compareDMY(start, now) > 0) {
-                return <div style={{ color: "gold" }}>Sắp tới</div>;
-              }
+            if (compareDMY(end, now) < 0) {
+              return <div style={{ color: "red" }}>Đã hết hạn</div>;
+            }
+            if (compareDMY(start, now) > 0) {
+              return <div style={{ color: "gold" }}>Sắp tới</div>;
+            }
 
-              if (compareDMY(start, now) <= 0 && compareDMY(end, now) >= 0) {
-                if (state) {
-                  return <div style={{ color: "green" }}>Đang áp dụng</div>;
-                } else {
-                  return <div style={{ color: "purple" }}>Tạm ngưng</div>;
-                }
+            if (compareDMY(start, now) <= 0 && compareDMY(end, now) >= 0) {
+              if (state && headerState) {
+                return <div style={{ color: "green" }}>Đang áp dụng</div>;
+              } else {
+                return <div style={{ color: "purple" }}>Tạm ngưng</div>;
               }
             }
           }
         },
       },
+
       {
         title: "Trạng thái",
         dataIndex: "state",
-        render: (state) => {
+        render: (state, rowData) => {
           return (
             <Switch
               checkedChildren="On"
               unCheckedChildren="Off"
               checked={state}
-              disabled
+              disabled={disableChangeLineState(rowData)}
+              onChange={(is) => {
+                handleChangeLineState(is, rowData);
+              }}
             />
           );
         },
       },
+      {
+        title: "Hành động",
+        dataIndex: "id",
+        width: 80,
+        fixed: "right",
+        fixedShow: true,
+        render: (_, row) => (
+          <>
+            <Button
+              size="small"
+              icon={
+                <EditOutlined
+                  onClick={() => {
+                    onClickRowId(row);
+                  }}
+                />
+              }
+            />
+            <Button
+              style={{
+                marginLeft: 8,
+              }}
+              danger
+              disabled={disabledItem("btnDelete", row)}
+              size="small"
+              icon={
+                <DeleteOutlined
+                  onClick={() => {
+                    onRemoveLine(row);
+                  }}
+                />
+              }
+            />
+          </>
+        ),
+      },
     ]);
 
     return () => {};
-  }, [headerState]);
+  }, [headerState, promotionHeaderId]);
 
   useEffect(() => {
     if (promotionHeaderId) {
@@ -212,6 +255,101 @@ const PromotionLineTable = ({
         },
       })
     );
+  }
+
+  function disableChangeLineState(rowData) {
+    let start = new Date(rowData.startDate);
+    let end = new Date(rowData.endDate);
+    let now = new Date();
+
+    // đã hết hạn
+    if (compareDMY(end, now) < 0) {
+      return true;
+    }
+    return false;
+  }
+
+  async function onRemoveLine(rowData) {
+    let lineId = rowData.id;
+    let promotionTypeId = rowData.type;
+
+    let res = {};
+
+    if (promotionTypeId == "PP") {
+      res = await promotionApi.deleteOnePP(lineId);
+    }
+    if (promotionTypeId == "MP") {
+      res = await promotionApi.deleteOneMP(lineId);
+    }
+    if (promotionTypeId == "DRP") {
+      res = await promotionApi.deleteOneDRP(lineId);
+    }
+    if (promotionTypeId == "V") {
+      res = await promotionApi.deleteOneV(lineId);
+    }
+
+    if (res.isSuccess) {
+      message.info("Cập nhật thành công");
+      dispatch(setRefreshPromotionLines());
+    } else {
+      message.error("Có lỗi xảy ra, vui lòng thử lại!");
+    }
+  }
+
+  async function handleChangeLineState(is, rowData) {
+    let lineId = rowData.id;
+    let promotionTypeId = rowData.type;
+    let formData = {
+      state: is,
+    };
+    let res = {};
+
+    if (promotionTypeId == "PP") {
+      res = await promotionApi.updateOnePP(lineId, formData);
+    }
+    if (promotionTypeId == "MP") {
+      res = await promotionApi.updateOneMP(lineId, formData);
+    }
+    if (promotionTypeId == "DRP") {
+      res = await promotionApi.updateOneDRP(lineId, formData);
+    }
+    if (promotionTypeId == "V") {
+      res = await promotionApi.updateOneV(lineId, formData);
+    }
+
+    if (res.isSuccess) {
+      message.info("Cập nhật thành công");
+      dispatch(setRefreshPromotionLines());
+    } else {
+      message.error("Có lỗi xảy ra, vui lòng thử lại!");
+    }
+  }
+
+  function disabledItem(name, rowData) {
+    let start = new Date(rowData.startDate);
+    let end = new Date(rowData.endDate);
+    let now = new Date();
+    let state = rowData.state;
+
+    // da het han
+    if (compareDMY(end, now) < 0) {
+      return true;
+    }
+
+    // tuong lai
+    if (compareDMY(start, end) > 0) {
+      return false;
+    }
+
+    // dang su dung
+    if (compareDMY(start, now) <= 0) {
+      if (name == "btnDelete") return true;
+    }
+
+    if (headerState) {
+      return true;
+    } else {
+    }
   }
 
   return (

@@ -34,6 +34,7 @@ const ListPromotion = ({ listKM = [] }) => {
         let title = "";
         let type = result.type;
         let promotionHeaderId = "";
+        let code = "";
 
         if (type == "PP") {
           id = result.ProductPromotion.id;
@@ -52,6 +53,7 @@ const ListPromotion = ({ listKM = [] }) => {
         }
         if (type == "V") {
           id = result.Voucher.id;
+          code = result.Voucher.code;
           title = result.Voucher.title;
           promotionHeaderId = result.Voucher.PromotionHeaderId;
         }
@@ -74,7 +76,7 @@ const ListPromotion = ({ listKM = [] }) => {
                 );
               }}
             >
-              {id}
+              {code ? code : id}
             </Typography.Link>
             <div className="bill_form_promotion_item_type">{title}</div>
             <div className="bill_form_promotion_item_status">

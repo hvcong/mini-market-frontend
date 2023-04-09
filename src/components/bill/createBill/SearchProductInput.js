@@ -138,6 +138,7 @@ async function fetchData(input, setData, setFetching, list) {
   let productFounds = [];
   let res = {};
   res = await productApi.findManyById(input);
+  console.log(res);
   if (res.isSuccess) {
     productFounds = res.products;
   }
@@ -162,9 +163,9 @@ async function fetchData(input, setData, setFetching, list) {
     header.Prices.map((line) => {
       if (input) {
         for (const product of productFounds) {
-          if (line.ProductUnitType.ProductId == product.id)
+          if (line.ProductUnitType.ProductId == product.id) {
             _listPrices.push(line);
-          break;
+          }
         }
       } else {
         _listPrices.push(line);
@@ -188,14 +189,14 @@ async function fetchData(input, setData, setFetching, list) {
           }}
         >
           <div>
-            <img
+            {/* <img
               src="https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"
               style={{
                 width: "32px",
                 height: "32px",
               }}
               alt="alt"
-            />
+            /> */}
           </div>
           <div
             style={{
@@ -211,7 +212,7 @@ async function fetchData(input, setData, setFetching, list) {
             >
               <HighlightedText text={product.id} highlightText={input} />
             </div>
-            <div>Tồn kho: {product.quantity / unitype.convertionQuantity}</div>
+            {/* <div>Tồn kho: {product.quantity / unitype.convertionQuantity}</div> */}
           </div>
           <div
             style={{

@@ -29,7 +29,10 @@ import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { compareDMY, sqlToDDmmYYY } from "./../../utils/index";
 import priceHeaderApi from "./../../api/priceHeaderApi";
-import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
+import {
+  setPriceHeaders,
+  setRefreshPriceHeaders,
+} from "../../store/slices/priceHeaderSlice";
 import DropSelectColum from "./../product/DropSelectColum";
 import PriceCUModal from "./PriceCUModal";
 
@@ -104,22 +107,32 @@ const Price = ({}) => {
         let end = new Date(header.endDate);
         let now = new Date();
 
-        if (
-          header.state &&
-          compareDMY(start, now) <= 0 &&
-          compareDMY(end, now) >= 0
-        ) {
-          return (
-            <Tag
-              color="green"
-              style={{
-                fontSize: 11,
-              }}
-            >
-              Đang sử dụng
-            </Tag>
-          );
-        } else if (compareDMY(start, now) > 0) {
+        if (compareDMY(start, now) <= 0 && compareDMY(end, now) >= 0) {
+          if (header.state) {
+            return (
+              <Tag
+                color="green"
+                style={{
+                  fontSize: 11,
+                }}
+              >
+                Đang sử dụng
+              </Tag>
+            );
+          } else {
+            return (
+              <Tag
+                color="pink"
+                style={{
+                  fontSize: 11,
+                }}
+              >
+                Tạm ngưng
+              </Tag>
+            );
+          }
+        }
+        if (compareDMY(start, now) > 0) {
           return (
             <Tag
               style={{
@@ -130,7 +143,9 @@ const Price = ({}) => {
               Sắp tới
             </Tag>
           );
-        } else {
+        }
+
+        if (compareDMY(end, now) < 0) {
           return (
             <Tag
               style={{
@@ -138,7 +153,7 @@ const Price = ({}) => {
               }}
               color="red"
             >
-              Đã ngưng
+              Đã hết hạn
             </Tag>
           );
         }
@@ -148,13 +163,16 @@ const Price = ({}) => {
       title: "Trạng thái",
       dataIndex: "state",
 
-      render: (state) => {
+      render: (state, rowData) => {
         return (
           <Switch
             checkedChildren="On"
             unCheckedChildren="Off"
             checked={state}
-            disabled
+            disabled={disabledChangeState(rowData)}
+            onChange={(is) => {
+              handleOnChangeState(is, rowData.id);
+            }}
           />
         );
       },
@@ -196,6 +214,99 @@ const Price = ({}) => {
       visible: true,
       rowSelected: row,
     });
+  }
+
+  async function handleOnChangeState(is, headerId) {
+    let result = false;
+    if (is) {
+      let isCheck = true;
+      // kiểm tra trùng
+      let res = await priceHeaderApi.getAllOnActive();
+      let res2 = await priceHeaderApi.getOneById(headerId);
+      let thisHeader = res2.header;
+      let start1 = new Date(thisHeader.startDate);
+      let end1 = new Date(thisHeader.endDate);
+
+      let isExist = false;
+      if (res.isSuccess) {
+        let headers = res.headers || [];
+        // loop through each header
+        for (const header of headers) {
+          let start2 = new Date(header.startDate);
+          let end2 = new Date(header.endDate);
+
+          let is1 =
+            compareDMY(end2, start1) >= 0 && compareDMY(end2, end1) >= 0;
+          let is2 =
+            compareDMY(start1, start2) >= 0 && compareDMY(start1, end2) <= 0;
+          let is3 =
+            compareDMY(start1, start2) <= 0 && compareDMY(end2, end1) <= 0;
+          console.log(is1, is2, is3);
+
+          if (is1 || is2 || is3) {
+            // loop through each line in a header
+            let priceLines = header.Prices || [];
+
+            for (const line of priceLines) {
+              for (const _lineThisHeader of thisHeader.Prices || []) {
+                if (
+                  _lineThisHeader.ProductUnitTypeId == line.ProductUnitTypeId
+                ) {
+                  isExist = true;
+                  isCheck = false;
+
+                  message.error(
+                    `Sản phẩm "${line.ProductUnitType.Product.name} với đơn vị ${line.ProductUnitType.UnitType.name}" đang được bán ở bảng ${header.title} `
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (isCheck) {
+        // to active header
+        let res = await priceHeaderApi.updateOne({
+          id: headerId,
+          state: true,
+        });
+
+        if (res.isSuccess) {
+          result = true;
+          message.info("Áp dụng bảng giá thành công");
+          dispatch(setRefreshPriceHeaders());
+        }
+      } else {
+        result = false;
+      }
+    } else {
+      let res = await priceHeaderApi.updateOne({
+        id: headerId,
+        state: false,
+      });
+
+      if (res.isSuccess) {
+        result = true;
+        message.info("Tạm dừng bảng giá thành công");
+        dispatch(setRefreshPriceHeaders());
+      } else {
+        result = false;
+      }
+    }
+    return result;
+  }
+
+  function disabledChangeState(rowData) {
+    let start = new Date(rowData.startDate);
+    let end = new Date(rowData.endDate);
+    let now = new Date();
+
+    // đã hết hạn
+    if (compareDMY(end, now) < 0) {
+      return true;
+    }
+    return false;
   }
 
   return (
@@ -254,7 +365,11 @@ const Price = ({}) => {
           hideOnSinglePage
         />
       </div>
-      <PriceCUModal modalState={modalState} setModalState={setModalState} />
+      <PriceCUModal
+        modalState={modalState}
+        setModalState={setModalState}
+        handleOnChangeState={handleOnChangeState}
+      />
     </div>
   );
 };

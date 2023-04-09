@@ -33,7 +33,10 @@ import DropSelectColum from "./../product/DropSelectColum";
 import PriceCUModal from "./../price/PriceCUModal";
 import PromotionHeaderModal from "./PromotionHeaderModal";
 import promotionApi from "./../../api/promotionApi";
-import { setPromotionHeaders } from "../../store/slices/promotionHeaderSlice";
+import {
+  setPromotionHeaders,
+  setRefreshPromotionHeaders,
+} from "../../store/slices/promotionHeaderSlice";
 
 const { Text } = Typography;
 
@@ -97,29 +100,39 @@ const Promotion = ({}) => {
     },
 
     {
-      title: "Tình trạng áp dụng",
+      title: "Tình trạng sử dụng",
       dataIndex: "state",
       render: (_, header) => {
         let start = new Date(header.startDate);
         let end = new Date(header.endDate);
         let now = new Date();
 
-        if (
-          header.state &&
-          compareDMY(start, now) <= 0 &&
-          compareDMY(end, now) >= 0
-        ) {
-          return (
-            <Tag
-              color="green"
-              style={{
-                fontSize: 11,
-              }}
-            >
-              Đang áp dụng
-            </Tag>
-          );
-        } else if (compareDMY(start, now) > 0) {
+        if (compareDMY(start, now) <= 0 && compareDMY(end, now) >= 0) {
+          if (header.state) {
+            return (
+              <Tag
+                color="green"
+                style={{
+                  fontSize: 11,
+                }}
+              >
+                Đang sử dụng
+              </Tag>
+            );
+          } else {
+            return (
+              <Tag
+                color="pink"
+                style={{
+                  fontSize: 11,
+                }}
+              >
+                Tạm ngưng
+              </Tag>
+            );
+          }
+        }
+        if (compareDMY(start, now) > 0) {
           return (
             <Tag
               style={{
@@ -130,7 +143,9 @@ const Promotion = ({}) => {
               Sắp tới
             </Tag>
           );
-        } else {
+        }
+
+        if (compareDMY(end, now) < 0) {
           return (
             <Tag
               style={{
@@ -138,7 +153,7 @@ const Promotion = ({}) => {
               }}
               color="red"
             >
-              Đã ngưng
+              Đã hết hạn
             </Tag>
           );
         }
@@ -147,13 +162,16 @@ const Promotion = ({}) => {
     {
       title: "Trạng thái",
       dataIndex: "state",
-      render: (state) => {
+      render: (state, rowData) => {
         return (
           <Switch
             checkedChildren="On"
             unCheckedChildren="Off"
             checked={state}
-            disabled
+            disabled={disabledChangeState(rowData)}
+            onChange={(is) => {
+              handleOnChangeState(is, rowData.id);
+            }}
           />
         );
       },
@@ -205,6 +223,33 @@ const Promotion = ({}) => {
       visible: true,
       rowSelected: row,
     });
+  }
+
+  function disabledChangeState(rowData) {
+    let start = new Date(rowData.startDate);
+    let end = new Date(rowData.endDate);
+    let now = new Date();
+
+    // đã hết hạn
+    if (compareDMY(end, now) < 0) {
+      return true;
+    }
+    return false;
+  }
+
+  async function handleOnChangeState(is, headerId) {
+    let res = await promotionApi.updateOneHeader(headerId, {
+      state: is,
+    });
+
+    if (res.isSuccess) {
+      if (is) {
+        message.info("Đã đưa chương trình vào hoạt động");
+      } else {
+        message.info("Đã ngưng hoạt động của chương trình");
+      }
+      dispatch(setRefreshPromotionHeaders());
+    }
   }
 
   return (
@@ -268,6 +313,7 @@ const Promotion = ({}) => {
       <PromotionHeaderModal
         modalState={modalState}
         setModalState={setModalState}
+        handleOnChangeState={handleOnChangeState}
       />
     </div>
   );

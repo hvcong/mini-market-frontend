@@ -168,7 +168,7 @@ class HandleAfter {
 
     promotionResults.map((result) => {
       if (result.isSuccess) {
-        let ProductPromotion = res.ProductPromotion;
+        let ProductPromotion = result.ProductPromotion;
 
         if (ProductPromotion) {
           let put1Id = ProductPromotion.ProductUnitTypeId;

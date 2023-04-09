@@ -43,10 +43,11 @@ import {
   uid,
 } from "../../utils";
 import { setOpen } from "../../store/slices/modalSlice";
+import VoucherPromotionDetail from "./VoucherPromotionDetail";
 
 const initFormState = {
   id: uid(),
-  typePromotionId: "",
+  typePromotionId: "V",
   startDate: "",
   endDate: "",
   title: "",
@@ -146,6 +147,14 @@ const typePromotionData = [
   },
 ];
 
+const initListVoucherCreate = [
+  {
+    isLastRow: true,
+  },
+];
+
+const initListVoucherErrMessage = {};
+
 const PromotionLineModal = () => {
   let hideLoading = null;
   const dispatch = useDispatch();
@@ -157,6 +166,10 @@ const PromotionLineModal = () => {
   const [formState, setFormState] = useState(initFormState);
   const [errMessage, setErrMessage] = useState(initErrMessage);
   const [minMaxTime, setMinMaxTime] = useState();
+  const [listVoucherCreate, setListVoucherCreate] = useState(
+    initListVoucherCreate
+  );
+  const [lvErrMessage, setLvErrMessage] = useState(initListVoucherErrMessage);
 
   useEffect(() => {
     const { type, idSelected, visible } = modalState;
@@ -229,7 +242,7 @@ const PromotionLineModal = () => {
           code: "",
           discountMoney: "",
           discountRate: "",
-          maxMoneyDiscount: "",
+          maxDiscountMoney: "",
           state: true,
         },
       });
@@ -265,7 +278,7 @@ const PromotionLineModal = () => {
           code: "",
           discountMoney: "",
           discountRate: "",
-          maxMoneyDiscount: "",
+          maxDiscountMoney: "",
           state: true,
         },
       });
@@ -333,7 +346,7 @@ const PromotionLineModal = () => {
           minCost: "",
           discountMoney: "",
           discountRate: "",
-          maxMoneyDiscount: "",
+          maxDiscountMoney: "",
           state: true,
         },
         V: {
@@ -474,24 +487,27 @@ const PromotionLineModal = () => {
 
       if (formState.typePromotionId == "V") {
         let { V } = formState;
-
-        formData = {
-          id: formState.id,
-          code: V.code,
-          startDate: formState.startDate,
-          title: formState.title,
-          description: formState.description,
-          endDate: formState.endDate,
-          state: formState.state,
-          discountMoney: V.discountMoney,
-          discountRate: V.discountRate,
-          type: V.type,
-          maxDiscountMoney: V.maxDiscountMoney,
-          PromotionHeaderId: promotionHeaderId,
-        };
-
         if (type == "create") {
-          res = await promotionApi.addOneV(formData);
+          for (const voucher of listVoucherCreate) {
+            if (voucher.isLastRow) continue;
+            formData = {
+              id: formState.id,
+              code: voucher.code,
+              startDate: formState.startDate,
+              title: formState.title,
+              description: formState.description,
+              endDate: formState.endDate,
+              state: formState.state,
+              discountMoney: voucher.discountMoney,
+              discountRate: voucher.discountRate,
+              type: voucher.type,
+              maxDiscountMoney: voucher.maxDiscountMoney,
+              PromotionHeaderId: promotionHeaderId,
+            };
+            try {
+              res = await promotionApi.addOneV(formData);
+            } catch (error) {}
+          }
         } else {
           message.error("Chưa có api");
         }
@@ -528,6 +544,13 @@ const PromotionLineModal = () => {
         MP: {},
         V: {},
       };
+      let _lvErrMess = {};
+
+      listVoucherCreate.map((voucherItem) => {
+        if (!voucherItem.isLastRow) {
+          _lvErrMess[voucherItem.id] = {};
+        }
+      });
 
       if (!formState.id) {
         _errMess.id = "Không được bỏ trống!";
@@ -618,24 +641,33 @@ const PromotionLineModal = () => {
       // check for V
       let { V } = formState;
       if (V && formState.typePromotionId == "V") {
-        if (!V.code) {
-          _errMess.V.code = "Không được bỏ trống!";
-        } else {
-          // check in db
-          let res = await promotionApi.getOneVByCode(V.code);
-          if (res.isSuccess) {
-            _errMess.V.code = "Code này đã được sử dụng trước đó!";
+        //check list voucher
+        if (listVoucherCreate.length == 1) {
+          message.error("Vui lòng thêm các dòng trước!");
+          isCheck = false;
+        }
+        for (const voucher of listVoucherCreate) {
+          if (voucher.isLastRow) continue;
+          if (!voucher.code) {
+            _lvErrMess[voucher.id].code = "Không được bỏ trống!";
+          } else {
+            // check in db
+            let res = await promotionApi.getOneVByCode(voucher.code);
+            if (res.isSuccess) {
+              _lvErrMess[voucher.id].code =
+                "Code này đã được sử dụng trước đó!";
+            }
           }
-        }
-
-        if (V.type == "discountMoney" && !V.discountMoney) {
-          _errMess.V.discountMoney = "Số tiền chiết khấu phải > 0!";
-        }
-
-        if (V.type == "discountRate" && !V.discountRate) {
-          _errMess.V.discountRate = "Số % chiết khấu phải > 0 và <=100";
-          if (V.maxDiscountMoney <= 0) {
-            _errMess.V.maxDiscountMoney = "Giá trị phải > 0!";
+          if (voucher.type == "discountMoney" && !voucher.discountMoney) {
+            _lvErrMess[voucher.id].discountMoney =
+              "Số tiền chiết khấu phải > 0!";
+          }
+          if (voucher.type == "discountRate" && !voucher.discountRate) {
+            _lvErrMess[voucher.id].discountRate =
+              "Số % chiết khấu phải > 0 và <=100";
+            if (voucher.maxDiscountMoney <= 0) {
+              _lvErrMess[voucher.id].maxDiscountMoney = "Giá trị phải > 0!";
+            }
           }
         }
       }
@@ -670,7 +702,14 @@ const PromotionLineModal = () => {
         }
       });
 
+      Object.keys(_lvErrMess).map((key) => {
+        if (Object.keys(_lvErrMess[key]).length > 0) {
+          isCheck = false;
+        }
+      });
+
       setErrMessage(_errMess);
+      setLvErrMessage(_lvErrMess);
       return isCheck;
     }
   }
@@ -726,6 +765,7 @@ const PromotionLineModal = () => {
     setErrMessage(initErrMessage);
     initFormState.id = uid();
     setFormState(initFormState);
+    setListVoucherCreate(initListVoucherCreate);
     loadMinMaxTime();
   }
 
@@ -1021,26 +1061,36 @@ const PromotionLineModal = () => {
                       disabledInput={disabledInput}
                     />
                   )}
-                  {formState.typePromotionId == "V" && (
-                    <VoucherPromotion
-                      modalType={modalState.type}
-                      formState={formState.V}
-                      setFormState={(value) => {
-                        setFormState({
-                          ...formState,
-                          V: value,
-                        });
-                      }}
-                      errMessage={errMessage.V}
-                      setErrMessage={(value) => {
-                        setErrMessage({
-                          ...errMessage,
-                          V: value,
-                        });
-                      }}
-                      disabledInput={disabledInput}
-                    />
-                  )}
+                  {formState.typePromotionId == "V" &&
+                    modalState.type == "create" && (
+                      <VoucherPromotion
+                        setLvErrMessage={setLvErrMessage}
+                        lvErrMessage={lvErrMessage}
+                        tableData={listVoucherCreate}
+                        setTableData={setListVoucherCreate}
+                      />
+                    )}
+                  {formState.typePromotionId == "V" &&
+                    modalState.type != "create" && (
+                      <VoucherPromotionDetail
+                        modalType={modalState.type}
+                        formState={formState.V}
+                        setFormState={(value) => {
+                          setFormState({
+                            ...formState,
+                            V: value,
+                          });
+                        }}
+                        errMessage={errMessage.V}
+                        setErrMessage={(value) => {
+                          setErrMessage({
+                            ...errMessage,
+                            V: value,
+                          });
+                        }}
+                        disabledInput={disabledInput}
+                      />
+                    )}
                 </div>
               )}
             </div>

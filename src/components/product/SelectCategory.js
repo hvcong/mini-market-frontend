@@ -6,7 +6,12 @@ import cateApi from "../../api/cateApi";
 import { setCates } from "../../store/slices/cateSlice";
 import CategoryDetailModal from "./../category/CategoryDetailModal";
 
-const SelectCategory = ({ idSelected, status, setIdCategorySelected }) => {
+const SelectCategory = ({
+  idSelected,
+  status,
+  setIdCategorySelected,
+  ...props
+}) => {
   const { categories = [], refresh } = useSelector((state) => state.cate);
   const dispatch = useDispatch();
 
@@ -44,6 +49,7 @@ const SelectCategory = ({ idSelected, status, setIdCategorySelected }) => {
   return (
     <>
       <Select
+        {...props}
         style={{
           width: "100%",
         }}

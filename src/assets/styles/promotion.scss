@@ -133,4 +133,20 @@
       border-radius: 4px;
     }
   }
+
+  // voucher create
+  .voucher_modal_bottom_create {
+    .promotion_voucher_create_input_wrap {
+      .promotion_voucher_create_input {
+        width: 180px;
+      }
+      .promotion_voucher_create_input_err {
+        font-size: 12px;
+        color: red;
+      }
+      .promotion_voucher_create_number {
+        width: 100px;
+      }
+    }
+  }
 }

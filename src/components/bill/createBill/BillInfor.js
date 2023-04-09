@@ -222,24 +222,31 @@ const BillInfor = ({ listPromotionLinesOnActive, tableData }) => {
     dispatch(setVoucherInput(input));
     if (input) {
       let res = await promotionApi.getOneVByCode(input);
+      console.log(res);
       if (res.isSuccess) {
         let voucher = res.voucher;
+        let PromotionResult = voucher.PromotionResult || {};
 
         let start = new Date(voucher.startDate);
         let end = new Date(voucher.endDate);
         let now = new Date();
         let state = voucher.state;
-        console.log(listPromotionLinesOnActive);
 
-        if (compareDMY(start, now) <= 0 && compareDMY(end, now) >= 0 && state) {
-          // kiểm tra xem khách hàng này có được áp dụng hay không
-          listPromotionLinesOnActive.map((promotionLine) => {
-            if (promotionLine.promotionType == "V") {
-              if (promotionLine.id == voucher.id) {
-                dispatch(setVoucherUsed(voucher));
+        if (!PromotionResult.isSuccess) {
+          if (
+            compareDMY(start, now) <= 0 &&
+            compareDMY(end, now) >= 0 &&
+            state
+          ) {
+            // kiểm tra xem khách hàng này có được áp dụng hay không
+            listPromotionLinesOnActive.map((promotionLine) => {
+              if (promotionLine.promotionType == "V") {
+                if (promotionLine.id == voucher.id) {
+                  dispatch(setVoucherUsed(voucher));
+                }
               }
-            }
-          });
+            });
+          }
         }
       } else {
         dispatch(setVoucherUsed(null));

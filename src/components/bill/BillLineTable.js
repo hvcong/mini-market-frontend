@@ -73,26 +73,39 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
 
           // PP
           if (isSuccess && type == "PP") {
-            let PP = result.ProductPromotion || {};
-            let giftProduct = PP.GiftProduct || {};
-            let put2 = giftProduct.ProductUnitType || {};
-            let quantityGift = giftProduct.quantity;
-            let productGift = put2.Product || {};
-            let unitTypeGift = put2.UnitType || {};
-            let newRow = {
-              id: uid(),
-              quantity: quantityGift,
-              price: 0,
-              productId: productGift.id,
-              productName: productGift.name,
-              utName: unitTypeGift.name,
-              utId: unitTypeGift.id,
-              isGift: true,
-              isPromotion: true,
-              ProductPromotion: result.ProductPromotion,
-            };
+            let ProductPromotion = result.ProductPromotion;
+            let put1Id = ProductPromotion.ProductUnitTypeId;
+            let minQuantity = ProductPromotion.minQuantity;
+            let put2Id = ProductPromotion.GiftProduct.ProductUnitTypeId;
+            let quantityGift = ProductPromotion.GiftProduct.quantity;
 
-            _dataTable.push(newRow);
+            BillDetails.map((item) => {
+              let put3Id = item.Price.ProductUnitTypeId;
+              let quantity = item.quantity;
+              let quantityTran =
+                ((quantity - (quantity % minQuantity)) / minQuantity) *
+                quantityGift;
+
+              if (put3Id == put1Id) {
+                let newRow = {
+                  id: uid(),
+                  quantity: quantityTran,
+                  price: 0,
+                  productId:
+                    ProductPromotion.GiftProduct.ProductUnitType.ProductId,
+                  productName:
+                    ProductPromotion.GiftProduct.ProductUnitType.Product.name,
+                  utName:
+                    ProductPromotion.GiftProduct.ProductUnitType.UnitType.name,
+                  utId: ProductPromotion.GiftProduct.ProductUnitType.UnitType
+                    .id,
+                  isGift: true,
+                  isPromotion: true,
+                  ProductPromotion: ProductPromotion,
+                };
+                _dataTable.push(newRow);
+              }
+            });
           }
 
           // MP

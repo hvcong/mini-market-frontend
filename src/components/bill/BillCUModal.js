@@ -32,7 +32,7 @@ import dayjs from "dayjs";
 import ListPromotion from "./ListPromotion";
 import ReceiveButton from "./ReceiveButton";
 import { setOpen } from "../../store/slices/modalSlice";
-import { convertToVND } from "../../utils";
+import { convertToVND, handleAfter } from "../../utils";
 import { setRefreshBills } from "../../store/slices/billSlice";
 const dateFormat = "YYYY-MM-DD";
 
@@ -204,6 +204,7 @@ const BillCUModal = () => {
     let res = await billApi.updateType(billId, "success");
     if (res.isSuccess) {
       message.info("Thao tác thành công", 3);
+      handleAfter.handleAfterOrderToBill(billId);
       closeModal();
 
       dispatch(setRefreshBills());

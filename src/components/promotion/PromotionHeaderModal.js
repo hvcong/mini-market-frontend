@@ -57,7 +57,11 @@ const initErrMessage = {
   customerTypeIds: "",
 };
 
-const PromotionHeaderModal = ({ modalState, setModalState }) => {
+const PromotionHeaderModal = ({
+  modalState,
+  setModalState,
+  handleOnChangeState,
+}) => {
   let hideLoading = null;
   const dispatch = useDispatch();
 
@@ -238,52 +242,6 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
     setFormState(initFormState);
   }
 
-  async function handleOnChangeState(is) {
-    if (modalState.type == "create") {
-      setFormState({
-        ...formState,
-        state: is,
-      });
-    }
-
-    if (modalState.type == "update") {
-      /**
-       * To active
-       * - kiểm tra thời gian ( start <= now && end > now)
-       * - kiểm tra trùng priceline
-       */
-
-      if (is) {
-        // to active header
-        let res = await promotionApi.updateOneHeader(formState.id, {
-          state: true,
-        });
-
-        if (res.isSuccess) {
-          setFormState({
-            ...formState,
-            state: true,
-          });
-          message.info("Chương trình khuyến mãi đã bắt đầu sử dụng.", 3);
-          dispatch(setRefreshPromotionHeaders());
-        }
-      } else {
-        let res = await promotionApi.updateOneHeader(formState.id, {
-          state: false,
-        });
-
-        if (res.isSuccess) {
-          setFormState({
-            ...formState,
-            state: false,
-          });
-          message.info("Đã tạm dừng khuyến mãi ", 3);
-          dispatch(setRefreshPromotionHeaders());
-        }
-      }
-    }
-  }
-
   async function handleOnChangeStartDate(string) {
     if (modalState.type == "create") {
       setFormState({
@@ -461,6 +419,20 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
     }
   }
 
+  function disabledChangeHeaderState() {
+    if (formState.startDate && formState.endDate) {
+      let start = new Date(formState.startDate);
+      let end = new Date(formState.endDate);
+      let now = new Date();
+
+      // đã hết hạn
+      if (compareDMY(end, now) < 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   return (
     <div className="promotion_header_modal">
       <ModalCustomer
@@ -633,7 +605,14 @@ const PromotionHeaderModal = ({ modalState, setModalState }) => {
                     </div>
                     <div className="promotion_header_form_input_wrap">
                       <Switch
-                        onChange={handleOnChangeState}
+                        onChange={async (is) => {
+                          await handleOnChangeState(is, formState.id);
+                          setFormState({
+                            ...formState,
+                            state: is,
+                          });
+                        }}
+                        disabled={disabledChangeHeaderState()}
                         checked={state}
                         status={errMessage.state && "error"}
                       />

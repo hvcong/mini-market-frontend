@@ -25,6 +25,11 @@ class PriceLineApi {
     let url = `price/priceId?id=${priceId}`;
     return axiosClient.get(url);
   }
+
+  deleteOneById(priceId) {
+    let url = `price/delete?id=${priceId}`;
+    return axiosClient.delete(url);
+  }
 }
 
 const priceLineApi = new PriceLineApi();

@@ -39,7 +39,12 @@ const initFormState = {
 };
 const initErrMessage = {};
 
-const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
+const PriceLineModal = ({
+  modalState,
+  setModalState,
+  headerPriceId,
+  disabledItem,
+}) => {
   let hideLoading = null;
   const { priceLines, refresh } = useSelector((state) => state.priceLine);
   const dispatch = useDispatch();
@@ -127,6 +132,14 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
       } else {
         // update
         hideLoading = message.loading("Đang cập nhật thay đổi...", 0);
+        res = await priceLineApi.updateOne(modalState.rowSelected.id, formData);
+        if (res.isSuccess) {
+          hideLoading();
+          dispatch(setRefreshPriceLines());
+          closeModal();
+        } else {
+          message.error("Có lỗi xảy ra, vui lòng thử lại!");
+        }
       }
     }
 
@@ -146,16 +159,17 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
         _errMess.utId = "Không được bỏ trống";
       }
 
-      if (formState.productId && formState.utId) {
-        let putId = await getPUTid(formState.productId, formState.utId);
-        priceLines.map((item) => {
-          if (item.ProductUnitTypeId == putId) {
-            isCheck = false;
-            message.error("Sản phẩm và đơn vị đã tồn tại trong bảng này");
-          }
-        });
+      if (type == "create") {
+        if (formState.productId && formState.utId) {
+          let putId = await getPUTid(formState.productId, formState.utId);
+          priceLines.map((item) => {
+            if (item.ProductUnitTypeId == putId) {
+              isCheck = false;
+              message.error("Sản phẩm và đơn vị đã tồn tại trong bảng này");
+            }
+          });
+        }
       }
-
       Object.keys(_errMess).map((key) => {
         if (_errMess[key]) {
           isCheck = false;
@@ -187,62 +201,6 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
     return putId;
   }
 
-  function disabledUT() {
-    if (formState.ListPricesHeader) {
-      let header = formState.ListPricesHeader;
-
-      if (header.state) {
-        return true;
-      }
-
-      let start = header && new Date(header.startDate);
-      let end = header && new Date(header.endDate);
-      let now = new Date();
-
-      // start <= now thì disabled
-      if (modalState.type == "update" && compareDMY(start, now) <= 0) {
-        return true;
-      }
-    }
-  }
-
-  function disabledProductId() {
-    if (formState.ListPricesHeader) {
-      let header = formState.ListPricesHeader;
-      if (header.state) {
-        return true;
-      }
-
-      let start = header && new Date(header.startDate);
-      let end = header && new Date(header.endDate);
-      let now = new Date();
-
-      // // start <= now thì disabled
-      if (modalState.type == "update" && compareDMY(start, now) <= 0) {
-        return true;
-      }
-    }
-  }
-
-  function disabledPrice() {
-    if (formState.ListPricesHeader) {
-      let header = formState.ListPricesHeader;
-      if (header.state) {
-        return true;
-      }
-
-      let start = header && new Date(header.startDate);
-      let end = header && new Date(header.endDate);
-      let state = header && header.state;
-      let now = new Date();
-
-      // // start <= now thì disabled
-      if (modalState.type == "update" && compareDMY(start, now) <= 0) {
-        return true;
-      }
-    }
-  }
-
   return (
     <div className="price_line_modal">
       <ModalCustomer
@@ -271,11 +229,12 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
                     onChange={(value) => {
                       setFormState({
                         ...formState,
+                        utId: "",
                         productId: value,
                       });
                     }}
                     status={errMessage.productId && "error"}
-                    disabled={disabledProductId()}
+                    disabled={disabledItem("productId", modalState.type)}
                   />
                   <div className="price_line_form_input_err">
                     {errMessage.productId}
@@ -298,7 +257,10 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
                       });
                     }}
                     status={errMessage.utId && "error"}
-                    disabled={disabledUT()}
+                    disabled={
+                      disabledItem("utId", modalState.type) ||
+                      !formState.productId
+                    }
                   />
                   <div className="price_line_form_input_err">
                     {errMessage.utId}
@@ -326,7 +288,7 @@ const PriceLineModal = ({ modalState, setModalState, headerPriceId }) => {
                     }}
                     min={0}
                     status={errMessage.price && "error"}
-                    disabled={disabledPrice()}
+                    disabled={disabledItem("price")}
                   />
                   <div className="price_line_form_input_err">
                     {errMessage.price}
