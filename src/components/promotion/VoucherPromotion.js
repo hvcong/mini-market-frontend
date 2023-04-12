@@ -19,10 +19,10 @@ const typeMPs = [
     value: "discountMoney",
     label: "Tiền",
   },
-  // {
-  //   value: "discountRate",
-  //   label: "Phần trăm (%)  ",
-  // },
+  {
+    value: "discountRate",
+    label: "Phần trăm (%)  ",
+  },
 ];
 
 const initRowData = {
@@ -226,73 +226,73 @@ const VoucherPromotion = ({
           }
         },
       },
-      // {
-      //   title: "% chiếu khấu",
-      //   dataIndex: "discountRate",
-      //   render: (discountRate, rowData) => {
-      //     if (!rowData.isLastRow) {
-      //       return (
-      //         <div className="promotion_voucher_create_input_wrap">
-      //           <InputNumber
-      //             size="small"
-      //             className="promotion_voucher_create_number"
-      //             min={0}
-      //             max={100}
-      //             value={discountRate}
-      //             onChange={(value) => {
-      //               handleOnChange(rowData.id, "discountRate", value);
-      //             }}
-      //             disabled={rowData.type == "discountMoney"}
-      //             status={
-      //               lvErrMessage[rowData.id] &&
-      //               lvErrMessage[rowData.id].discountRate &&
-      //               "error"
-      //             }
-      //           />
-      //           <div className="promotion_voucher_create_input_err">
-      //             {lvErrMessage[rowData.id] &&
-      //               lvErrMessage[rowData.id].discountRate}
-      //           </div>
-      //         </div>
-      //       );
-      //     }
-      //   },
-      // },
-      // {
-      //   title: "Số tiền tối đa",
-      //   dataIndex: "maxDiscountMoney",
-      //   render: (maxDiscountMoney, rowData) => {
-      //     if (!rowData.isLastRow) {
-      //       return (
-      //         <div className="promotion_voucher_create_input_wrap">
-      //           <InputNumber
-      //             formatter={(value) =>
-      //               `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-      //             }
-      //             parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-      //             size="small"
-      //             className="promotion_voucher_create_number"
-      //             min={0}
-      //             value={maxDiscountMoney}
-      //             onChange={(value) => {
-      //               handleOnChange(rowData.id, "maxDiscountMoney", value);
-      //             }}
-      //             disabled={rowData.type == "discountMoney"}
-      //             status={
-      //               lvErrMessage[rowData.id] &&
-      //               lvErrMessage[rowData.id].maxDiscountMoney &&
-      //               "error"
-      //             }
-      //           />
-      //           <div className="promotion_voucher_create_input_err">
-      //             {lvErrMessage[rowData.id] &&
-      //               lvErrMessage[rowData.id].maxDiscountMoney}
-      //           </div>
-      //         </div>
-      //       );
-      //     }
-      //   },
-      // },
+      {
+        title: "% chiếu khấu",
+        dataIndex: "discountRate",
+        render: (discountRate, rowData) => {
+          if (!rowData.isLastRow) {
+            return (
+              <div className="promotion_voucher_create_input_wrap">
+                <InputNumber
+                  size="small"
+                  className="promotion_voucher_create_number"
+                  min={0}
+                  max={100}
+                  value={discountRate}
+                  onChange={(value) => {
+                    handleOnChange(rowData.id, "discountRate", value);
+                  }}
+                  disabled={rowData.type == "discountMoney"}
+                  status={
+                    lvErrMessage[rowData.id] &&
+                    lvErrMessage[rowData.id].discountRate &&
+                    "error"
+                  }
+                />
+                <div className="promotion_voucher_create_input_err">
+                  {lvErrMessage[rowData.id] &&
+                    lvErrMessage[rowData.id].discountRate}
+                </div>
+              </div>
+            );
+          }
+        },
+      },
+      {
+        title: "Số tiền tối đa",
+        dataIndex: "maxDiscountMoney",
+        render: (maxDiscountMoney, rowData) => {
+          if (!rowData.isLastRow) {
+            return (
+              <div className="promotion_voucher_create_input_wrap">
+                <InputNumber
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                  size="small"
+                  className="promotion_voucher_create_number"
+                  min={0}
+                  value={maxDiscountMoney}
+                  onChange={(value) => {
+                    handleOnChange(rowData.id, "maxDiscountMoney", value);
+                  }}
+                  disabled={rowData.type == "discountMoney"}
+                  status={
+                    lvErrMessage[rowData.id] &&
+                    lvErrMessage[rowData.id].maxDiscountMoney &&
+                    "error"
+                  }
+                />
+                <div className="promotion_voucher_create_input_err">
+                  {lvErrMessage[rowData.id] &&
+                    lvErrMessage[rowData.id].maxDiscountMoney}
+                </div>
+              </div>
+            );
+          }
+        },
+      },
       {
         title: "",
         width: 32,

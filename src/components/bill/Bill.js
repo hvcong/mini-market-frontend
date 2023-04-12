@@ -139,7 +139,7 @@ const Bill = ({}) => {
   useEffect(() => {
     getBills(pageState.page, pageState.limit);
     return () => {};
-  }, [pageState.page]);
+  }, [pageState]);
 
   useEffect(() => {
     if (refresh) {
@@ -161,6 +161,7 @@ const Bill = ({}) => {
   async function getBills(page, limit) {
     hideLoading = message.loading("Tải dữ liệu hóa đơn...", 0);
     let res = await billApi.getLimitBill(page, limit);
+
     if (res.isSuccess) {
       dispatch(setBills(res.bills));
     }

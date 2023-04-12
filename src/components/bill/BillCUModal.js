@@ -66,9 +66,7 @@ const BillCUModal = () => {
   }, [modalState]);
 
   async function loadOneBill(billId) {
-    hideLoading = message.loading("Đang tải dữ liệu hóa đơn...", 0);
     let res = await billApi.getOneBillById(billId);
-    hideLoading();
     if (res.isSuccess) {
       setFormState({
         ...res.bill,
@@ -118,76 +116,28 @@ const BillCUModal = () => {
     if (formState.PromotionResults) {
       let promotionResults = formState.PromotionResults.map((result) => {
         if (result.ProductPromotionId) {
-          let {
-            id,
-            isSuccess,
-            note,
-            BillId,
-            ProductPromotionId,
-            ProductPromotion,
-          } = result;
-
           return {
-            id,
-            isSuccess,
-            note,
-            BillId,
-            ProductPromotionId,
-            ProductPromotion,
+            ...result,
             type: "PP",
           };
         }
         if (result.MoneyPromotion) {
-          let {
-            id,
-            isSuccess,
-            note,
-            BillId,
-            MoneyPromotionId,
-            MoneyPromotion,
-          } = result;
           setMPused(result.MoneyPromotion);
 
           return {
-            id,
-            isSuccess,
-            note,
-            BillId,
-            MoneyPromotionId,
-            MoneyPromotion,
+            ...result,
             type: "MP",
           };
         }
         if (result.DiscountRateProduct) {
-          let {
-            id,
-            isSuccess,
-            note,
-            BillId,
-            DiscountRateProductId,
-            DiscountRateProduct,
-          } = result;
-
           return {
-            id,
-            isSuccess,
-            note,
-            BillId,
-            DiscountRateProductId,
-            DiscountRateProduct,
+            ...result,
             type: "DRP",
           };
         }
         if (result.Voucher) {
-          let { id, isSuccess, note, BillId, VoucherId, Voucher } = result;
-
           return {
-            id,
-            isSuccess,
-            note,
-            BillId,
-            VoucherId,
-            Voucher,
+            ...result,
             type: "V",
           };
         }
@@ -204,7 +154,6 @@ const BillCUModal = () => {
     let res = await billApi.updateType(billId, "success");
     if (res.isSuccess) {
       message.info("Thao tác thành công", 3);
-      handleAfter.handleAfterOrderToBill(billId);
       closeModal();
 
       dispatch(setRefreshBills());
@@ -219,7 +168,6 @@ const BillCUModal = () => {
     let res = await billApi.updateType(billId, "cancel");
     if (res.isSuccess) {
       message.info("Thao tác thành công", 3);
-
       closeModal();
       dispatch(setRefreshBills());
     } else {
@@ -250,7 +198,9 @@ const BillCUModal = () => {
                 <div className="bill_form_left">
                   <div className="bill_form_group">
                     <div className="bill_form_label">
-                      {type == "order-view" ? "Mã đơn đặt hàng" : "Mã hóa đơn"}
+                      {type == "pending" || type == "cancel"
+                        ? "Mã đơn đặt hàng"
+                        : "Mã hóa đơn"}
                     </div>
                     <div className="bill_form_input_wrap">
                       <Input
@@ -282,7 +232,7 @@ const BillCUModal = () => {
                     </div>
                   </div>
 
-                  {type != "order-view" && (
+                  {(type == "success" || type == "retrieve") && (
                     <div className="bill_form_group">
                       <div className="bill_form_label">Mã nhân viên</div>
                       <div className="bill_form_input_wrap">
@@ -304,7 +254,7 @@ const BillCUModal = () => {
 
                   <div className="bill_form_group">
                     <div className="bill_form_label">
-                      {type == "order-view"
+                      {type == "pending" || type == "cancel"
                         ? "Tổng giá trị đơn hàng"
                         : "Tổng giá trị hóa đơn"}
                     </div>
@@ -380,6 +330,7 @@ const BillCUModal = () => {
                 <BillLineTable
                   BillDetails={formState.BillDetails}
                   listKM={listKM}
+                  bill={formState}
                 />
               </div>
             </div>
@@ -406,7 +357,23 @@ const BillCUModal = () => {
                     }}
                   />
 
-                  <Button type="primary">Xem hóa đơn in</Button>
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      console.log(formState.id);
+                      dispatch(
+                        setOpen({
+                          name: "BillPrintModal",
+                          modalState: {
+                            visible: true,
+                            idSelected: formState.id,
+                          },
+                        })
+                      );
+                    }}
+                  >
+                    Xem hóa đơn in
+                  </Button>
                 </>
               )}
 

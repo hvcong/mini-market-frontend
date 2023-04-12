@@ -1,5 +1,15 @@
-import { Button, Empty, Select, Spin, Tag } from "antd";
-import { useEffect, useState } from "react";
+import {
+  Button,
+  Divider,
+  Empty,
+  Input,
+  Select,
+  Space,
+  Spin,
+  Tag,
+  Tooltip,
+} from "antd";
+import { useEffect, useRef, useState } from "react";
 import userApi from "../../../api/userApi";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -9,19 +19,21 @@ import {
   setNewPhoneInput,
 } from "../../../store/slices/createBillSlice";
 import HighlightedText from "../../HighlightedText";
-import { PlusOutlined } from "@ant-design/icons";
+import {
+  InfoCircleOutlined,
+  PlusOutlined,
+  WarningOutlined,
+} from "@ant-design/icons";
+import { isVietnamesePhoneNumberValid, uid } from "../../../utils";
 
-const CustomerSelect = ({ style }) => {
+const CustomerSelect = (props) => {
   const { activeKey } = useSelector((state) => state.createBill.tabState);
   const { tabItems } = useSelector((state) => state.createBill.tabState) || [];
+  const [errMess, setErrMess] = useState("");
   let customerPhone = "0";
-  let newPhoneInput = "";
-  let isShowNewCustomer = false;
   tabItems.map((item) => {
     if (item.key == activeKey) {
       customerPhone = item.customerPhone || "0";
-      newPhoneInput = item.newPhoneInput;
-      isShowNewCustomer = item.isShowNewCustomer;
     }
   });
 
@@ -42,43 +54,39 @@ const CustomerSelect = ({ style }) => {
   const [fetching, setFetching] = useState(false);
 
   const handleSearch = (input) => {
-    if (input && input.length > 10) {
-      return;
+    if (input) {
+      let newInput = input.trim();
+      if (newInput) {
+        if (newInput.length > 0) {
+          let result = isVietnamesePhoneNumberValid(newInput);
+          if (!result) {
+            setErrMess("Số điện thoại chưa hợp lệ");
+          } else {
+            setErrMess("");
+          }
+        }
+      }
     }
 
-    if (input && input.length == 10) {
-      dispatch(setNewPhoneInput(input));
-    }
-    if (input && input.length > 0 && input.length < 10) {
-      dispatch(setNewPhoneInput(""));
-    }
     setInput(input);
-
     // fetching data here
     fetchData(input, setData, setFetching);
   };
   const handleChange = async (value) => {
-    console.log(value);
+    setErrMess("");
     setInput(value);
-    dispatch(setNewPhoneInput(""));
     dispatch(onChangeCustomerPhone(value));
   };
 
-  useEffect(() => {
-    if (
-      newPhoneInput &&
-      newPhoneInput.length == 10 &&
-      data &&
-      data.length < 1
-    ) {
-      dispatch(setIsShowNewCustomer(true));
+  async function addNewCustomer(phone) {
+    setInput(phone);
+    let res = await userApi.addOneCustomer({
+      phonenumber: phone,
+    });
+    if (res.isSuccess) {
+      handleChange(phone);
     }
-
-    if (!newPhoneInput) {
-      dispatch(setIsShowNewCustomer(false));
-    }
-    return () => {};
-  }, [newPhoneInput, data]);
+  }
 
   return (
     <div
@@ -88,60 +96,72 @@ const CustomerSelect = ({ style }) => {
       }}
     >
       <Select
+        {...props}
         size="small"
         showSearch
         placeholder="Khách hàng"
         optionFilterProp="children"
-        style={{
-          width: "160px",
-        }}
-        value={newPhoneInput ? newPhoneInput : customerPhone}
+        value={customerPhone}
         defaultActiveFirstOption
         showArrow={false}
-        onFocus={() => {
+        onClick={() => {
           handleSearch("");
         }}
         onBlur={() => {
-          if (newPhoneInput && newPhoneInput.length == 10) {
-            dispatch(setIsShowNewCustomer(true));
-          }
+          setErrMess("");
         }}
         filterOption={false}
         onSearch={handleSearch}
         onChange={handleChange}
-        notFoundContent={
-          fetching ? (
-            <Spin size="small" />
-          ) : (
-            <div
-              style={{
-                textAlign: "center",
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              <Empty />
-            </div>
-          )
-        }
+        dropdownRender={(menu) => (
+          <>
+            {menu}
+            {data.length == 0 && !errMess && (
+              <>
+                <Divider
+                  style={{
+                    margin: "8px 0",
+                  }}
+                />
+
+                <Button
+                  type="dashed"
+                  icon={<PlusOutlined />}
+                  onClick={() => {
+                    addNewCustomer(input);
+                  }}
+                  style={{
+                    width: "100%",
+                  }}
+                >
+                  Thêm mới
+                </Button>
+              </>
+            )}
+          </>
+        )}
+        notFoundContent={fetching ? <Spin size="small" /> : <></>}
         options={(data || []).map((item) => ({
           value: item.value,
           label: item.label,
         }))}
+        status={errMess && "error"}
       />
-      <div className="add_new_customer">
-        {isShowNewCustomer && (
-          <Tag
-            color="green"
+      {errMess && (
+        <Tooltip
+          placement="topRight"
+          title={"Số điện thoại không hợp lệ!"}
+          color={"red"}
+        >
+          <WarningOutlined
             style={{
-              marginLeft: 12,
-              marginTop: 1,
+              color: "red",
+              marginLeft: 8,
+              cursor: "pointer",
             }}
-          >
-            KH mới
-          </Tag>
-        )}
-      </div>
+          />
+        </Tooltip>
+      )}
     </div>
   );
 };

@@ -41,7 +41,7 @@ const CreateBill = () => {
         </div>
       </div>
 
-      <div className="content">
+      <div className="create_bill_content">
         <div className="list_container">
           <ListProduct />
         </div>

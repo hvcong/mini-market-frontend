@@ -246,9 +246,9 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
           </Typography.Title>
           <div className="form__container">
             <div className="form__wrap">
-              <div className="input_container">
+              {/* <div className="input_container">
                 <UploadImageProduct />
-              </div>
+              </div> */}
               <div className="category_modal_left">
                 <div className="input_container">
                   <Text className="label">Mã nhóm</Text>

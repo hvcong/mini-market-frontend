@@ -7,7 +7,7 @@ class BillApi {
   }
 
   getLimitBill(page = 1, limit = 10) {
-    let url = `bill/success?_page=${page}&limit=${limit}`;
+    let url = `bill/success?_page=${page}&_limit=${limit}`;
     return axiosClient.get(url);
   }
 
@@ -17,14 +17,17 @@ class BillApi {
     return axiosClient.get(url);
   }
 
-  updateType(billId, type) {
+  updateType(billId, type, employeeId) {
     let url = `bill/${billId}/update-type/${type}`;
-    return axiosClient.put(url);
+
+    return axiosClient.put(url, {
+      employeeId,
+    });
   }
 
   //// receive bill
   getLimitReceives(page = 1, limit = 10) {
-    let url = `retrieve/get?_page=${page}&limit=${limit}`;
+    let url = `retrieve/get?_page=${page}&_limit=${limit}`;
     return axiosClient.get(url);
   }
 
@@ -35,7 +38,7 @@ class BillApi {
 
   //// order
   getLimitOrders(page = 1, limit = 10) {
-    let url = `bill/fail?_page=${page}&limit=${limit}`;
+    let url = `bill/fail?_page=${page}&_limit=${limit}`;
     return axiosClient.get(url);
   }
 }

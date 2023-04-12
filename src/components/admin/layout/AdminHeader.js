@@ -5,8 +5,12 @@ import { Breadcrumb } from "antd";
 import logoImage from "../../../assets/images/logo.png";
 import avatarImg from "../../../assets/images/avatar__default.png";
 import { DownOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
+import { useDispatch, useSelector } from "react-redux";
+import { setOpen } from "../../../store/slices/modalSlice";
 
 const AdminHeader = () => {
+  const dispatch = useDispatch();
+  const account = useSelector((state) => state.user.account);
   return (
     <Layout
       className="header"
@@ -24,19 +28,35 @@ const AdminHeader = () => {
           </div>
         </div>
         <div className="right">
+          <div className="hello_group">
+            <div className="hellow_text">Xin chào</div>
+            <div className="name">Hoang van cong</div>
+          </div>
           <div className="right__item">
             <div className="account">
               <div className="account__avatar">
                 <img className="account__img" src={avatarImg} />
               </div>
-              <Typography.Title level={5} className="name">
-                Hoang van cong
-              </Typography.Title>
-
               <div className="account__drop">
                 <div className="drop__item">
                   <UserOutlined />
-                  <span className="item__label">Tài khoản</span>
+                  <span
+                    className="item__label"
+                    onClick={() => {
+                      dispatch(
+                        setOpen({
+                          name: "ProfileModal",
+                          modalState: {
+                            visible: true,
+                            type: "view",
+                            idSelected: account.id,
+                          },
+                        })
+                      );
+                    }}
+                  >
+                    Tài khoản
+                  </span>
                 </div>
                 <div className="drop__item">
                   <LogoutOutlined />

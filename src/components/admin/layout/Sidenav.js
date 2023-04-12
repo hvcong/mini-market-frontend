@@ -21,21 +21,11 @@ function getItem(label, key, icon, children, type) {
 }
 const Sidenav = () => {
   const items = [
-    getItem("Sản phẩm", "sub1", <AppstoreOutlined />, [
-      getItem(<NavLink to="products">Danh sách SP</NavLink>, "products"),
-      getItem(<NavLink to="category">Nhóm SP</NavLink>, "category"),
-      getItem(<NavLink to="unitType">Đơn vị tính</NavLink>, "unitTypes"),
-    ]),
-    getItem(
-      <NavLink to="prices">Bảng giá</NavLink>,
-      "price",
-      <DollarCircleOutlined />
-    ),
     getItem("Giao dịch", "sub2", <FileDoneOutlined />, [
-      getItem(<NavLink to="bills">Hóa đơn</NavLink>, "bills"),
-      getItem(<NavLink to="create_bill">Tạo hóa đơn</NavLink>, "create_bill"),
-      getItem(<NavLink to="bills_receive">Trả hàng</NavLink>, "returns"),
       getItem(<NavLink to="orders">Đơn đặt hàng</NavLink>, "orders"),
+      getItem(<NavLink to="create_bill">Tạo đơn hàng</NavLink>, "create_bill"),
+      getItem(<NavLink to="bills">Hóa đơn</NavLink>, "bills"),
+      getItem(<NavLink to="bills_receive">Trả hàng</NavLink>, "returns"),
     ]),
     getItem("Kho", "store", <FileDoneOutlined />, [
       getItem(
@@ -49,15 +39,25 @@ const Sidenav = () => {
       ),
     ]),
     getItem(
-      <NavLink to="promotion">Khuyến mãi</NavLink>,
-      "promotion",
-      <FileDoneOutlined />
-    ),
-    getItem(
       <NavLink to="">Thống kê</NavLink>,
       "statistic",
       <FileDoneOutlined />
     ),
+    getItem(
+      <NavLink to="prices">Bảng giá</NavLink>,
+      "price",
+      <DollarCircleOutlined />
+    ),
+    getItem(
+      <NavLink to="promotion">Khuyến mãi</NavLink>,
+      "promotion",
+      <FileDoneOutlined />
+    ),
+    getItem("Sản phẩm", "sub1", <AppstoreOutlined />, [
+      getItem(<NavLink to="products">Danh sách SP</NavLink>, "products"),
+      getItem(<NavLink to="category">Nhóm SP</NavLink>, "category"),
+      getItem(<NavLink to="unitType">Đơn vị tính</NavLink>, "unitTypes"),
+    ]),
     getItem("Khách hàng", "customer", <FileDoneOutlined />, [
       getItem(<NavLink to="customers">Danh sách</NavLink>, "list_customer"),
       getItem(
@@ -83,7 +83,7 @@ const Sidenav = () => {
         position: "fixed",
         width: "200px",
         overflowY: "auto",
-        height: "100vh",
+        height: "90vh",
       }}
       className="sidenav"
     >
@@ -93,8 +93,7 @@ const Sidenav = () => {
         inlineCollapsed={collapsed}
         items={items}
         style={{
-          height: "100%",
-          overflowY: "auto",
+          height: "90%",
         }}
         onSelect={(item) => {
           console.log(item);

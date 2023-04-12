@@ -80,12 +80,28 @@ const Customer = ({}) => {
       fixed: "left",
       fixedShow: true,
       render: (_, rowData) => {
-        return (rowData.firstName || "") + " " + (rowData.lastName || "");
+        let name = (rowData.firstName || "") + " " + (rowData.lastName || "");
+        return name;
       },
     },
     {
       title: "Số điện thoại",
       dataIndex: "phonenumber",
+      render: (phonenumber, rowData) => {
+        return (
+          <Typography.Link
+            onClick={() => {
+              setModalState({
+                type: "update",
+                visible: true,
+                rowSelected: rowData,
+              });
+            }}
+          >
+            {phonenumber}
+          </Typography.Link>
+        );
+      },
     },
 
     {

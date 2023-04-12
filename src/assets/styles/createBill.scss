@@ -24,7 +24,11 @@
         color: white;
       }
 
+      .ant-tabs-tab-remove {
+        display: none;
+      }
       .ant-tabs-nav-add {
+        display: none;
         background: transparent;
         color: white;
         border: none;
@@ -48,7 +52,7 @@
       }
     }
   }
-  .content {
+  .create_bill_content {
     display: flex;
     height: 100%;
     background-color: white;
@@ -68,90 +72,157 @@
     }
 
     .bill_infor_container {
-      border: 1px solid #ddd;
+      // border: 1px solid #ddd;
       border-radius: 4px;
       margin-left: 12px;
-      height: calc(100vh - 45px - 90px);
+      // height: calc(100vh - 45px - 90px);
       background: white;
 
       .bill_infor {
         width: 370px;
         height: inherit;
-        padding: 12px;
         font-size: 13px;
         border-radius: 4px;
         margin-left: 0;
         display: flex;
         flex-direction: column;
-        .employee {
-          display: flex;
-          align-items: center;
-          flex: 1;
-        }
-        .select_container {
-          width: 280px;
-        }
-        .time_container {
-          flex: 1;
-          text-align: right;
-        }
-        .row {
-          display: flex;
-          padding: 8px 4px;
-          align-items: center;
-        }
-        .line {
-          height: 4px;
-          background: #ddd;
-        }
-        .customer {
-          flex: 1;
-          display: flex;
-          align-items: center;
-        }
-        .add_cus_icon {
-          padding: 4px;
-          // background: #ccc;
+
+        .bill_infor_item {
+          border: 1px solid #ddd;
           border-radius: 4px;
-          .icon {
-            transition: all 0.2s ease;
-            font-size: 15px;
-          }
+          margin-bottom: 1px;
+          padding: 8px 12px 0 12px;
+        }
 
-          .icon:hover {
-            transform: scale(1.2);
+        // top customer-employee
+        .bill_infor_top {
+          .bill_infor_top_item {
+            display: flex;
+            padding-bottom: 12px;
+            align-items: center;
+          }
+          .bill_infor_top_label {
+            width: 100px;
+          }
+          .bill_infor_top_value {
+          }
+        }
+
+        // moneydiscount-bill
+
+        .bill_infor_money_discount {
+          padding-bottom: 8px;
+
+          .bill_infor_money_discount_header_text {
+            flex: 1;
+            margin: 0;
+          }
+          .bill_infor_money_discount_group {
+            padding: 8px 0 4px 0;
             cursor: pointer;
+            color: #018547;
+            display: flex;
+            .bill_infor_money_discount_label {
+              flex: 1;
+            }
+          }
+
+          .bill_infor_money_discount_btn_link {
+            padding-bottom: 4px;
+            font-size: 12px;
+          }
+          .bill_infor_money_discount_detail {
+            border: 1px solid #ddd;
+            background-color: #1ad762;
+            color: white;
+            border-radius: 4px;
+            padding: 12px;
+            .bill_infor_money_discount_detail_item {
+              display: flex;
+              padding: 4px 0;
+            }
+            .bill_infor_money_discount_detail_label {
+              flex: 1;
+            }
+            .bill_infor_money_discount_detail_value {
+            }
           }
         }
-        .price_mode {
-        }
-        .label {
-          width: 160px;
-        }
-        .selectLabel {
-          width: 100px;
-        }
-        .label.bold {
-          font-weight: bold;
-        }
-        .quantitty {
-          padding: 4px;
-          border-radius: 50%;
-          background: #ddd;
-          font-size: 14px;
-        }
-        .value {
-          margin-left: auto;
+        // voucher-bill
+        .bill_infor_voucher {
+          .bill_infor_voucher_title {
+            flex: 1;
+          }
+          .bill_infor_voucher_group {
+            display: flex;
+            padding-bottom: 12px;
+            .bill_infor_voucher_input_wrap {
+              flex: 1;
+              margin-right: 12px;
+            }
+            .bill_infor_voucher_input {
+            }
+            .bill_infor_voucher_input_err {
+              font-size: 12px;
+              color: red;
+              padding-top: 2px;
+            }
+            .bill_infor_voucher_btn {
+            }
+          }
 
-          .input {
-            border: none;
-            font-size: 18px;
-            padding-right: 4px;
-            text-align: right;
+          .bill_infor_voucher_detail_btn_link {
+            padding-bottom: 4px;
+            font-size: 12px;
+          }
 
-            &:focus {
-              outline: none;
-              border: none;
+          .bill_infor_voucher_detail {
+            margin-bottom: 8px;
+            .bill_infor_voucher_detail_wrap {
+              padding: 12px 12px 8px 12px;
+              border: 1px solid #ddd;
+              background-color: #1ad762;
+              color: white;
+              border-radius: 4px;
+            }
+            .bill_infor_voucher_detail_item {
+              display: flex;
+              padding-bottom: 4px;
+              color: #018547;
+              .bill_infor_voucher_detail_label {
+                flex: 1;
+              }
+              .bill_infor_voucher_detail_value {
+              }
+            }
+            .voucher_used {
+              .bill_infor_voucher_detail_label {
+                flex: 1;
+              }
+              .bill_infor_voucher_detail_value {
+              }
+            }
+          }
+        }
+
+        // total-bill
+        .bill_infor_total {
+          .bill_infor_total_item {
+            padding-bottom: 12px;
+            display: flex;
+            .bill_infor_total_label {
+              flex: 1;
+            }
+            .bill_infor_total_value {
+            }
+          }
+          .total {
+            .bill_infor_total_label {
+              flex: 1;
+            }
+            .bill_infor_total_value {
+              color: #018547;
+              font-size: 20px;
             }
           }
         }
@@ -162,41 +233,6 @@
           flex-direction: column;
           justify-content: flex-end;
         }
-      }
-    }
-
-    .bill_infor_voucher {
-      padding: 4px;
-      .bill_infor_voucher_top {
-        display: flex;
-        align-items: center;
-      }
-      .bill_infor_voucher_top_label {
-        padding-right: 18px;
-      }
-      .bill_infor_voucher_top_value {
-        flex: 1;
-        text-align: right;
-        color: #018547;
-      }
-      .bill_infor_voucher_input_wrap {
-        width: 160px;
-        padding-top: 4px;
-      }
-      .bill_infor_voucher_input {
-      }
-
-      .bill_infor_voucher_result {
-        display: flex;
-        align-items: center;
-        padding: 3px 4px 0;
-        cursor: pointer;
-        .close_icon {
-          color: red;
-        }
-      }
-      .bill_infor_voucher_result_icon {
-        color: #018547;
       }
     }
   }
@@ -232,4 +268,14 @@
   .list_container {
     padding-left: 12px;
   }
+}
+
+.PP_toltip {
+}
+
+.PP_toltip_title {
+  padding-top: 8px;
+  font-size: 14px;
+}
+.PP_toltip_link {
 }

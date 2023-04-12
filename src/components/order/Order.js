@@ -211,7 +211,6 @@ const Order = ({}) => {
     let res = await billApi.updateType(billId, "success");
     if (res.isSuccess) {
       message.info("Thao tác thành công", 3);
-      handleAfter.handleAfterOrderToBill(billId);
       dispatch(setRefreshBills());
     } else {
       message.info("Có lỗi xảy ra, vui lòng thử lại!", 3);

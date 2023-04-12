@@ -23,24 +23,29 @@ const ReceiveButton = ({
     setOpen(billId);
   };
   const handleOk = async () => {
-    setConfirmLoading(true);
-
-    let res = await billApi.addOneReceive({
-      note: input,
-      BillId: billId,
-    });
-
-    if (res.isSuccess) {
-      message.info("Thao tác thành công");
-      dispatch(setRefreshBills());
-      if (handleReceiveOke) {
-        handleReceiveOke();
-      }
-      handleCancel();
+    if (!input || (input && input.trim().length == 0)) {
+      message.error("Vui lòng thêm lí do trả hàng!");
+      return;
     } else {
-      message.error("Có lỗi xảy ra, vui lòng thử lại!");
+      setConfirmLoading(true);
+
+      let res = await billApi.addOneReceive({
+        note: input,
+        BillId: billId,
+      });
+
+      if (res.isSuccess) {
+        message.info("Thao tác thành công");
+        dispatch(setRefreshBills());
+        if (handleReceiveOke) {
+          handleReceiveOke();
+        }
+        handleCancel();
+      } else {
+        message.error("Có lỗi xảy ra, vui lòng thử lại!");
+      }
+      setConfirmLoading(false);
     }
-    setConfirmLoading(false);
   };
   const handleCancel = () => {
     setOpen("");

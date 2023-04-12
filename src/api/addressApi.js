@@ -5,6 +5,16 @@ class AddressApi {
     return axiosClient.get(url);
   }
 
+  getAllDistrict() {
+    let url = `district/get`;
+    return axiosClient.get(url);
+  }
+
+  getAllWard() {
+    let url = `ward/get`;
+    return axiosClient.get(url);
+  }
+
   getAllDistrictByCityId(cityId) {
     let url = `district/byCity?cityId=${cityId}`;
     return axiosClient.get(url);

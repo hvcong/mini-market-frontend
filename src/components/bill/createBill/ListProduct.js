@@ -1,36 +1,47 @@
 import {
   DeleteOutlined,
+  ExclamationCircleOutlined,
   FallOutlined,
   GifOutlined,
   GiftFilled,
   MoreOutlined,
+  WarningOutlined,
 } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
-import ListProductItem from "./ListProductItem";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addOneProductToActiveTab,
   clearOneTab,
   removeOneProductLine,
+  updateQuantityOneProduct,
 } from "../../../store/slices/createBillSlice";
-import { Button, Empty, message, Table, Tag, Typography } from "antd";
+import {
+  Button,
+  Empty,
+  InputNumber,
+  message,
+  Popover,
+  Table,
+  Tag,
+  Tooltip,
+  Typography,
+} from "antd";
 import promotionApi from "./../../../api/promotionApi";
 import { compareDMY, convertToVND } from "./../../../utils/index";
 import BillInfor from "./BillInfor";
 import userApi from "../../../api/userApi";
+import productApi from "../../../api/productApi";
+import PPToltip from "./PPPopover";
+import PPPopover from "./PPPopover";
 
 const ListProduct = () => {
   const { activeKey, tabItems = [] } = useSelector(
     (state) => state.createBill.tabState
   );
   let customerPhone = "";
-  let newPhoneInput = "";
-  let isShowNewCustomer = false;
   tabItems.map((item) => {
     if (item.key == activeKey) {
-      customerPhone = item.customerPhone;
-      newPhoneInput = item.newPhoneInput;
-      isShowNewCustomer = item.isShowNewCustomer;
+      customerPhone = item.customerPhone || "0";
     }
   });
 
@@ -47,6 +58,10 @@ const ListProduct = () => {
 
   const [allColumns, setAllColumns] = useState();
   const [tableData, setTableData] = useState([]);
+  const [costBeforeDiscountVoucher, setCostBeforeDiscountVoucher] = useState(0);
+  const [discountMoneyByMoneyPromotion, setDiscountMoneyByMoneyPromotion] =
+    useState(0);
+  const [MPused, setMPused] = useState(null);
 
   async function loadPromotionLinesActiveCanUsed() {
     let res = await promotionApi.getAllOnActive();
@@ -153,16 +168,10 @@ const ListProduct = () => {
   }
 
   useEffect(() => {
-    if (isShowNewCustomer && newPhoneInput) {
-      setCustomer({
-        TypeCustomerId: "BT",
-      });
-    } else {
-      loadCustomerByPhone(customerPhone);
-    }
+    loadCustomerByPhone(customerPhone);
 
     return () => {};
-  }, [customerPhone, isShowNewCustomer, newPhoneInput]);
+  }, [customerPhone]);
 
   async function loadCustomerByPhone(phone) {
     let res = await userApi.getOneCustomerByPhone(phone);
@@ -185,44 +194,66 @@ const ListProduct = () => {
   }, [customer]);
 
   useEffect(() => {
-    let _tableData = [];
+    loadDataToTable();
+    return () => {};
+  }, [list, listPromotionLinesOnActive]);
 
-    // first row for calculate
-    _tableData.push({ isFirstRow: true });
+  async function loadDataToTable() {
+    let _tableData = [];
 
     _tableData.push(...list);
 
-    listPromotionLinesOnActive.map((promotionLine) => {
+    // tính toán số lượng tồn kho còn lại
+    let _quantityStore = {
+      // productId:{
+      //   totalQuantity:"",
+      //   quantityOnBill:""
+      // }
+    };
+
+    _tableData.map((rowData) => {
+      let productId = rowData.ProductUnitType.Product.id;
+      _quantityStore[productId] = {
+        totalQuantity: 0,
+        quantityOnBill: 0,
+      };
+    });
+
+    _tableData.map((rowData) => {
+      if (!rowData.isRowNotData) {
+        let quantity = rowData.quantity;
+        let productId = rowData.ProductUnitType.Product.id;
+        let totalQuantity = rowData.ProductUnitType.Product.quantity;
+        let convertionQuantity =
+          rowData.ProductUnitType.UnitType.convertionQuantity;
+        _quantityStore[productId].totalQuantity = totalQuantity;
+        _quantityStore[productId].quantityOnBill +=
+          quantity * convertionQuantity;
+      }
+    });
+
+    let listPPs = [];
+    const maxAvailabe = {
+      // productId:"0"
+    };
+
+    // tính toán khuyến mãi
+    for (const promotionLine of listPromotionLinesOnActive) {
       // PP promotion
       if (promotionLine.promotionType == "PP") {
-        let put1 = promotionLine.ProductUnitType;
-        let put2 = promotionLine.GiftProduct.ProductUnitType;
+        let putGift = promotionLine.GiftProduct.ProductUnitType;
+        let convertionQuantityGift = putGift.UnitType.convertionQuantity;
 
-        list.map((priceLine) => {
-          let put3 = priceLine.ProductUnitType;
-
-          if (put3.id == put1.id) {
-            let step = promotionLine.minQuantity;
-            let quantity = priceLine.quantity;
-
-            let giftQuantity = (quantity - (quantity % step)) / step;
-            if (giftQuantity > 0) {
-              _tableData.push({
-                isPromotion: true,
-                ProductUnitType: put2,
-                quantity: giftQuantity * promotionLine.GiftProduct.quantity,
-                price: 0,
-                ProductPromotionId: promotionLine.id,
-              });
-            }
-          }
+        listPPs.push({
+          ...promotionLine,
+          convertionQuantityGift,
         });
       }
 
       // DRP
       if (promotionLine.promotionType == "DRP") {
         let put1 = promotionLine.ProductUnitType;
-        list.map((priceLine) => {
+        for (const priceLine of list) {
           let put3 = priceLine.ProductUnitType;
           if (put1.id == put3.id) {
             _tableData = _tableData.map((rowData) => {
@@ -235,18 +266,162 @@ const ListProduct = () => {
               return rowData;
             });
           }
-        });
+        }
+      }
+    }
+    // sắp xếp theo thứ tự ưu tiên, (đơn vị càng lớn thì được tặng trước)
+    listPPs.sort((a, b) => {
+      return b.convertionQuantityGift - a.convertionQuantityGift;
+    });
+
+    listPPs.map((promotionLine) => {
+      let putGift = promotionLine.GiftProduct.ProductUnitType;
+      let convertionQuantityGift = putGift.UnitType.convertionQuantity;
+      let put1 = promotionLine.ProductUnitType;
+
+      for (const priceLine of list) {
+        let put3 = priceLine.ProductUnitType;
+
+        if (put3.id == put1.id) {
+          let minQuantity = promotionLine.minQuantity;
+          let quantityBuy = priceLine.quantity;
+          let step = Math.floor(quantityBuy / minQuantity);
+
+          /**
+           * Tính số lượng tồn kho xem có đủ để km không?
+           * Số lượng tồn theo đơn vị cơ bản của sp tặng là = tồn kho - số lượng nó trong đơn hàng hiện tại
+           * - nếu đủ số lượng thì sẽ được hưởng tất cả,nếu không đủ thì hưởng tùy theo số lượng tồn
+           */
+
+          let totalQuantityOfGiftProduct = putGift.Product.quantity;
+          let totalOnBillOfGiftProduct =
+            (_quantityStore[putGift.ProductId] &&
+              _quantityStore[putGift.ProductId].quantityOnBill) ||
+            0;
+
+          if (
+            !maxAvailabe[putGift.ProductId] &&
+            maxAvailabe[putGift.ProductId] != 0
+          ) {
+            maxAvailabe[putGift.ProductId] =
+              totalQuantityOfGiftProduct - totalOnBillOfGiftProduct;
+          }
+
+          let tmpQuantityGift = step * promotionLine.GiftProduct.quantity;
+
+          // số lượng sẽ tặng
+          let availabeQuantityGift = Math.floor(
+            maxAvailabe[putGift.ProductId] / convertionQuantityGift
+          );
+
+          let quantityGiftOke = tmpQuantityGift;
+          let message = "";
+          if (tmpQuantityGift > availabeQuantityGift) {
+            quantityGiftOke = availabeQuantityGift;
+            if (quantityGiftOke == 0) {
+              message = "Không áp dụng khuyến mãi do không đủ số lượng!";
+            } else {
+              message = "Chỉ áp dụng một phần, do không đủ số lượng!";
+            }
+          }
+
+          if (step > 0) {
+            maxAvailabe[putGift.ProductId] =
+              maxAvailabe[putGift.ProductId] -
+              quantityGiftOke * convertionQuantityGift;
+            _tableData.push({
+              isPromotion: true,
+              ProductUnitType: putGift,
+              quantity: quantityGiftOke,
+              message: message,
+              price: 0,
+              ProductPromotionId: promotionLine.id,
+              ProductPromotion: promotionLine,
+              productIdGift: putGift.ProductId,
+              convertionQuantityGift: convertionQuantityGift,
+            });
+          }
+        }
       }
     });
 
+    let subTotal = 0;
+    _tableData.map((row) => {
+      if (!row.isRowNotData) {
+        if (row.DRPused) {
+          let price = row.price - (row.price * row.DRPused.discountRate) / 100;
+          subTotal += price * row.quantity;
+        } else {
+          subTotal += row.quantity * row.price;
+        }
+      }
+    });
+    let discountOnBill = 0;
+    let _MPused = null;
+
+    listPromotionLinesOnActive.map((promotionLine) => {
+      if (promotionLine.promotionType == "MP") {
+        let minCost = promotionLine.minCost;
+        let type = promotionLine.type;
+        let discountMoney = promotionLine.discountMoney;
+        let discountRate = promotionLine.discountRate;
+        let maxMoneyDiscount = promotionLine.maxMoneyDiscount;
+        let availableBudget = promotionLine.availableBudget;
+
+        if (minCost <= subTotal) {
+          // giảm bằng tiền
+          if (type == "discountMoney") {
+            // lấy cái giảm giá nhiều nhát
+            if (discountMoney <= availableBudget) {
+              if (discountMoney > discountOnBill) {
+                _MPused = promotionLine;
+                discountOnBill = discountMoney;
+              }
+            }
+          }
+
+          // giảm bằng %
+          if (type == "discountRate") {
+            let sum = discountRate * subTotal;
+            if (sum > maxMoneyDiscount) {
+              sum = maxMoneyDiscount;
+            }
+
+            // lấy cái giảm giá nhiều nhát
+            if (sum <= availableBudget) {
+              if (sum > discountOnBill) {
+                discountOnBill = sum;
+                _MPused = promotionLine;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (_MPused) {
+      _tableData.unshift({
+        isSecondRow: true,
+        isRowNotData: true,
+        discountOnBill,
+        MPused: _MPused,
+      });
+    }
+
+    // first row for calculate
+    _tableData.unshift({ isFirstRow: true, isRowNotData: true });
+
     setTableData(_tableData);
+    setCostBeforeDiscountVoucher(subTotal - discountOnBill);
+    setDiscountMoneyByMoneyPromotion(discountOnBill);
+    setMPused(_MPused);
 
     setAllColumns([
       {
         title: "",
         width: 22,
         render: (_, rowData, index) => {
-          if (!rowData.isFirstRow) {
+          if (!rowData.isRowNotData) {
             return (
               <Button
                 size="small"
@@ -265,7 +440,7 @@ const ListProduct = () => {
       {
         title: "Mã sản phẩm",
         render: (_, rowData) => {
-          if (!rowData.isFirstRow && rowData && rowData.ProductUnitType) {
+          if (!rowData.isRowNotData && rowData && rowData.ProductUnitType) {
             return rowData.ProductUnitType.ProductId;
           }
         },
@@ -273,15 +448,20 @@ const ListProduct = () => {
       {
         title: "Tên sản phẩm",
         render: (_, rowData) => {
-          if (!rowData.isFirstRow && rowData && rowData.ProductUnitType) {
+          if (!rowData.isRowNotData && rowData && rowData.ProductUnitType) {
             return rowData.ProductUnitType.Product.name;
+          }
+
+          if (rowData.isSecondRow) {
+            console.log(rowData);
+            return rowData.MPused.title;
           }
         },
       },
       {
         title: "ĐVT",
         render: (_, rowData) => {
-          if (!rowData.isFirstRow && rowData && rowData.ProductUnitType) {
+          if (!rowData.isRowNotData && rowData && rowData.ProductUnitType) {
             return rowData.ProductUnitType.UnitTypeId;
           }
         },
@@ -290,7 +470,7 @@ const ListProduct = () => {
         title: "Đơn giá",
         align: "right",
         render: (_, rowData) => {
-          if (!rowData.isFirstRow && rowData) {
+          if (!rowData.isRowNotData && rowData) {
             if (rowData.DRPused) {
               // khi có giảm giá trên sản phẩm
               return (
@@ -315,10 +495,51 @@ const ListProduct = () => {
       },
       {
         title: "Số lượng",
-        align: "right",
         render: (_, rowData) => {
-          if (!rowData.isFirstRow && rowData) {
-            return rowData.quantity;
+          if (
+            !rowData.isRowNotData &&
+            rowData.ProductUnitType &&
+            !rowData.isPromotion
+          ) {
+            let convertionQuantity =
+              rowData.ProductUnitType.UnitType.convertionQuantity;
+            let productId = rowData.ProductUnitType.ProductId;
+            let totalQuantity = _quantityStore[productId].totalQuantity;
+            let quantityOnBill = _quantityStore[productId].quantityOnBill;
+            let quantity = rowData.quantity * convertionQuantity;
+            let maxQuantityAvailabe = Math.floor(
+              (totalQuantity - quantityOnBill + quantity) / convertionQuantity
+            );
+
+            return (
+              <Tooltip
+                placement="topLeft"
+                title={`Số lượng tối đa có thể: ${maxQuantityAvailabe}`}
+              >
+                <div>
+                  <InputNumber
+                    min={1}
+                    value={rowData.quantity}
+                    type="number"
+                    onChange={(value) => {
+                      handleChangeQuantity(value, rowData, maxQuantityAvailabe);
+                    }}
+                  />
+                </div>
+              </Tooltip>
+            );
+          }
+
+          if (!rowData.isRowNotData) {
+            return (
+              <div
+                style={{
+                  paddingLeft: 10,
+                }}
+              >
+                {rowData.quantity || 0}
+              </div>
+            );
           }
         },
       },
@@ -326,7 +547,7 @@ const ListProduct = () => {
         title: "Tổng",
         align: "right",
         render: (_, rowData) => {
-          if (!rowData.isFirstRow && rowData) {
+          if (!rowData.isRowNotData && rowData) {
             let total = 0;
             if (rowData.DRPused) {
               total =
@@ -340,23 +561,17 @@ const ListProduct = () => {
             return convertToVND(total);
           }
 
+          if (rowData.isSecondRow) {
+            return convertToVND(-discountOnBill);
+          }
+
           // tổng cuối cùng
           if (rowData.isFirstRow) {
-            let total = 0;
-            _tableData.map((row) => {
-              if (!row.isFirstRow) {
-                if (row.DRPused) {
-                  let price =
-                    row.price - (row.price * row.DRPused.discountRate) / 100;
-                  total += price * row.quantity;
-                } else {
-                  total += row.quantity * row.price;
-                }
-              }
-            });
+            let sum = subTotal - discountOnBill;
+
             return (
               <Typography.Title level={4} style={{ margin: 0, padding: 0 }}>
-                {convertToVND(total)}
+                {convertToVND(sum)}
               </Typography.Title>
             );
           }
@@ -366,27 +581,65 @@ const ListProduct = () => {
         title: "",
         width: 32,
         render: (_, rowData) => {
-          if (!rowData.isFirstRow) {
-            if (rowData.isPromotion) {
-              return (
-                <Tag color="green">
-                  <GiftFilled />
-                </Tag>
-              );
-            }
+          if (rowData.isPromotion || rowData.isSecondRow) {
+            return (
+              <Popover
+                content={<PPPopover rowData={rowData} />}
+                trigger="hover"
+              >
+                <div
+                  style={{
+                    display: "flex",
+                  }}
+                >
+                  <Tag color="green">
+                    <GiftFilled />
+                  </Tag>
+                  {rowData.message && (
+                    <WarningOutlined style={{ color: "yellow" }} />
+                  )}
+                </div>
+              </Popover>
+            );
           }
         },
       },
     ]);
-
-    return () => {};
-  }, [list, listPromotionLinesOnActive]);
+  }
 
   useEffect(() => {
     return () => {
       dispatch(clearOneTab());
     };
   }, []);
+
+  function handleChangeQuantity(quantity, rowData, maxQuantityAvailabe) {
+    if (quantity <= 0) {
+      message.warning("Số lượng phải lớn hơn 0");
+
+      dispatch(
+        updateQuantityOneProduct({
+          id: rowData.id,
+          quantity: 1,
+        })
+      );
+      return;
+    }
+
+    if (quantity > 0) {
+      if (quantity > maxQuantityAvailabe) {
+        message.warning("Số lượng tồn kho không đủ!");
+        quantity = maxQuantityAvailabe;
+      }
+
+      dispatch(
+        updateQuantityOneProduct({
+          id: rowData.id,
+          quantity: quantity,
+        })
+      );
+    }
+  }
 
   return (
     <div className="list_product">
@@ -401,6 +654,10 @@ const ListProduct = () => {
         <BillInfor
           tableData={tableData}
           listPromotionLinesOnActive={listPromotionLinesOnActive}
+          customer={customer}
+          costBeforeDiscountVoucher={costBeforeDiscountVoucher}
+          discountMoneyByMoneyPromotion={discountMoneyByMoneyPromotion}
+          MPused={MPused}
         />
       </div>
     </div>

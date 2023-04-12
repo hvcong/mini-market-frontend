@@ -1,0 +1,100 @@
+.bill_print_modal_container {
+}
+.bill_print_content {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  .bill_print_company {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+  }
+  .bill_print_address {
+    text-align: center;
+    padding-top: 8px;
+  }
+  .bill_print_title {
+    padding: 12px 0;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  .bill_print_infor {
+    padding-bottom: 12px;
+  }
+  .bill_print_infor_item {
+    padding-bottom: 4px;
+    display: flex;
+
+    .bill_print_infor_item_label {
+      width: 140px;
+    }
+
+    .bill_print_infor_item_value {
+    }
+  }
+
+  .bill_print_table {
+    .bill_print_table_row_header {
+      font-weight: bold;
+    }
+
+    .bill_print_table_row {
+      display: flex;
+    }
+    .bill_print_table_productName {
+      flex: 1;
+      padding-right: 8px;
+    }
+    .bill_print_table_quantity {
+      padding-right: 8px;
+    }
+    .bill_print_table_price {
+      padding-right: 8px;
+    }
+    .bill_print_table_total {
+      padding-right: 8px;
+    }
+    .bill_print_table_gift {
+      width: 32px;
+    }
+  }
+
+  .bill_print_sum {
+    padding-bottom: 4px;
+    .bill_print_sum_item {
+      padding-top: 8px;
+      display: flex;
+    }
+    .bill_print_sum_label {
+      flex: 1;
+      font-weight: bold;
+    }
+    .bill_print_sum_value {
+      font-weight: bold;
+    }
+  }
+  .bill_print_footer {
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: bold;
+    padding-top: 4px;
+    border-top: 1px dashed #ddd;
+  }
+}
+.bill_print_modal {
+  width: 100%;
+
+  .bill_print_btns {
+    display: flex;
+    padding: 8px 12px;
+    justify-content: flex-end;
+    border: 1px solid #ddd;
+
+    .bill_print_btn {
+      padding-left: 8px;
+    }
+  }
+}

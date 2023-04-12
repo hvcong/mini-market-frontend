@@ -3,6 +3,7 @@ import storeApi from "../api/storeApi";
 import productApi from "../api/productApi";
 import billApi from "../api/billApi";
 import promotionApi from "../api/promotionApi";
+import { useDispatch } from "react-redux";
 
 class HandleAfter {
   async createInputTicket(inputId) {
@@ -74,7 +75,14 @@ class HandleAfter {
     }
   }
 
-  async handleStoreTranAfterCreateBill(billId, tableData, MPused, voucherUsed) {
+  async handleStoreTranAfterCreateBill(
+    billId,
+    tableData,
+    MPused,
+    voucherUsed,
+    discountMoneyByMoneyPromotion,
+    discountMoneyByVoucher
+  ) {
     let res = await billApi.getOneBillById(billId);
     let bill = res.bill || {};
     let billDetails = bill.BillDetails || [];
@@ -95,24 +103,30 @@ class HandleAfter {
     for (const row of tableData) {
       /// PP result
       if (row.isPromotion && row.ProductPromotionId) {
-        let res = await promotionApi.addResult({
-          isSuccess: true,
-          note: "Được khuyến mãi khi mua hàng",
-          BillId: billId,
-          ProductPromotionId: row.ProductPromotionId,
-        });
-        if (res.isSuccess) {
-          storeTrans.push({
-            quantity: -row.quantity,
-            ProductUnitTypeId: row.ProductUnitType.id,
-            type: "Khuyến mãi bán hàng",
-            employeeId: employeeId,
+        let quantityApplied = row.quantity;
+
+        if (quantityApplied > 0) {
+          let res = await promotionApi.addResult({
+            isSuccess: true,
+            note: row.message || "Được khuyến mãi khi mua hàng",
+            BillId: billId,
+            ProductPromotionId: row.ProductPromotionId,
+            quantityApplied,
           });
+
+          if (res.isSuccess) {
+            storeTrans.push({
+              quantity: -quantityApplied,
+              ProductUnitTypeId: row.ProductUnitType.id,
+              type: "Khuyến mãi bán hàng",
+              employeeId: employeeId,
+            });
+          }
         }
       }
 
       if (row.DRPused) {
-        promotionApi.addResult({
+        await promotionApi.addResult({
           isSuccess: true,
           note: "Được khuyến mãi khi mua hàng",
           BillId: billId,
@@ -122,84 +136,82 @@ class HandleAfter {
     }
 
     if (MPused) {
-      promotionApi.addResult({
+      let res = await promotionApi.addResult({
         isSuccess: true,
         note: "Được khuyến mãi khi mua hàng",
         BillId: billId,
         MoneyPromotionId: MPused.id,
+        discountMoneyByMoneyPromotion,
       });
+
+      if (res.isSuccess) {
+        // trừ vào ngân sách còn lại của km
+        await promotionApi.updateOneMP(MPused.id, {
+          availableBudget:
+            MPused.availableBudget - discountMoneyByMoneyPromotion,
+        });
+      }
     }
 
     if (voucherUsed) {
-      promotionApi.addResult({
+      await promotionApi.addResult({
         isSuccess: true,
         note: "Được khuyến mãi khi mua hàng",
         BillId: billId,
         VoucherId: voucherUsed.id,
+        discountMoneyByVoucher,
       });
     }
 
     // create store
-    storeApi.addMany({
+    await storeApi.addMany({
       data: storeTrans,
     });
   }
 
-  async handleAfterOrderToBill(billId) {
-    let res = await billApi.getOneBillById(billId);
-    let bill = res.bill || {};
-    let billDetails = bill.BillDetails || [];
-    let employeeId = bill.EmployeeId;
+  // async handleAfterCancelOrder(billId) {
+  //   let res = await billApi.getOneBillById(billId);
+  //   let bill = res.bill || {};
+  //   let billDetails = bill.BillDetails || [];
+  //   let employeeId = bill.EmployeeId;
 
-    let storeTrans = [];
+  //   let storeTrans = [];
 
-    billDetails.map((billDetail) => {
-      storeTrans.push({
-        quantity: -billDetail.quantity,
-        ProductUnitTypeId: billDetail.Price.ProductUnitTypeId,
-        type: "Bán hàng",
-        employeeId: employeeId,
-      });
-    });
+  //   billDetails.map((billDetail) => {
+  //     storeTrans.push({
+  //       quantity: billDetail.quantity,
+  //       ProductUnitTypeId: billDetail.Price.ProductUnitTypeId,
+  //       type: "Hủy đơn hàng",
+  //       employeeId: employeeId,
+  //     });
+  //   });
 
-    // tạo store của khuyến mãi
+  //   // tạo store của khuyến mãi
 
-    let promotionResults = bill.PromotionResults || [];
+  //   let promotionResults = bill.PromotionResults || [];
 
-    promotionResults.map((result) => {
-      if (result.isSuccess) {
-        let ProductPromotion = result.ProductPromotion;
+  //   promotionResults.map((result) => {
+  //     if (result.isSuccess) {
+  //       let ProductPromotion = result.ProductPromotion;
 
-        if (ProductPromotion) {
-          let put1Id = ProductPromotion.ProductUnitTypeId;
-          let minQuantity = ProductPromotion.minQuantity;
-          let put2Id = ProductPromotion.GiftProduct.ProductUnitTypeId;
-          let quantityGift = ProductPromotion.GiftProduct.quantity;
+  //       if (ProductPromotion) {
+  //         let putIdGift = ProductPromotion.GiftProduct.ProductUnitTypeId;
+  //         let quantityApplied = result.quantityApplied;
 
-          billDetails.map((item) => {
-            let put3Id = item.Price.ProductUnitTypeId;
-            let quantity = item.quantity;
-            let quantitTran =
-              ((quantity - (quantity % minQuantity)) / minQuantity) *
-              quantityGift;
-
-            if (put3Id == put1Id) {
-              storeTrans.push({
-                quantity: -quantitTran,
-                ProductUnitTypeId: put2Id,
-                type: "Khuyến mãi bán hàng",
-                employeeId: employeeId,
-              });
-            }
-          });
-        }
-      }
-    });
-    // create store
-    storeApi.addMany({
-      data: storeTrans,
-    });
-  }
+  //         storeTrans.push({
+  //           quantity: quantityApplied,
+  //           ProductUnitTypeId: putIdGift,
+  //           type: "Hủy đơn hàng",
+  //           employeeId: employeeId,
+  //         });
+  //       }
+  //     }
+  //   });
+  //   // create store
+  //   storeApi.addMany({
+  //     data: storeTrans,
+  //   });
+  // }
 }
 
 async function getOneBasePutIdByProductId(productId) {

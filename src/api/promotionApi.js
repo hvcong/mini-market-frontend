@@ -110,6 +110,9 @@ class PromotionApi {
   }
 
   getOneVByCode(code) {
+    if (code) {
+      code = code.toLocaleUpperCase();
+    }
     let url = `voucher/get?code=${code}`;
     return axiosClient.get(url);
   }

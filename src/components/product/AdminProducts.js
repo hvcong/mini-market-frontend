@@ -84,20 +84,12 @@ const AdminProducts = ({}) => {
       fixed: "left",
       fixedShow: true,
     },
-    // {
-    //   title: "Số lượng",
-    //   dataIndex: "quantity",
-    // },
 
-    {
-      title: "Đơn vị tính",
-      dataIndex: "unitType",
-      hidden: true,
-    },
     {
       title: "Nhóm sản phẩm",
       dataIndex: "category",
       render: (_, product) => {
+        console.log(product);
         return product.SubCategory.name;
       },
     },

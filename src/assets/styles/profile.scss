@@ -1,0 +1,78 @@
+.profile {
+  font-size: 13px;
+  .profile_title {
+    font-size: 18px;
+    padding-bottom: 24px;
+  }
+  .profile_header {
+  }
+  .profile_body {
+    width: 100%;
+    .profile_body_input_group {
+      display: flex;
+      margin-bottom: 12px;
+
+      .profile_body_input_label {
+        width: 120px;
+        padding-top: 4px;
+      }
+      .profile_body_input_wrap {
+        flex: 1;
+      }
+      .profile_body_input {
+      }
+      .profile_body_input_err {
+        font-size: 12px;
+        color: red;
+      }
+    }
+  }
+}
+
+.profile_account {
+  .profile_account_top {
+    .profile_account_group {
+      padding-bottom: 12px;
+      .profile_account_label {
+      }
+      .profile_account_input_wrap {
+        flex: 1;
+      }
+      .profile_account_input {
+        width: 100%;
+      }
+      .profile_account_input_err {
+        font-size: 11px;
+        color: red;
+      }
+    }
+  }
+}
+.profile_btns {
+  display: flex;
+  justify-content: flex-end;
+
+  .profile_btn {
+    margin-left: 12px;
+  }
+}
+
+.profile_infor {
+  .profile_infor_top {
+    .profile_infor_group {
+      padding-bottom: 12px;
+      .profile_infor_label {
+      }
+      .profile_infor_input_wrap {
+        flex: 1;
+      }
+      .profile_infor_input {
+        width: 100%;
+      }
+      .profile_infor_input_err {
+        font-size: 11px;
+        color: red;
+      }
+    }
+  }
+}

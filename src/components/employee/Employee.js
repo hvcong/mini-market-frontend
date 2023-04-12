@@ -83,6 +83,21 @@ const Employee = ({}) => {
     {
       title: "Số điện thoại",
       dataIndex: "phonenumber",
+      render: (phonenumber, rowData) => {
+        return (
+          <Typography.Link
+            onClick={() => {
+              setModalState({
+                visible: true,
+                type: "update",
+                rowSelected: rowData,
+              });
+            }}
+          >
+            {phonenumber}
+          </Typography.Link>
+        );
+      },
     },
   ]);
 

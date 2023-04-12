@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { message, Table, Tag, Typography } from "antd";
 import { Button } from "antd";
-import {
-  BulbOutlined,
-  GifOutlined,
-  GiftFilled,
-  GiftOutlined,
-  PlusOutlined,
-} from "@ant-design/icons";
+import { GiftFilled, GiftOutlined, PlusOutlined } from "@ant-design/icons";
 import DropSelectColum from "../product/DropSelectColum";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
@@ -29,15 +23,14 @@ let initDataTable = [
   // },
 ];
 
-const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
-  console.log(BillDetails);
+const BillLineTable = ({ BillDetails = [], listKM = [], bill = {} }) => {
+  console.log(listKM);
   let hideLoading = null;
   const dispatch = useDispatch();
   const [tableData, setTableData] = useState(initDataTable);
+  const [allColumns, setAllColumns] = useState([]);
   const [MPused, setMPused] = useState(null);
   const [Vused, setVused] = useState(null);
-
-  const [allColumns, setAllColumns] = useState([]);
 
   useEffect(() => {
     if (BillDetails) {
@@ -74,38 +67,22 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
           // PP
           if (isSuccess && type == "PP") {
             let ProductPromotion = result.ProductPromotion;
-            let put1Id = ProductPromotion.ProductUnitTypeId;
-            let minQuantity = ProductPromotion.minQuantity;
-            let put2Id = ProductPromotion.GiftProduct.ProductUnitTypeId;
-            let quantityGift = ProductPromotion.GiftProduct.quantity;
+            let putGift = ProductPromotion.GiftProduct.ProductUnitType;
+            let quantityApplied = result.quantityApplied;
 
-            BillDetails.map((item) => {
-              let put3Id = item.Price.ProductUnitTypeId;
-              let quantity = item.quantity;
-              let quantityTran =
-                ((quantity - (quantity % minQuantity)) / minQuantity) *
-                quantityGift;
-
-              if (put3Id == put1Id) {
-                let newRow = {
-                  id: uid(),
-                  quantity: quantityTran,
-                  price: 0,
-                  productId:
-                    ProductPromotion.GiftProduct.ProductUnitType.ProductId,
-                  productName:
-                    ProductPromotion.GiftProduct.ProductUnitType.Product.name,
-                  utName:
-                    ProductPromotion.GiftProduct.ProductUnitType.UnitType.name,
-                  utId: ProductPromotion.GiftProduct.ProductUnitType.UnitType
-                    .id,
-                  isGift: true,
-                  isPromotion: true,
-                  ProductPromotion: ProductPromotion,
-                };
-                _dataTable.push(newRow);
-              }
-            });
+            let newRow = {
+              id: uid(),
+              quantity: quantityApplied,
+              price: 0,
+              productId: putGift.ProductId,
+              productName: putGift.Product.name,
+              utName: putGift.UnitType.name,
+              utId: putGift.UnitType.id,
+              isGift: true,
+              isPromotion: true,
+              ProductPromotion: ProductPromotion,
+            };
+            _dataTable.push(newRow);
           }
 
           // MP
@@ -114,6 +91,8 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
             _dataTable.splice(1, 0, {
               isMPusedRow: true,
               isColNotData: true,
+              discountMoneyByMoneyPromotion:
+                result.discountMoneyByMoneyPromotion,
             });
           }
           // DRP
@@ -140,6 +119,7 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
             _dataTable.splice(1, 0, {
               isVusedRow: true,
               isColNotData: true,
+              discountMoneyByVoucher: result.discountMoneyByVoucher,
             });
           }
         });
@@ -150,7 +130,7 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
     }
 
     return () => {};
-  }, [BillDetails, listKM]);
+  }, [BillDetails, listKM, bill]);
 
   useEffect(() => {
     setAllColumns([
@@ -229,9 +209,8 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
         title: "Tổng",
         align: "right",
         render: (_, rowData) => {
-          let discountOnBill = 0;
-          let discountByVoucher = 0;
-          let costBeforeDiscount = 0;
+          let cost = bill.cost;
+
           if (!rowData.isColNotData && rowData) {
             let total = 0;
             if (rowData.DRPused) {
@@ -250,50 +229,11 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
             );
           }
 
-          // tính tổng trước khi giảm giá
-          tableData.map((row) => {
-            if (!row.isColNotData) {
-              if (row.DRPused) {
-                let price =
-                  row.price - (row.price * row.DRPused.discountRate) / 100;
-                costBeforeDiscount += price * row.quantity;
-              } else {
-                costBeforeDiscount += row.quantity * row.price;
-              }
-            }
-          });
-
-          // tính giảm trên bill
-          if (MPused) {
-            if (MPused.type == "discountRate") {
-              let maxMoneyDiscount = MPused.maxMoneyDiscount;
-              discountOnBill =
-                costBeforeDiscount * (1 - MPused.discountRate / 100);
-              if (discountOnBill > maxMoneyDiscount) {
-                discountOnBill = maxMoneyDiscount;
-              }
-            }
-            if (MPused.type == "discountMoney") {
-              discountOnBill = MPused.discountMoney;
-            }
-          }
-
-          // tính giảm giá  voucher
-          if (Vused) {
-            if (Vused.type == "discountMoney") {
-              discountByVoucher = Vused.discountMoney || 0;
-
-              if (costBeforeDiscount - discountOnBill - discountByVoucher < 0) {
-                discountByVoucher = costBeforeDiscount - discountOnBill;
-              }
-            }
-          }
-
           // render
           if (rowData.isMPusedRow) {
             return (
               <Typography.Title level={5} style={{ margin: 0, padding: 0 }}>
-                {"-" + convertToVND(discountOnBill)}
+                {"-" + convertToVND(rowData.discountMoneyByMoneyPromotion)}
               </Typography.Title>
             );
           }
@@ -301,18 +241,15 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
           if (rowData.isVusedRow) {
             return (
               <Typography.Title level={5} style={{ margin: 0, padding: 0 }}>
-                {"-" + convertToVND(discountByVoucher)}
+                {"-" + convertToVND(rowData.discountMoneyByVoucher)}
               </Typography.Title>
             );
           }
 
           if (rowData.isFirstRow) {
-            console.log(costBeforeDiscount);
             return (
               <Typography.Title level={4} style={{ margin: 0, padding: 0 }}>
-                {convertToVND(
-                  costBeforeDiscount - discountOnBill - discountByVoucher
-                )}
+                {convertToVND(cost)}
               </Typography.Title>
             );
           }
@@ -373,7 +310,7 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
                     );
                   }}
                 >
-                  <BulbOutlined />
+                  <GiftFilled />
                 </Tag>
               );
             }
@@ -399,7 +336,7 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
                     );
                   }}
                 >
-                  <BulbOutlined />
+                  <GiftFilled />
                 </Tag>
               );
             }
@@ -425,7 +362,7 @@ const BillLineTable = ({ BillDetails = [], listKM = [] }) => {
                     );
                   }}
                 >
-                  <BulbOutlined />
+                  <GiftFilled />
                 </Tag>
               );
             }

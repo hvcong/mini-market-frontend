@@ -1,7 +1,8 @@
+import { CloseOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import React from "react";
 
-const ModalCustomer = ({ children, visible, setVisible, isLoading, style }) => {
+const ModalCustomer = ({ children, visible, closeModal, isLoading, style }) => {
   return (
     <div
       className="modal"
@@ -12,7 +13,18 @@ const ModalCustomer = ({ children, visible, setVisible, isLoading, style }) => {
       <div className="wrap">
         <div className="content" style={style}>
           {children}
+          <div
+            className="btn_close_modal"
+            onClick={() => {
+              if (closeModal) {
+                closeModal();
+              }
+            }}
+          >
+            <CloseOutlined />
+          </div>
         </div>
+
         <div className={`loading_container ${isLoading && "active"}`}>
           <Spin size="large" />
         </div>

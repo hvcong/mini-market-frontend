@@ -5,7 +5,7 @@ const initState = {
     activeKey: "1",
     tabItems: [
       {
-        label: "Hóa đơn 1",
+        label: "Đơn hàng tạm",
         key: "1",
         customerPhone: "0",
         newPhoneInput: "",
@@ -21,6 +21,7 @@ const initState = {
     ],
   },
   refresh: true,
+  tabCountNumber: 2,
 };
 
 export const createBillState = createSlice({
@@ -31,6 +32,7 @@ export const createBillState = createSlice({
       state.tabState.activeKey = action.payload.key;
       state.tabState.tabItems.push({
         ...action.payload,
+        label: "Đơn hàng " + state.tabCountNumber++,
         customerPhone: "0",
       });
       state.listState[action.payload.key] = [];
@@ -63,6 +65,7 @@ export const createBillState = createSlice({
       } else {
         tabItems = [];
         activeKey = "";
+        state.tabCountNumber = 1;
       }
       state.tabState.tabItems = tabItems;
       state.listState[state.tabState.activeKey] = [];
@@ -116,6 +119,7 @@ export const createBillState = createSlice({
       state.listState[state.tabState.activeKey] = [];
     },
     onChangeCustomerPhone: (state, action) => {
+      console.log("phone:", action.payload);
       let _tabItems = state.tabState.tabItems;
       let activeKey = state.tabState.activeKey;
       _tabItems = _tabItems.map((item) => {

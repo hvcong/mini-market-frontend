@@ -191,20 +191,22 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
         isCheck = false;
       }
 
-      if (!phonenumber) {
-        _errMess.phonenumber = "Không được bỏ trống!";
-        isCheck = false;
-      } else {
-        let is = isVietnamesePhoneNumberValid(phonenumber);
-        if (!is) {
-          _errMess.phonenumber = "Số điện thoại không hợp lệ!";
+      if (type == "create") {
+        if (!phonenumber) {
+          _errMess.phonenumber = "Không được bỏ trống!";
           isCheck = false;
-        }
+        } else {
+          let is = isVietnamesePhoneNumberValid(phonenumber);
+          if (!is) {
+            _errMess.phonenumber = "Số điện thoại không hợp lệ!";
+            isCheck = false;
+          }
 
-        let res = await userApi.getOneCustomerByPhone(phonenumber);
-        if (res.isSuccess) {
-          _errMess.phonenumber = "Số điện thoại đã được sử dụng!";
-          isCheck = false;
+          let res = await userApi.getOneCustomerByPhone(phonenumber);
+          if (res.isSuccess) {
+            _errMess.phonenumber = "Số điện thoại đã được sử dụng!";
+            isCheck = false;
+          }
         }
       }
 

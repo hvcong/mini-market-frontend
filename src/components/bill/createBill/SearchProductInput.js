@@ -8,7 +8,7 @@ import {
   Tag,
   Typography,
 } from "antd";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import productApi from "../../../api/productApi";
 import HighlightedText from "../../HighlightedText";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,8 +26,10 @@ const SearchProductInput = (props) => {
   const { activeKey } = useSelector((state) => state.createBill.tabState);
   const list =
     useSelector((state) => state.createBill.listState[activeKey]) || [];
-  const [quantityInput, setQuantityInput] = useState(2);
+
+  const [quantityInput, setQuantityInput] = useState(1);
   const [priceSelected, setPriceSelected] = useState();
+  const [maxQuantityAvailabe, setMaxQuantityAvailabe] = useState(1);
 
   const quantityRef = useRef();
   const searchInput = useRef();
@@ -54,6 +56,64 @@ const SearchProductInput = (props) => {
       }
     }
   };
+
+  useEffect(() => {
+    if (priceSelected) {
+      // tính số lượng tồn kho và số lượng đã thêm vào bill
+      let totalOnBill = 0;
+      let totalQuantity = priceSelected.ProductUnitType.Product.quantity;
+      let convertionQuantity =
+        priceSelected.ProductUnitType.UnitType.convertionQuantity;
+      let productId = priceSelected.ProductUnitType.ProductId;
+
+      // tính số lượng đã thêm vào bill trước đó
+      list.map((priceLine) => {
+        if (productId == priceLine.ProductUnitType.ProductId) {
+          let convertionQuantityOnBill =
+            priceLine.ProductUnitType.UnitType.convertionQuantity;
+          totalOnBill += priceLine.quantity * convertionQuantityOnBill;
+        }
+      });
+      let max = Math.floor((totalQuantity - totalOnBill) / convertionQuantity);
+
+      setMaxQuantityAvailabe(max);
+    }
+
+    return () => {};
+  }, [priceSelected, list]);
+
+  function handleChangeQuantity(quantity) {
+    setQuantityInput(quantity);
+  }
+
+  function handleAddProductToBill() {
+    if (quantityInput < 1) {
+      message.error("Số lượng phải > 0");
+      return;
+    }
+
+    if (quantityInput > maxQuantityAvailabe) {
+      message.error(
+        "Bạn đã thêm sp vào đơn hàng trước đó, số lượng còn lại không đủ!"
+      );
+      return;
+    }
+
+    if (priceSelected) {
+      dispatch(
+        addOneProductToActiveTab({
+          ...priceSelected,
+          quantity: quantityInput,
+        })
+      );
+    } else {
+      message.warning("Vui lòng chọn sản phẩm trước!");
+    }
+    setInput("");
+    setQuantityInput(1);
+    setPriceSelected(null);
+    searchInput.current.focus();
+  }
 
   return (
     <div
@@ -103,24 +163,15 @@ const SearchProductInput = (props) => {
         }}
       />
       <InputNumber
+        type="number"
         placeholder="Số lượng"
         value={quantityInput}
         onChange={(value) => {
-          setQuantityInput(value);
+          handleChangeQuantity(value);
         }}
         onKeyDown={({ nativeEvent }) => {
           if (nativeEvent.key == "Enter") {
-            if (priceSelected) {
-              dispatch(
-                addOneProductToActiveTab({
-                  ...priceSelected,
-                  quantity: quantityInput,
-                })
-              );
-            }
-            setInput("");
-            setPriceSelected(null);
-            searchInput.current.focus();
+            handleAddProductToBill();
           }
         }}
         ref={quantityRef}
@@ -164,19 +215,50 @@ async function fetchData(input, setData, setFetching, list) {
       if (input) {
         for (const product of productFounds) {
           if (line.ProductUnitType.ProductId == product.id) {
-            _listPrices.push(line);
+            // tồn kho theo đơn vị đó <=0 thì ko bán
+            let quanitty2 = calcQuantityByConvertion(
+              product,
+              line.ProductUnitType.UnitType
+            );
+
+            // tồn kho lớn hơn 0 thì bán
+            if (quanitty2 > 0) {
+              _listPrices.push(line);
+            }
           }
         }
       } else {
-        _listPrices.push(line);
+        let quanitty2 = calcQuantityByConvertion(
+          line.ProductUnitType.Product,
+          line.ProductUnitType.UnitType
+        );
+
+        // tồn kho lớn hơn 0 thì bán
+        if (quanitty2 > 0) {
+          _listPrices.push(line);
+        }
       }
     });
   });
+
+  function calcQuantityByConvertion(product, unitype) {
+    let convertionQuantity = unitype.convertionQuantity;
+    let quantity = product.quantity;
+    let quantity2 =
+      (quantity - (quantity % convertionQuantity)) / convertionQuantity;
+    return quantity2;
+  }
 
   let data = _listPrices.map((line, index) => {
     let product = line.ProductUnitType.Product;
     let unitype = line.ProductUnitType.UnitType;
     let putId = line.ProductUnitTypeId;
+
+    let imageUri = "";
+    let images = product.images;
+    if (images && images.length > 0) {
+      imageUri = images[0].uri;
+    }
 
     return {
       value: line.id,
@@ -188,15 +270,22 @@ async function fetchData(input, setData, setFetching, list) {
             position: "relative",
           }}
         >
-          <div>
-            {/* <img
-              src="https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"
-              style={{
-                width: "32px",
-                height: "32px",
-              }}
-              alt="alt"
-            /> */}
+          <div
+            style={{
+              width: "32px",
+              height: "32px",
+            }}
+          >
+            {imageUri && (
+              <img
+                src={imageUri}
+                style={{
+                  width: "32px",
+                  height: "32px",
+                }}
+                alt="alt"
+              />
+            )}
           </div>
           <div
             style={{
@@ -212,7 +301,7 @@ async function fetchData(input, setData, setFetching, list) {
             >
               <HighlightedText text={product.id} highlightText={input} />
             </div>
-            {/* <div>Tồn kho: {product.quantity / unitype.convertionQuantity}</div> */}
+            <div>Tồn kho: {calcQuantityByConvertion(product, unitype)}</div>
           </div>
           <div
             style={{

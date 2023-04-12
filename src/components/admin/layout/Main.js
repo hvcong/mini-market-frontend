@@ -14,6 +14,8 @@ import BillCUModal from "../../bill/BillCUModal";
 import ResultDetailModal from "./../../promotion/ResultDetailModal";
 import PromotionLineModal from "../../promotion/PromotionLineModal";
 import StoreCUModal from "../../store/StoreCUModal";
+import BillPrint from "../../bill/BillPrint";
+import ProfileModal from "../../auth/ProfileModal";
 const Main = () => {
   const modals = useSelector((state) => state.modal.modals);
   const { isLogged } = useSelector((state) => state.user);
@@ -40,6 +42,8 @@ const Main = () => {
             <ResultDetailModal />
             <PromotionLineModal />
             <StoreCUModal />
+            <BillPrint />
+            <ProfileModal />
           </div>
 
           <div className="right">

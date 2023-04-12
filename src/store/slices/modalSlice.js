@@ -39,6 +39,16 @@ const initState = {
       type: "",
       idSelected: "",
     },
+    BillPrintModal: {
+      visible: false,
+      type: "",
+      idSelected: "",
+    },
+    ProfileModal: {
+      visible: false,
+      type: "",
+      idSelected: "",
+    },
   },
 };
 

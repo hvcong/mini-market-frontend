@@ -26,7 +26,7 @@ import {
 import "../../assets/styles/bill.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { sqlToDDmmYYY } from "./../../utils/index";
+import { convertToVND, sqlToDDmmYYY } from "./../../utils/index";
 import DropSelectColum from "./../product/DropSelectColum";
 import promotionApi from "./../../api/promotionApi";
 import billApi from "./../../api/billApi";
@@ -71,16 +71,67 @@ const ReceiveBill = ({}) => {
     },
     {
       title: "Ngày trả",
-      width: 200,
       dataIndex: "createAt",
       render: (createAt) => {
         return sqlToDDmmYYY(createAt);
       },
     },
+    {
+      title: "Tổng tiền",
+      align: "right",
+      render: (_, rowData) => {
+        let cost = rowData.Bill.cost;
+        return convertToVND(cost);
+      },
+    },
+    {
+      title: "Mã nhân viên",
+      render: (_, rowData) => {
+        return <Typography.Link>{rowData.Bill.EmployeeId}</Typography.Link>;
+      },
+      hidden: true,
+    },
+    {
+      title: "Tên nhân viên",
+      render: (_, rowData) => {
+        return <Typography.Link>{rowData.Bill.Employee.name}</Typography.Link>;
+      },
+    },
+    {
+      title: "Mã khách hàng",
+      hidden: true,
+
+      render: (_, rowData) => {
+        return <Typography.Link>{rowData.Bill.CustomerId}</Typography.Link>;
+      },
+    },
+    {
+      title: "Tên khách hàng",
+      render: (_, rowData) => {
+        let firstName =
+          (rowData.Bill.Customer.firstName &&
+            rowData.Bill.Customer.firstName + " ") ||
+          " ";
+        let lastName =
+          rowData.Bill.Customer.lastName &&
+          rowData.Bill.Customer.lastName + " " + " ";
+        let name = firstName + lastName;
+
+        if (name) {
+          name = name.trim();
+        }
+        return (
+          <Typography.Link>
+            {name || rowData.Bill.Customer.phonenumber}
+          </Typography.Link>
+        );
+      },
+    },
 
     {
-      title: "Ghi chú",
+      title: "Ghi chú trả hàng",
       dataIndex: "note",
+      width: 240,
     },
   ]);
 

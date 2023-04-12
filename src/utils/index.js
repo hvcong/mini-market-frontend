@@ -89,8 +89,9 @@ export function dmyToYmd(dmy) {
 }
 
 export function convertToVND(value) {
-  value = Number(value);
-  return value.toLocaleString("it-IT");
+  let num = value || 0;
+  num = Number(num);
+  return num.toLocaleString("it-IT");
 }
 
 export function uid() {

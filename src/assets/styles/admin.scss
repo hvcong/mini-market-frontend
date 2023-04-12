@@ -7,6 +7,7 @@
       width: 200px;
       height: 100vh;
       overflow-y: auto;
+      background-color: #001529;
     }
 
     .left {
@@ -85,22 +86,28 @@
       height: 32px;
       border-radius: 50%;
       overflow: hidden;
-      margin-right: 6px;
     }
     .account__img {
       width: 32px;
       height: 32px;
     }
+    .hello_group {
+      display: flex;
+      align-items: center;
+      color: whitesmoke;
+    }
     .name {
       margin: 0;
-      color: whitesmoke;
+      padding-left: 8px;
+      font-weight: bold;
     }
 
     .account__drop {
       position: absolute;
       top: calc(100%);
       right: 0;
-      left: 0;
+      width: 140px;
+
       z-index: 1000;
       background: white;
       display: none;
@@ -372,6 +379,15 @@
     margin-bottom: 24px;
     padding: 16px;
     border-radius: 8px;
+    position: relative;
+
+    .btn_close_modal {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      color: red;
+      cursor: pointer;
+    }
   }
 
   .title {
