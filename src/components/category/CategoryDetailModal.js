@@ -29,6 +29,7 @@ import cateApi from "../../api/cateApi";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setRefreshCate } from "../../store/slices/cateSlice";
+import { setOpen } from "../../store/slices/modalSlice";
 const { Text } = Typography;
 
 let initCategoryState = {
@@ -237,6 +238,9 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
         visible={modalState.visible}
         setVisible={onCloseModal}
         isLoading={isLoading}
+        closeModal={() => {
+          onCloseModal();
+        }}
       >
         <div className="category_modal">
           <Typography.Title level={4} className="title">

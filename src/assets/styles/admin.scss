@@ -291,6 +291,14 @@
     font-size: 12px;
   }
 
+  .images_list {
+    display: flex;
+    .images_list_show {
+      position: relative;
+      top: -12px;
+    }
+  }
+
   .unittype_list {
     padding: 12px 24px;
     border-radius: 4px;
@@ -559,31 +567,6 @@
   }
 }
 
-// address select
-//address select
-.address_select {
-  border: 1px solid #ddd;
-  padding: 12px;
-  border-radius: 4px;
-  .address_select_title {
-  }
-  .address_select_item {
-    display: flex;
-    padding-top: 12px;
-    padding-left: 12px;
-  }
-  .address_select_item_label {
-    width: 120px;
-  }
-
-  .address_select_item_select {
-    width: 160px;
-  }
-
-  .address_select_input_wrap {
-  }
-}
-
 .store_changing_err {
   font-size: 13px;
   color: red;
@@ -666,4 +649,35 @@
   color: red;
   font-size: 12px;
   padding-top: 2px;
+}
+
+// address select
+//address select
+.address_select {
+  border: 1px solid #ddd;
+  padding: 12px;
+  border-radius: 4px;
+  .address_select_title {
+  }
+  .address_select_item {
+    display: flex;
+    padding-top: 12px;
+    padding-left: 12px;
+  }
+  .address_select_item_label {
+    width: 120px;
+  }
+
+  .address_select_item_select {
+    width: 160px;
+  }
+
+  .address_select_input_wrap {
+  }
+
+  .address_select_input {
+    color: red;
+    font-size: 11px;
+    padding-top: 2px;
+  }
 }

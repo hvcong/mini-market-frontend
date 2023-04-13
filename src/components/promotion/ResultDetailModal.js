@@ -27,6 +27,16 @@ const ResultDetailModal = () => {
         style={{
           width: "380px",
         }}
+        closeModal={() => {
+          dispatch(
+            setOpen({
+              name: "ResultDetailModal",
+              modalState: {
+                visible: false,
+              },
+            })
+          );
+        }}
       >
         <div>
           <div className="title__container">

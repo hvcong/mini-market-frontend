@@ -1,4 +1,4 @@
-import { Input, Tabs, Typography, message } from "antd";
+import { Button, Input, Space, Tabs, Typography, message } from "antd";
 import ModalCustomer from "../ModalCustomer";
 import "../../assets/styles/profile.scss";
 import ProfileInfor from "./ProfileInfor";
@@ -10,6 +10,7 @@ import userApi from "../../api/userApi";
 
 const ProfileModal = () => {
   const modalState = useSelector((state) => state.modal.modals["ProfileModal"]);
+  const { account, refresh } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const [employee, setEmployee] = useState(null);
 
@@ -17,14 +18,21 @@ const ProfileModal = () => {
     if (modalState.idSelected) {
       loadProfile(modalState.idSelected);
     }
-
     return () => {};
-  }, [modalState]);
+  }, [modalState, account]);
+
+  useEffect(() => {
+    if (modalState.refresh && modalState.idSelected) {
+      loadProfile(modalState.idSelected);
+    }
+    return () => {};
+  }, [modalState.refresh]);
 
   async function loadProfile(employeeId) {
     let res = await userApi.getOneEmployeeById(employeeId);
     if (res.isSuccess) {
       setEmployee(res.employee);
+
       console.log(res);
     } else {
       message.error("Có lỗi xảy ra, vui lòng thử lại");
@@ -52,7 +60,9 @@ const ProfileModal = () => {
     >
       <div className="profile">
         <Typography.Title level={5} className="profile_title">
-          Thông tin cá nhân
+          {employee.id == account.id
+            ? "Thông tin cá nhân"
+            : "Xem thông tin nhân viên"}
         </Typography.Title>
         <div className="profile_header"></div>
         <div className="profile_content">

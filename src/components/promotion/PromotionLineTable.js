@@ -38,8 +38,7 @@ const PromotionLineTable = ({
         fixedShow: true,
         render: (id, rowData) => {
           if (rowData.type == "V") {
-            console.log(rowData);
-            return rowData.code;
+            return rowData.groupVoucher;
           } else {
             return id;
           }
@@ -230,11 +229,24 @@ const PromotionLineTable = ({
         });
       });
 
+      let _voucherList = [];
       res.promotion.Vouchers.map((item) => {
-        _listLines.push({
-          ...item,
-          type: "V",
+        let isExited = false;
+
+        _voucherList.map((voucher) => {
+          if (voucher.groupVoucher == item.groupVoucher) {
+            isExited = true;
+          }
         });
+
+        if (!isExited) {
+          _voucherList.push(item);
+
+          _listLines.push({
+            ...item,
+            type: "V",
+          });
+        }
       });
 
       dispatch(setPromotionLines(_listLines));

@@ -210,21 +210,7 @@ const Bill = ({}) => {
             Danh sách hóa đơn{" "}
           </Typography.Title>
         </div>
-        <div className="btn__item">
-          <Button
-            size="small"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              // setModalState({
-              //   type: "create",
-              //   visible: true,
-              // });
-            }}
-          >
-            Thêm mới
-          </Button>
-        </div>
+
         <div className="btn__item">
           <DropSelectColum
             allColumns={allColumns}

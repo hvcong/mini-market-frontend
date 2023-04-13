@@ -3,6 +3,9 @@ import React, { useEffect, useState } from "react";
 import addressApi from "../../api/addressApi";
 import { isVietnamesePhoneNumberValid } from "../../utils";
 import userApi from "../../api/userApi";
+import { useDispatch, useSelector } from "react-redux";
+import { setOpen, setRefreshModal } from "../../store/slices/modalSlice";
+import { setRefreshUser } from "../../store/slices/userSlice";
 
 const initFormState = {
   name: "",
@@ -33,7 +36,10 @@ const initErrMessage = {
 };
 
 const ProfileInfor = ({ employee }) => {
+  let hideLoading = null;
   const [isEdit, setIsEdit] = useState(false);
+  const dispatch = useDispatch();
+  const modalState = useSelector((state) => state.modal.modals["ProfileModal"]);
 
   const [cities, setCities] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -43,6 +49,7 @@ const ProfileInfor = ({ employee }) => {
   const [errMessage, setErrMessage] = useState(initErrMessage);
 
   useEffect(() => {
+    console.log("refresh");
     if (employee) {
       let newFormState = {
         name: employee.name,
@@ -76,6 +83,27 @@ const ProfileInfor = ({ employee }) => {
     return () => {};
   }, []);
 
+  useEffect(() => {
+    if (isEdit) {
+      setIsEdit(false);
+    }
+
+    if (modalState.refresh) {
+      loadAllAddressData();
+      dispatch(
+        setOpen({
+          name: "ProfileModal",
+          modalState: {
+            ...modalState,
+            refresh: false,
+          },
+        })
+      );
+    }
+
+    return () => {};
+  }, [modalState]);
+
   async function loadAllAddressData() {
     // load cities
     let res = await addressApi.getAllCity();
@@ -103,20 +131,30 @@ const ProfileInfor = ({ employee }) => {
   }
 
   async function onSubmit() {
+    hideLoading = message.loading("Đang cập nhật...", 0);
     let homeId = "";
     if (await checkData()) {
       let formData = {
         name: formState.name.trim(),
         phonenumber: formState.phonenumber,
-        wardId: formState.wardId,
-        districtId: formState.districtId,
-        cityId: formState.cityId,
-        homeId: homeId,
+        HomeAddressId: homeId,
       };
 
-      let res = await userApi.updateEmployee(formData);
+      let res = await userApi.updateOneEmployeeByPhone(
+        employee.phonenumber,
+        formData
+      );
+      if (res.isSuccess) {
+        message.info("Cập nhật thành công");
+        setIsEdit(false);
+        dispatch(setRefreshUser());
+        dispatch(setRefreshModal("ProfileModal"));
+      } else {
+        message.error("Có lỗi xảy ra, vui lòng thử lại!");
+      }
     }
 
+    hideLoading();
     async function checkData() {
       const { name, phonenumber, email, wardId, districtId, cityId, homeName } =
         formState;
@@ -191,8 +229,30 @@ const ProfileInfor = ({ employee }) => {
     }
   }
 
+  useEffect(() => {
+    return () => {
+      if (hideLoading) {
+        hideLoading();
+      }
+    };
+  }, [modalState]);
+
   if (!employee) {
     return;
+  }
+
+  let address = "";
+  if (formState.homeName) {
+    address += formState.homeName + ", ";
+  }
+  if (formState.wardName) {
+    address += formState.wardName + ", ";
+  }
+  if (formState.districtName) {
+    address += formState.districtName + ", ";
+  }
+  if (formState.cityName) {
+    address += formState.cityName + ", ";
   }
 
   return (
@@ -243,16 +303,8 @@ const ProfileInfor = ({ employee }) => {
             <div className="profile_infor_input_wrap">
               <Input.TextArea
                 className="profile_infor_input"
-                disabled
-                value={
-                  formState.homeName +
-                  ", " +
-                  formState.wardName +
-                  ", " +
-                  formState.districtName +
-                  ", " +
-                  formState.cityName
-                }
+                readOnly
+                value={address}
               />
               <div className="profile_infor_input_err"></div>
             </div>

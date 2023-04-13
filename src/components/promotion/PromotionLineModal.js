@@ -488,10 +488,11 @@ const PromotionLineModal = () => {
       if (formState.typePromotionId == "V") {
         let { V } = formState;
         if (type == "create") {
+          let groupVoucher = "GROUP" + codeVocherGenarate();
           for (const voucher of listVoucherCreate) {
             if (voucher.isLastRow) continue;
             formData = {
-              id: formState.id,
+              id: uid(),
               code: voucher.code,
               startDate: formState.startDate,
               title: formState.title,
@@ -503,6 +504,7 @@ const PromotionLineModal = () => {
               type: voucher.type,
               maxDiscountMoney: voucher.maxDiscountMoney,
               PromotionHeaderId: promotionHeaderId,
+              groupVoucher: groupVoucher,
             };
             try {
               res = await promotionApi.addOneV(formData);
@@ -512,6 +514,7 @@ const PromotionLineModal = () => {
           message.error("Chưa có api");
         }
       }
+      console.log(res);
 
       if (res.isSuccess) {
         //  api oke
@@ -533,6 +536,8 @@ const PromotionLineModal = () => {
         // api faild
         message.error("Có lỗi xảy ra, vui lòng thử lại!");
       }
+    } else {
+      message.error("Thông tin chưa hợp lệ, vui lòng kiểm tra lại!");
     }
 
     hideLoading();
@@ -544,13 +549,6 @@ const PromotionLineModal = () => {
         MP: {},
         V: {},
       };
-      let _lvErrMess = {};
-
-      listVoucherCreate.map((voucherItem) => {
-        if (!voucherItem.isLastRow) {
-          _lvErrMess[voucherItem.id] = {};
-        }
-      });
 
       if (!formState.id) {
         _errMess.id = "Không được bỏ trống!";
@@ -639,6 +637,20 @@ const PromotionLineModal = () => {
       }
 
       // check for V
+
+      let _lvErrMess = {};
+
+      for (const voucherItem of listVoucherCreate) {
+        if (!voucherItem.isLastRow) {
+          _lvErrMess[voucherItem.id] = {};
+        }
+      }
+
+      _lvErrMess = {
+        ..._lvErrMess,
+        ...lvErrMessage,
+      };
+      console.log(_lvErrMess);
       let { V } = formState;
       if (V && formState.typePromotionId == "V") {
         //check list voucher
@@ -652,7 +664,11 @@ const PromotionLineModal = () => {
             _lvErrMess[voucher.id].code = "Không được bỏ trống!";
           } else {
             // check in db
-            let res = await promotionApi.getOneVByCode(voucher.code);
+
+            try {
+              res = await promotionApi.getOneVByCode(voucher.code);
+            } catch (err) {}
+
             if (res.isSuccess) {
               _lvErrMess[voucher.id].code =
                 "Code này đã được sử dụng trước đó!";
@@ -703,13 +719,17 @@ const PromotionLineModal = () => {
       });
 
       Object.keys(_lvErrMess).map((key) => {
-        if (Object.keys(_lvErrMess[key]).length > 0) {
-          isCheck = false;
-        }
+        let key2s = Object.keys(_lvErrMess[key]);
+        key2s.map((key2) => {
+          if (_lvErrMess[key][key2]) {
+            isCheck = false;
+          }
+        });
       });
 
       setErrMessage(_errMess);
       setLvErrMessage(_lvErrMess);
+      console.log(isCheck);
       return isCheck;
     }
   }
@@ -828,6 +848,16 @@ const PromotionLineModal = () => {
         visible={modalState.visible}
         style={{
           width: "80%",
+        }}
+        closeModal={() => {
+          dispatch(
+            setOpen({
+              name: "PromotionLineModal",
+              modalState: {
+                visible: false,
+              },
+            })
+          );
         }}
       >
         <div>

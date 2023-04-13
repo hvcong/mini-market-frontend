@@ -2,10 +2,12 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initState = {
   account: {
-    id: 1,
-    name: "cong",
+    // id: 1,
+    // name: "cong",
   },
-  isLogged: true,
+  isLogged: false,
+  refresh: false,
+  isAdmin: false,
 };
 
 export const userSlice = createSlice({
@@ -13,12 +15,22 @@ export const userSlice = createSlice({
   initialState: initState,
   reducers: {
     employeeLoginOke: (state, action) => {
-      console.log(action.payload);
       state.account = action.payload;
+
+      state.isAdmin = action.payload.Account.role == "AD";
       state.isLogged = true;
+      state.refresh = false;
+    },
+    logOut: (state, action) => {
+      state.account = {};
+      state.isLogged = false;
+      state.refresh = false;
+    },
+    setRefreshUser: (state, action) => {
+      state.refresh = true;
     },
   },
 });
 
-export const { employeeLoginOke } = userSlice.actions;
+export const { employeeLoginOke, logOut, setRefreshUser } = userSlice.actions;
 export default userSlice.reducer;

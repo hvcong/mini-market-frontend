@@ -21,7 +21,7 @@ const AddressSelectAll = ({ address, setAddress, errMess }) => {
             value={address.cityId}
             status={errMess.cityId && "error"}
           />
-          <div className="customer_form_input_err">{errMess.cityId}</div>
+          <div className="address_select_input">{errMess.cityId}</div>
         </div>
       </div>
       <div className="address_select_item">
@@ -41,7 +41,7 @@ const AddressSelectAll = ({ address, setAddress, errMess }) => {
             value={address.districtId}
             status={errMess.districtId && "error"}
           />
-          <div className="customer_form_input_err">{errMess.districtId}</div>
+          <div className="address_select_input">{errMess.districtId}</div>
         </div>
       </div>
       <div className="address_select_item">
@@ -63,7 +63,7 @@ const AddressSelectAll = ({ address, setAddress, errMess }) => {
             value={address.wardId}
             status={errMess.wardId && "error"}
           />
-          <div className="customer_form_input_err">{errMess.wardId}</div>
+          <div className="address_select_input">{errMess.wardId}</div>
         </div>
       </div>
       <div className="address_select_item">
@@ -82,7 +82,7 @@ const AddressSelectAll = ({ address, setAddress, errMess }) => {
             }}
             status={errMess.homeAddress && "error"}
           />
-          <div className="customer_form_input_err">{errMess.homeAddress}</div>
+          <div className="address_select_input">{errMess.homeAddress}</div>
         </div>
       </div>
     </div>

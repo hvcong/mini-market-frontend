@@ -110,10 +110,10 @@ class PromotionApi {
   }
 
   getOneVByCode(code) {
-    if (code) {
-      code = code.toLocaleUpperCase();
-    }
-    let url = `voucher/get?code=${code}`;
+    // let url = `voucher/getId?id=${code}`;
+    // return axiosClient.get(url);
+    let url = `voucher/getByCode?bycode=${code}`;
+    console.log(url);
     return axiosClient.get(url);
   }
   // updateOneV(id, formData) {

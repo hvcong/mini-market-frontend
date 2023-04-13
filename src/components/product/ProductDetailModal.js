@@ -31,7 +31,8 @@ import { useDispatch } from "react-redux";
 import { refreshProducts, setRefresh } from "../../store/slices/productSlice";
 import CategoryDetailModal from "../category/CategoryDetailModal";
 import unitTypeApi from "./../../api/unitTypeApi";
-import { uploadImage } from "../../utils";
+import { uid, uploadImage } from "../../utils";
+import TestUpload from "../admin/layout/TestUpload";
 const { Text } = Typography;
 
 const initFormState = {
@@ -95,6 +96,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
     _errMess.unitList = (unitList || []).map((item) => {
       return {
         name: "",
+        uid: uid(),
       };
     });
     setErrMessage(_errMess);
@@ -109,10 +111,17 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
       state,
       subCategoryId: SubCategory.id,
       categoryId: SubCategory.CategoryId,
+
       unitList: unitList.map((item) => {
         return {
           ...item,
           isExistOnDB: true,
+        };
+      }),
+      fileList: images.map((item) => {
+        return {
+          url: item.uri,
+          status: "done",
         };
       }),
     });
@@ -121,31 +130,47 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
   async function onSubmit(type, isClose) {
     let is = await checkData(type);
     // xóa những id == ""
-    let listImageUris = formState.fileList.map((file) => file.uri);
+    let listImageUris = formState.fileList
+      .filter((file) => file.status == "done")
+      .map((file) => file.url);
     if (is) {
-      let formData = {
-        id: formState.id,
-        name: formState.name,
-        images: listImageUris,
-        description: formState.description,
-        quantity: formState.quantity,
-        state: formState.state,
-        subCategoryId: formState.subCategoryId,
-        unitTypes: formState.unitList.map((item) => {
-          return {
-            id: item.id,
-          };
-        }),
-      };
-      console.log(formData);
       let res = {};
 
       if (type == "create") {
+        let formData = {
+          id: formState.id,
+          name: formState.name,
+          description: formState.description,
+          quantity: formState.quantity,
+          images: listImageUris,
+          state: formState.state,
+          subCategoryId: formState.subCategoryId,
+          unitTypes: formState.unitList.map((item) => {
+            return {
+              id: item.id,
+            };
+          }),
+        };
         res = await productApi.addOne(formData);
         dispatch(setRefresh(true));
       }
 
       if (type == "update") {
+        let formData = {
+          id: formState.id,
+          name: formState.name,
+          description: formState.description,
+          images: listImageUris,
+          quantity: formState.quantity,
+          state: formState.state,
+          SubCategoryId: formState.subCategoryId,
+          unitTypes: formState.unitList.map((item) => {
+            return {
+              id: item.id,
+            };
+          }),
+        };
+        console.log(formData);
         res = await productApi.updateOne(formData);
         dispatch(setRefresh(true));
       }
@@ -184,6 +209,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
       subCategoryId,
       categoryId,
       unitList,
+      fileList,
     } = formState;
     if (!id) {
       _errMess.id = "Không được bỏ trống!";
@@ -199,12 +225,12 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
       _errMess.name = "";
     }
 
-    // if (images && images.length <= 0) {
-    //   _errMess.images = "Phải có ít nhất 1 hình ảnh!";
-    //   isCheck = false;
-    // } else {
-    //   _errMess.images = "";
-    // }
+    if (fileList.length <= 0) {
+      _errMess.images = "Phải có ít nhất 1 hình ảnh!";
+      isCheck = false;
+    } else {
+      _errMess.images = "";
+    }
 
     if (!categoryId) {
       _errMess.categoryId = "Không được bỏ trống!";
@@ -269,7 +295,14 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
 
   return (
     <>
-      <ModalCustomer visible={modalState.visible}>
+      <ModalCustomer
+        visible={modalState.visible}
+        closeModal={() => {
+          setModalState({
+            visible: false,
+          });
+        }}
+      >
         <div className="product_detail_modal">
           <Typography.Title level={4} className="title">
             {modalState.type == "update"
@@ -324,7 +357,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                       <Text>Mô tả</Text>
                     </Col>
                     <Col span={15}>
-                      <Input
+                      <Input.TextArea
                         className="input"
                         placeholder="Mô tả về sản phẩm"
                         size="small"
@@ -335,6 +368,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                             description: target.value,
                           });
                         }}
+                        maxLength={500}
                         status={errMessage.description && "error"}
                       />
                       <div className="input__err">{errMessage.description}</div>
@@ -381,7 +415,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                         {errMessage.subCategoryId}
                       </div>
                     </Col>
-                    <Col span={8}>
+                    {/* <Col span={8}>
                       <Text>Trạng thái</Text>
                     </Col>
                     <Col span={15}>
@@ -396,7 +430,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                           });
                         }}
                       />
-                    </Col>
+                    </Col> */}
                   </Row>
                 </Col>
 
@@ -405,8 +439,8 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                     Hình ảnh
                   </p>
 
-                  {modalState.type == "create" ? (
-                    <>
+                  <div className="images_list">
+                    <div className="images_list_add">
                       <UploadImageProduct
                         fileList={formState.fileList}
                         setFileList={(newFileList) => {
@@ -417,23 +451,8 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                         }}
                       />
                       <div className="input__err">{errMessage.images}</div>
-                    </>
-                  ) : (
-                    ((formState && formState.images) || []).map((image) => {
-                      console.log(image.uri);
-
-                      return (
-                        <div
-                          style={{
-                            display: "inline-block",
-                            padding: 12,
-                          }}
-                        >
-                          <Image width={100} height={100} src={image.uri} />
-                        </div>
-                      );
-                    })
-                  )}
+                    </div>
+                  </div>
                 </Col>
                 <Col span={24}>
                   <UnitTypeList

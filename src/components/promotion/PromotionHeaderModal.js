@@ -440,6 +440,11 @@ const PromotionHeaderModal = ({
         style={{
           width: "90%",
         }}
+        closeModal={() => {
+          setModalState({
+            visible: false,
+          });
+        }}
       >
         <div>
           <div className="title__container">

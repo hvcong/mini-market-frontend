@@ -11,6 +11,11 @@ class UserApi {
     return axiosClient.get(url);
   }
 
+  getOneCustomerById(id) {
+    let url = `user/id?id=${id}`;
+    return axiosClient.get(url);
+  }
+
   getOneCustomerByPhone(phone) {
     let url = `user/getPhone?phonenumber=${phone}`;
     return axiosClient.get(url);
@@ -62,6 +67,11 @@ class UserApi {
     return axiosClient.get(url);
   }
 
+  updateOneEmployeeByPhone(phonenumber, formData) {
+    let url = `employee/update/fullinfor?phonenumber=${phonenumber}`;
+    return axiosClient.put(url, formData);
+  }
+
   // customer group/ customer type
   getAllCustomerType() {
     let url = `typeCustomer/get`;
@@ -84,9 +94,9 @@ class UserApi {
   }
 
   // account
-  updateAccountByPhone(phonenumber, formData) {
-    // let url = `/acc/update`;
-    // return axiosClient.put(url, formData);
+  updateAccountByPhone(formData) {
+    let url = `auth/update`;
+    return axiosClient.put(url, formData);
   }
 }
 

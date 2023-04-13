@@ -103,9 +103,10 @@ export function uid() {
 export function codeVocherGenarate() {
   return (
     "VC" +
-    Date.now().toString(36) +
-    Math.random().toString(36).substr(2, 4)
-  ).toLocaleUpperCase();
+    (
+      Date.now().toString(36) + Math.random().toString(36).substr(2, 4)
+    ).toLocaleUpperCase()
+  );
 }
 
 export function compareDMY(jsDate1, jsDate2) {

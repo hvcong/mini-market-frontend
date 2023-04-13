@@ -208,6 +208,11 @@ const PriceLineModal = ({
         style={{
           width: "380px",
         }}
+        closeModal={() => {
+          setModalState({
+            visible: false,
+          });
+        }}
       >
         <div>
           <div className="title__container">

@@ -183,6 +183,16 @@ const BillCUModal = () => {
         style={{
           width: "90%",
         }}
+        closeModal={() => {
+          dispatch(
+            setOpen({
+              name: "BillCUModal",
+              modalState: {
+                visible: false,
+              },
+            })
+          );
+        }}
       >
         <div>
           <div className="title__container">

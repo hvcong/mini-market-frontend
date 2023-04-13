@@ -1,4 +1,4 @@
-import React, { Component, useState } from "react";
+import React, { Component, useEffect, useState } from "react";
 import "../../assets/styles/auth.scss";
 import logo from "../../assets/images/logo.png";
 import { Button, Checkbox, Form, Input, Typography, message } from "antd";
@@ -9,37 +9,52 @@ import { employeeLoginOke } from "../../store/slices/userSlice";
 import { Navigate, useNavigate } from "react-router-dom";
 
 const Auth = function () {
+  let hideLoading = null;
   const { isLogged } = useSelector((state) => state.user);
   const navigate = useNavigate();
-  console.log(isLogged);
 
   const dispatch = useDispatch();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("0868283911");
+  const [password, setPassword] = useState("22222222");
+  useEffect(() => {
+    onSubmit();
+    return () => {};
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (hideLoading) {
+        hideLoading();
+      }
+    };
+  }, [hideLoading]);
   if (isLogged) {
     return <Navigate to="/admin/products" replace={true} />;
   }
 
   async function onSubmit() {
-    message.loading("Đang đăng nhập...");
+    hideLoading = message.loading("Đang đăng nhập...", 0);
     let res = await userApi.logIn({
       phonenumber: username,
       password: password,
     });
 
     if (res.isSuccess) {
-      message.info("Đăng nhập thành công");
-      console.log(res);
       if (res.account.Employee) {
         setTimeout(() => {
+          hideLoading();
           dispatch(
             employeeLoginOke({
               ...res.account.Employee,
+              Account: res.account,
             })
           );
         }, 1000);
       }
+    } else {
+      hideLoading();
+      message.error("Tài khoản hoặc mật khẩu không hợp lệ!");
     }
   }
   return (
@@ -67,22 +82,29 @@ const Auth = function () {
               </Typography.Link>
             </div>
             <span>hoặc sử dụng tài khoản</span>
-            <Input
-              className="auth_input"
-              value={username}
-              onChange={({ target }) => {
-                setUsername(target.value);
-              }}
-              placeholder="Email / Số điện thoại"
-            />
-            <Input
-              className="auth_input"
-              value={password}
-              onChange={({ target }) => {
-                setPassword(target.value);
-              }}
-              placeholder="Mật khẩu"
-            />
+            <div className="auth_input_wrap">
+              <Input
+                className="auth_input"
+                value={username}
+                onChange={({ target }) => {
+                  setUsername(target.value);
+                }}
+                placeholder="Email / Số điện thoại"
+              />
+              <div className="auth_input_err"></div>
+            </div>
+
+            <div className="auth_input_wrap">
+              <Input
+                className="auth_input"
+                value={password}
+                onChange={({ target }) => {
+                  setPassword(target.value);
+                }}
+                placeholder="Mật khẩu"
+              />
+              <div className="auth_input_err"></div>
+            </div>
             <Typography.Link>Quên mật khẩu?</Typography.Link>
             <Button type="primary" className="button" onClick={onSubmit}>
               Đăng Nhập

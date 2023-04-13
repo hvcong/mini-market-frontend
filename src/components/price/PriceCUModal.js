@@ -76,6 +76,16 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
     if (type && visible && rowSelected) {
       loadOneHeaderById(rowSelected.id);
     }
+
+    if (type == "create" && visible) {
+      let now = new Date();
+
+      setFormState({
+        ...formState,
+        startDate: now.setDate(now.getDate() + 1),
+        endDate: now.setDate(now.getDate() + 1),
+      });
+    }
     return () => {};
   }, [modalState]);
 
@@ -451,6 +461,11 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
         visible={modalState.visible}
         style={{
           width: "96%",
+        }}
+        closeModal={() => {
+          setModalState({
+            visible: false,
+          });
         }}
       >
         <div>

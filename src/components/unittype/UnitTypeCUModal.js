@@ -175,6 +175,16 @@ const UnitTypeCUModal = () => {
         style={{
           width: "380px",
         }}
+        closeModal={() => {
+          dispatch(
+            setOpen({
+              name: "UnitTypeCUModal",
+              modalState: {
+                visible: false,
+              },
+            })
+          );
+        }}
       >
         <div>
           <div className="title__container">

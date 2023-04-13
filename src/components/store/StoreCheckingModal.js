@@ -600,6 +600,16 @@ const StoreCheckingModal = () => {
         style={{
           width: "98%",
         }}
+        closeModal={() => {
+          dispatch(
+            setOpen({
+              name: "StoreCheckingModal",
+              modalState: {
+                visible: false,
+              },
+            })
+          );
+        }}
       >
         <div>
           <div className="title__container">

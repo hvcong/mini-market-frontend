@@ -120,9 +120,9 @@ const Customer = ({}) => {
           rowData.HomeAddress.Ward.District.City
         ) {
           let _addr = rowData.HomeAddress.homeAddress;
-          _addr += " " + rowData.HomeAddress.Ward.name;
-          _addr += " " + rowData.HomeAddress.Ward.District.name;
-          _addr += " " + rowData.HomeAddress.Ward.District.City.name;
+          _addr += ", " + rowData.HomeAddress.Ward.name;
+          _addr += ", " + rowData.HomeAddress.Ward.District.name;
+          _addr += ", " + rowData.HomeAddress.Ward.District.City.name;
           return _addr;
         }
         return "";

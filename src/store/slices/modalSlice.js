@@ -48,6 +48,7 @@ const initState = {
       visible: false,
       type: "",
       idSelected: "",
+      refresh: false,
     },
   },
 };
@@ -59,8 +60,11 @@ export const modalSlice = createSlice({
     setOpen: (state, action) => {
       state.modals[action.payload.name] = action.payload.modalState;
     },
+    setRefreshModal: (state, action) => {
+      state.modals[action.payload].refresh = true;
+    },
   },
 });
 
-export const { setOpen } = modalSlice.actions;
+export const { setOpen, setRefreshModal } = modalSlice.actions;
 export default modalSlice.reducer;

@@ -1,7 +1,8 @@
 import React from "react";
+import TestUpload from "./TestUpload";
 
 const AdminFooter = () => {
-  return <div>adminfooter</div>;
+  return <></>;
 };
 
 export default AdminFooter;

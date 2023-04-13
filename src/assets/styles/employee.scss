@@ -1,6 +1,11 @@
 .employee_modal {
   .employee_form {
     font-size: 13px;
+    display: flex;
+  }
+
+  .employee_form_left {
+    padding-right: 24px;
   }
   .employee_form_group {
     display: flex;
@@ -16,6 +21,7 @@
   }
   .employee_form_input_err {
     color: red;
-    font-size: 12px;
+    font-size: 11px;
+    padding-top: 2px;
   }
 }

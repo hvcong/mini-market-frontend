@@ -25,6 +25,7 @@ const VoucherEnter = ({ voucherUsed, customer, discountByVoucher }) => {
     setErrMess("");
     let res = await promotionApi.getOneVByCode(input);
     if (res.isSuccess) {
+      console.log(res);
       let voucher = res.voucher;
 
       let headerState = voucher.PromotionHeader.state;
@@ -33,7 +34,7 @@ const VoucherEnter = ({ voucherUsed, customer, discountByVoucher }) => {
       let end = new Date(voucher.endDate);
       let now = new Date();
       let state = voucher.state;
-      let PromotionResult = voucher.PromotionResult;
+      let isUsed = voucher.isUsed;
       let isCheck = false;
 
       for (const type of TypeCustomers) {
@@ -45,15 +46,24 @@ const VoucherEnter = ({ voucherUsed, customer, discountByVoucher }) => {
 
       if (!isCheck) {
         setErrMess("Mã giảm giá này không áp dụng cho khách hàng này!");
-      } else if (
-        !headerState ||
-        !state ||
-        compareDMY(start, now) > 0 ||
-        compareDMY(end, now) < 0
-      ) {
+      }
+
+      if (!headerState || !state) {
         isCheck = false;
-        setErrMess("Phiếu giảm giá đã hết hạn");
-      } else if (PromotionResult) {
+        setErrMess("Khuyến mãi đã ngưng!");
+      } else {
+        if (compareDMY(start, now) > 0) {
+          isCheck = false;
+          setErrMess("Phiếu giảm giá chưa tới ngày sử dụng!");
+        }
+
+        if (compareDMY(end, now) < 0) {
+          setErrMess("Phiếu giảm giá đã hết hạn!");
+          isCheck = false;
+        }
+      }
+
+      if (isUsed) {
         isCheck = false;
         setErrMess("Phiếu giảm giá chỉ được sử dụng một lần");
       }

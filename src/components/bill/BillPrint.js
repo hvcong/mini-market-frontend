@@ -280,6 +280,16 @@ const BillPrint = () => {
         width: 500,
         padding: 0,
       }}
+      closeModal={() => {
+        dispatch(
+          setOpen({
+            name: "BillPrintModal",
+            modalState: {
+              visible: false,
+            },
+          })
+        );
+      }}
       className="bill_print_modal_container"
     >
       <div className="bill_print_modal">

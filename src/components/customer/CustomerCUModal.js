@@ -39,7 +39,7 @@ const initFormState = {
     cityId: "",
     districtId: "",
     wardId: "",
-    home: "",
+    homeAddress: "",
   },
   typeCustomerId: "",
   email: "",
@@ -124,54 +124,55 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
   }
 
   async function onSubmit(type, isClose) {
+    let HomeAddressId = null;
     setErrMessage(initErrMessage);
-    let formData = {
-      firstName,
-      lastName,
-      phonenumber,
-      email,
-      typeCustomerId,
-      homeAddressId: "",
-    };
 
     if (await checkData()) {
-      // create home address
-      let res = await addressApi.addHomeAddress({
-        homeAddress: address.homeAddress,
-        wardId: address.wardId,
-      });
+      let res = {};
 
-      if (res.isSuccess) {
-        let homeAddressId = res.home.id;
-        formData.homeAddressId = homeAddressId;
-
-        if (type == "create") {
-          res = await userApi.addOneCustomer(formData);
-          if (res.isSuccess) {
-            message.info("Thêm mới khách hàng thành công");
-            dispatch(setRefreshCustomer());
-            if (isClose) {
-              closeModal();
-            } else {
-              clearModal();
-            }
-          } else {
-            //create error
-            message.error("Có lỗi xảy ra, vui lòng thử lại!");
-          }
-        } else {
-          res = await userApi.updateOneCustomer(formData);
-          if (res.isSuccess) {
-            message.info("Cập nhật thông tin thành công");
-            dispatch(setRefreshCustomer());
+      if (type == "create") {
+        console.log(id);
+        let formData = {
+          id,
+          firstName,
+          lastName,
+          phonenumber,
+          email,
+          typeCustomerId,
+          homeAddressId: HomeAddressId,
+        };
+        res = await userApi.addOneCustomer(formData);
+        if (res.isSuccess) {
+          message.info("Thêm mới khách hàng thành công");
+          dispatch(setRefreshCustomer());
+          if (isClose) {
             closeModal();
           } else {
-            // update error
-            message.error("Có lỗi xảy ra, vui lòng thử lại!");
+            clearModal();
           }
+        } else {
+          //create error
+          message.error("Có lỗi xảy ra, vui lòng thử lại!");
         }
       } else {
-        message.error("Địa chỉ không hợp lệ, vui lòng thử lại!");
+        /// update
+        let formData = {
+          firstName,
+          lastName,
+          phonenumber,
+          email,
+          TypeCustomerId: typeCustomerId,
+          HomeAddressId: HomeAddressId,
+        };
+        res = await userApi.updateOneCustomer(formData);
+        if (res.isSuccess) {
+          message.info("Cập nhật thông tin thành công");
+          dispatch(setRefreshCustomer());
+          closeModal();
+        } else {
+          // update error
+          message.error("Có lỗi xảy ra, vui lòng thử lại!");
+        }
       }
     }
 
@@ -180,6 +181,19 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
       let _errMess = {
         address: {},
       };
+
+      if (!id) {
+        _errMess.id = "Không được bỏ trống!";
+        isCheck = false;
+      } else {
+        if (type == "create") {
+          let res = await userApi.getOneCustomerById(id);
+          if (res.isSuccess) {
+            _errMess.id = "Đã trùng với người dùng khác!";
+            isCheck = false;
+          }
+        }
+      }
 
       if (!firstName) {
         _errMess.firstName = "Không được bỏ trống!";
@@ -241,8 +255,23 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
       if (!address.homeAddress) {
         _errMess.address.homeAddress = "Không được bỏ trống!";
         isCheck = false;
+      } else {
+        if (!address.homeAddress.trim()) {
+          _errMess.address.homeAddress = "Không được bỏ trống!";
+          isCheck = false;
+        } else {
+          let res = await addressApi.addHomeAddress({
+            homeAddress: address.homeAddress,
+            wardId: address.wardId,
+          });
+          if (res.isSuccess) {
+            HomeAddressId = res.home.id;
+          } else {
+            _errMess.address.homeAddress = "Vui lòng thử lại số nhà khác!";
+            isCheck = false;
+          }
+        }
       }
-
       setErrMessage(_errMess);
       return isCheck;
     }
@@ -254,6 +283,11 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
         visible={modalState.visible}
         style={{
           width: "760px",
+        }}
+        closeModal={() => {
+          setModalState({
+            visible: false,
+          });
         }}
       >
         <div>
@@ -274,9 +308,18 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                       className="customer_form_input"
                       size="small"
                       value={id}
-                      disabled
+                      disabled={modalState.type == "update"}
+                      onChange={({ target }) => {
+                        setFormState({
+                          ...formState,
+                          id: target.value,
+                        });
+                      }}
+                      status={errMessage.id && "error"}
                     />
-                    <div className="customer_form_input_err"></div>
+                    <div className="customer_form_input_err">
+                      {errMessage.id}
+                    </div>
                   </div>
                 </div>
                 <div className="customer_form_group">

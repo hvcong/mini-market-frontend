@@ -19,7 +19,7 @@ function getItem(label, key, icon, children, type) {
     type,
   };
 }
-const Sidenav = () => {
+const Sidenav = ({ isAdmin }) => {
   const items = [
     getItem("Giao dịch", "sub2", <FileDoneOutlined />, [
       getItem(<NavLink to="orders">Đơn đặt hàng</NavLink>, "orders"),
@@ -65,12 +65,16 @@ const Sidenav = () => {
         "cus_group"
       ),
     ]),
-    getItem(
-      <NavLink to="employee">Nhân viên</NavLink>,
-      "employee",
-      <FileDoneOutlined />
-    ),
   ];
+  if (isAdmin) {
+    items.push(
+      getItem(
+        <NavLink to="employee">Nhân viên</NavLink>,
+        "employee",
+        <FileDoneOutlined />
+      )
+    );
+  }
 
   const [collapsed, setCollapsed] = useState(false);
   const toggleCollapsed = () => {

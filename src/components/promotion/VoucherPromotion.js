@@ -42,8 +42,9 @@ const VoucherPromotion = ({
 }) => {
   const [allColumns, setAllColumns] = useState([]);
 
-  function handleOnChange(rowId, name, value) {
+  async function handleOnChange(rowId, name, value) {
     clearItemMessage(rowId, name);
+
     let _tableData = tableData.map((rowData) => {
       if (rowId == rowData.id) {
         if (name == "type") {
@@ -76,6 +77,7 @@ const VoucherPromotion = ({
         });
       }
     }
+
     setTableData(_tableData);
   }
 

@@ -1,9 +1,11 @@
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { Button, Input, Select, Switch, message } from "antd";
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { isVietnamesePhoneNumberValid } from "../../utils";
 import userApi from "../../api/userApi";
+import { setOpen } from "../../store/slices/modalSlice";
+import { setRefreshUser } from "../../store/slices/userSlice";
 
 const roles = [
   {
@@ -33,7 +35,10 @@ const initErrMessage = {
 const ProfileAccount = ({ account }) => {
   let hideLoading = null;
   const accountLoged = useSelector((state) => state.user.account);
-  const isAdmin = false;
+  const isAdmin = accountLoged.Account.role == "AD";
+  const dispatch = useDispatch();
+  const modalState = useSelector((state) => state.modal.modals["ProfileModal"]);
+
   const [isEdit, setIsEdit] = useState(false);
   const [isEditPassword, setIsEditPassword] = useState(false);
 
@@ -54,6 +59,17 @@ const ProfileAccount = ({ account }) => {
     return () => {};
   }, [account, isEdit, isEditPassword]);
 
+  useEffect(() => {
+    if (isEdit) {
+      setIsEdit(false);
+    }
+    if (isEditPassword) {
+      setIsEditPassword(false);
+    }
+
+    return () => {};
+  }, [modalState]);
+
   function disabledInput(name) {
     if (isEdit) {
       if (isAdmin) {
@@ -68,8 +84,7 @@ const ProfileAccount = ({ account }) => {
   async function onSubmit() {
     hideLoading = message.loading("Đang cập nhập thông tin...", 0);
     if (await checkData()) {
-      message.warning("chưa viet api");
-      let res = await userApi.updateAccountByPhone(account.phonenumber, {
+      let res = await userApi.updateAccountByPhone({
         phonenumber: formState.phonenumber,
         password: formState.newPassword,
         role: formState.role,
@@ -77,7 +92,13 @@ const ProfileAccount = ({ account }) => {
 
       hideLoading();
       if (res.isSuccess) {
+        setIsEdit(false);
+        setIsEditPassword(false);
         message.info("Cập nhật thành công!");
+
+        dispatch(setRefreshUser());
+      } else {
+        message.error("Có lỗi xảy ra, vui lòng thử lại!");
       }
     }
 
@@ -93,8 +114,15 @@ const ProfileAccount = ({ account }) => {
       if (isEditPassword) {
         // check khi cập nhật mật khẩu
 
-        if (!newPassword || (newPassword && newPassword.length < 8)) {
-          _errMess.newPassword = "Mật khẩu phải nhiều hơn 8 kí tự!";
+        if (!newPassword) {
+          _errMess.newPassword = "Không được bỏ trống!";
+        } else {
+          if (newPassword.length < 8) {
+            _errMess.newPassword = "Mật khẩu phải ít nhất 8 kí tự!";
+          }
+          if (newPassword.length >= 30) {
+            _errMess.newPassword = "Mật khẩu phải ít hơn 30 kí tự!";
+          }
         }
 
         if (newPassword != confirmNewPassword) {
@@ -139,7 +167,7 @@ const ProfileAccount = ({ account }) => {
         hideLoading();
       }
     };
-  }, [account]);
+  }, [modalState]);
 
   if (!account) {
     return;
@@ -161,7 +189,7 @@ const ProfileAccount = ({ account }) => {
           <div className="profile_account_input_wrap">
             <Input
               className="profile_account_input"
-              disabled={!isEdit}
+              disabled
               value={formState.phonenumber}
               onChange={({ target }) => {
                 let value = target.value && target.value.trim();

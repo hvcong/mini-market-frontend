@@ -497,6 +497,16 @@ const StoreCUModal = () => {
         style={{
           width: "98%",
         }}
+        closeModal={() => {
+          dispatch(
+            setOpen({
+              name: "StoreCUModal",
+              modalState: {
+                visible: false,
+              },
+            })
+          );
+        }}
       >
         <div>
           <div className="title__container">

@@ -224,12 +224,20 @@
     transform: scale(0.95);
   }
 
-  .auth_input {
-    margin: 12px;
-  }
-
   .image_logo {
     width: 300px;
     height: 272px;
+  }
+
+  .auth_input_wrap {
+    width: 300px;
+    .auth_input {
+      width: 300px;
+    }
+    .auth_input_err {
+      font-size: 11px;
+      color: red;
+      text-align: left;
+    }
   }
 }

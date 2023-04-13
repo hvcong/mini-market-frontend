@@ -32,6 +32,7 @@ import { setPriceHeaders } from "../../store/slices/priceHeaderSlice";
 import EmployeeCUModal from "./EmployeeCUModal";
 import userApi from "./../../api/userApi";
 import { setEmployees } from "../../store/slices/employeeSlice";
+import { setOpen } from "../../store/slices/modalSlice";
 
 const { Text } = Typography;
 
@@ -87,11 +88,16 @@ const Employee = ({}) => {
         return (
           <Typography.Link
             onClick={() => {
-              setModalState({
-                visible: true,
-                type: "update",
-                rowSelected: rowData,
-              });
+              dispatch(
+                setOpen({
+                  name: "ProfileModal",
+                  modalState: {
+                    visible: true,
+                    type: "update",
+                    idSelected: rowData.id,
+                  },
+                })
+              );
             }}
           >
             {phonenumber}

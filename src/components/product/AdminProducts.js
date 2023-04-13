@@ -2,6 +2,7 @@ import {
   Button,
   Col,
   Dropdown,
+  Image,
   message,
   Modal,
   Pagination,
@@ -84,13 +85,43 @@ const AdminProducts = ({}) => {
       fixed: "left",
       fixedShow: true,
     },
+    {
+      title: "Hình ảnh",
+      dataIndex: "images",
+      width: 200,
+      render: (images) => {
+        return (
+          <div>
+            {images &&
+              images.map((image) => {
+                return (
+                  <Image
+                    width={36}
+                    height={36}
+                    src={image.uri}
+                    style={{
+                      border: "1px solid #ccc",
+                    }}
+                  />
+                );
+              })}
+          </div>
+        );
+      },
+    },
 
     {
       title: "Nhóm sản phẩm",
       dataIndex: "category",
       render: (_, product) => {
-        console.log(product);
         return product.SubCategory.name;
+      },
+    },
+    {
+      title: "Mô tả",
+      dataIndex: "description",
+      render: (description) => {
+        return description && description.slice(0, 50) + "...";
       },
     },
 
@@ -110,14 +141,12 @@ const AdminProducts = ({}) => {
   ]);
 
   useEffect(() => {
-    console.log(pageState);
     getProducts(pageState.page, pageState.limit);
     return () => {};
   }, [pageState]);
 
   useEffect(() => {
     if (refresh) {
-      console.log("re-fresh");
       getProducts(pageState.page, pageState.limit);
     }
     return () => {};
