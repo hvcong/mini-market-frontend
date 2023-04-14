@@ -34,7 +34,7 @@ const VoucherEnter = ({ voucherUsed, customer, discountByVoucher }) => {
       let end = new Date(voucher.endDate);
       let now = new Date();
       let state = voucher.state;
-      let isUsed = voucher.isUsed;
+      let PromotionResult = voucher.PromotionResult;
       let isCheck = false;
 
       for (const type of TypeCustomers) {
@@ -63,7 +63,7 @@ const VoucherEnter = ({ voucherUsed, customer, discountByVoucher }) => {
         }
       }
 
-      if (isUsed) {
+      if (PromotionResult) {
         isCheck = false;
         setErrMess("Phiếu giảm giá chỉ được sử dụng một lần");
       }

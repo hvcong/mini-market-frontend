@@ -325,6 +325,7 @@ const PromotionLineModal = () => {
       let voucher = res.voucher;
       setFormState({
         ...voucher,
+        id: voucher.groupVoucher,
         typePromotionId: type,
 
         PP: {
@@ -376,6 +377,7 @@ const PromotionLineModal = () => {
     if (modalState.type == "create") {
       hideLoading = message.loading("Đang tạo mới...", 0);
     }
+
     setErrMessage({
       PP: {},
       DRP: {},
@@ -383,6 +385,16 @@ const PromotionLineModal = () => {
       V: {},
     });
     if (await checkData()) {
+      let isFuture = false;
+      let start = new Date(formState.startDate);
+      let now = new Date();
+
+      if (compareDMY(start, now) > 0) {
+        // Sắp tới
+        isFuture = true;
+      }
+
+      res = {};
       // validate oke
 
       let formData = {};
@@ -413,18 +425,33 @@ const PromotionLineModal = () => {
               ProductUnitTypeId: putId2,
               ProductPromotionId: formState.id,
             };
-            console.log(formData);
             res = await promotionApi.addOneGift(formData);
           }
         } else {
           // update
 
-          let { id, ...updateForm } = formData;
-          res = await promotionApi.updateOnePP(id, updateForm);
+          /**
+           * Khi khuyến mãi đang sử dụng
+           */
+          if (!isFuture) {
+            let { id, ...updateForm } = formData;
+            res = await promotionApi.updateOnePP(id, updateForm);
+          } else {
+            // cập nhật tương lai
+            let id = formState.id;
 
-          if (res.isSuccess) {
-            // nesu thay đổi gift
-            message.info("cần thêm một số việc ở đây nữa");
+            await promotionApi.deleteOnePP(id);
+
+            res = await promotionApi.addOnePP(formData);
+            if (res.isSuccess) {
+              formData = {
+                id: uid(),
+                quantity: PP.quantity,
+                ProductUnitTypeId: putId2,
+                ProductPromotionId: formState.id,
+              };
+              res = await promotionApi.addOneGift(formData);
+            }
           }
         }
       }
@@ -448,9 +475,16 @@ const PromotionLineModal = () => {
         if (type == "create") {
           res = await promotionApi.addOneDRP(formData);
         } else {
-          // update
-          let { id, ...updateForm } = formData;
-          res = await promotionApi.updateOneDRP(id, updateForm);
+          let id = formState.id;
+          // update đang sử dụng
+          if (!isFuture) {
+            let { id, ...updateForm } = formData;
+            res = await promotionApi.updateOneDRP(id, updateForm);
+          } else {
+            await promotionApi.deleteOneDRP(id);
+            res = await promotionApi.addOneDRP(formData);
+            console.log(res);
+          }
         }
       }
 
@@ -464,8 +498,8 @@ const PromotionLineModal = () => {
           startDate: formState.startDate,
           endDate: formState.endDate,
           minCost: MP.minCost,
-          discountMoney: MP.discountMoney,
-          discountRate: MP.discountRate,
+          discountMoney: MP.type == "discountMoney" ? MP.discountMoney : 0,
+          discountRate: MP.type == "discountRate" ? MP.discountRate : 0,
           maxMoneyDiscount: MP.type == "discountRate" ? MP.maxMoneyDiscount : 0,
           state: MP.state,
           type: MP.type,
@@ -477,9 +511,16 @@ const PromotionLineModal = () => {
         if (type == "create") {
           res = await promotionApi.addOneMP(formData);
         } else {
-          //update
-          let { id, ...updateForm } = formData;
-          res = await promotionApi.updateOneMP(id, updateForm);
+          let id = formState.id;
+          //update đagn sử dụng
+          if (!isFuture) {
+            let { id, ...updateForm } = formData;
+            res = await promotionApi.updateOneMP(id, updateForm);
+          } else {
+            // update tương lai
+            await promotionApi.deleteOneMP(id);
+            res = await promotionApi.addOneMP(formData);
+          }
         }
       }
 
@@ -488,11 +529,10 @@ const PromotionLineModal = () => {
       if (formState.typePromotionId == "V") {
         let { V } = formState;
         if (type == "create") {
-          let groupVoucher = "GROUP" + codeVocherGenarate();
           for (const voucher of listVoucherCreate) {
             if (voucher.isLastRow) continue;
             formData = {
-              id: uid(),
+              id: uid() + uid(),
               code: voucher.code,
               startDate: formState.startDate,
               title: formState.title,
@@ -504,17 +544,85 @@ const PromotionLineModal = () => {
               type: voucher.type,
               maxDiscountMoney: voucher.maxDiscountMoney,
               PromotionHeaderId: promotionHeaderId,
-              groupVoucher: groupVoucher,
+              groupVoucher: formState.id,
             };
             try {
               res = await promotionApi.addOneV(formData);
-            } catch (error) {}
+            } catch (error) {
+              message.error("Có lỗi xảy ra, vui lòng thử lại");
+            }
           }
         } else {
-          message.error("Chưa có api");
+          // update voucher
+
+          // bảng giá tương lai
+          // xoa tat ca bang group voucher
+          if (isFuture) {
+            res = await promotionApi.deleteByGroup(formState.id);
+            for (const voucher of listVoucherCreate) {
+              if (voucher.isLastRow) continue;
+
+              // tạo mới những voucher có trong list
+              let newVoucherFormData = {
+                id: uid() + uid(),
+                code: voucher.code,
+                startDate: formState.startDate,
+                title: formState.title,
+                description: formState.description,
+                endDate: formState.endDate,
+                state: formState.state,
+                discountMoney: voucher.discountMoney,
+                discountRate: voucher.discountRate,
+                type: voucher.type,
+                maxDiscountMoney: voucher.maxDiscountMoney,
+                PromotionHeaderId: promotionHeaderId,
+                groupVoucher: formState.id,
+              };
+
+              try {
+                res = await promotionApi.addOneV(newVoucherFormData);
+                console.log("create voucher:", res.isSuccess);
+              } catch (error) {
+                message.error("Có lỗi xảy ra, vui lòng thử lại");
+              }
+            }
+          } else {
+            /**
+             * bảng giá đang áp dụng
+             * - update hàng loạt
+             */
+            let groupVoucher = formState.id;
+
+            // tạo mới những voucher có trong list
+            let newVoucherFormData = {
+              title: formState.title,
+              description: formState.description,
+              endDate: formState.endDate,
+              state: formState.state,
+            };
+            console.log(groupVoucher);
+
+            try {
+              res = await promotionApi.updateByGroup(
+                groupVoucher,
+                newVoucherFormData
+              );
+              console.log("update voucher:", res.isSuccess);
+            } catch (error) {
+              message.error("Có lỗi xảy ra, vui lòng thử lại");
+            }
+          }
+
+          dispatch(
+            setOpen({
+              name: "PromotionLineModal",
+              modalState: {
+                visible: false,
+              },
+            })
+          );
         }
       }
-      console.log(res);
 
       if (res.isSuccess) {
         //  api oke
@@ -540,7 +648,9 @@ const PromotionLineModal = () => {
       message.error("Thông tin chưa hợp lệ, vui lòng kiểm tra lại!");
     }
 
-    hideLoading();
+    if (hideLoading) {
+      hideLoading();
+    }
     async function checkData() {
       let isCheck = true;
       let _errMess = {
@@ -593,6 +703,13 @@ const PromotionLineModal = () => {
         if (!PP.quantity) {
           _errMess.PP.quantity = "Không được bỏ trống";
         }
+
+        if (type == "create") {
+          let res = await promotionApi.getOnePPById(formState.id);
+          if (res.isSuccess) {
+            _errMess.id = "Mã đã được sử dụng trước đó!";
+          }
+        }
       }
 
       // check for MP
@@ -620,6 +737,13 @@ const PromotionLineModal = () => {
             _errMess.MP.maxMoneyDiscount = "Giá trị phải >= 0";
           }
         }
+
+        if (type == "create") {
+          let res = await promotionApi.getOneMPById(formState.id);
+          if (res.isSuccess) {
+            _errMess.id = "Mã đã được sử dụng trước đó!";
+          }
+        }
       }
 
       // check for DRP
@@ -633,6 +757,13 @@ const PromotionLineModal = () => {
         }
         if (!DRP.discountRate) {
           _errMess.DRP.discountRate = "Giá trị phải > 0 và <=100";
+        }
+
+        if (type == "create") {
+          let res = await promotionApi.getOneDRPById(formState.id);
+          if (res.isSuccess) {
+            _errMess.id = "Mã đã được sử dụng trước đó!";
+          }
         }
       }
 
@@ -654,9 +785,18 @@ const PromotionLineModal = () => {
       let { V } = formState;
       if (V && formState.typePromotionId == "V") {
         //check list voucher
-        if (listVoucherCreate.length == 1) {
-          message.error("Vui lòng thêm các dòng trước!");
-          isCheck = false;
+        if (type == "create") {
+          if (listVoucherCreate.length == 1) {
+            message.error("Vui lòng thêm các dòng trước!");
+            isCheck = false;
+          } else {
+            let groupVoucher = formState.id;
+
+            let res = await promotionApi.getAllByGroup(groupVoucher);
+            if (res.isSuccess && res.vouches && res.vouches.length > 0) {
+              _errMess.id = "Mã đã được sử dụng trước đó!";
+            }
+          }
         }
         for (const voucher of listVoucherCreate) {
           if (voucher.isLastRow) continue;
@@ -665,13 +805,17 @@ const PromotionLineModal = () => {
           } else {
             // check in db
 
-            try {
-              res = await promotionApi.getOneVByCode(voucher.code);
-            } catch (err) {}
+            if (!voucher.isExistInDB) {
+              try {
+                res = await promotionApi.getOneVByCode(voucher.code);
+              } catch (err) {}
 
-            if (res.isSuccess) {
-              _lvErrMess[voucher.id].code =
-                "Code này đã được sử dụng trước đó!";
+              if (res.isSuccess) {
+                if (type == "create") {
+                  _lvErrMess[voucher.id].code =
+                    "Code này đã được sử dụng trước đó!";
+                }
+              }
             }
           }
           if (voucher.type == "discountMoney" && !voucher.discountMoney) {
@@ -719,12 +863,14 @@ const PromotionLineModal = () => {
       });
 
       Object.keys(_lvErrMess).map((key) => {
-        let key2s = Object.keys(_lvErrMess[key]);
-        key2s.map((key2) => {
-          if (_lvErrMess[key][key2]) {
-            isCheck = false;
-          }
-        });
+        if (_lvErrMess[key]) {
+          let key2s = Object.keys(_lvErrMess[key]);
+          key2s.map((key2) => {
+            if (_lvErrMess[key][key2]) {
+              isCheck = false;
+            }
+          });
+        }
       });
 
       setErrMessage(_errMess);
@@ -842,6 +988,14 @@ const PromotionLineModal = () => {
     }
   }
 
+  useEffect(() => {
+    return () => {
+      if (hideLoading) {
+        hideLoading();
+      }
+    };
+  }, [modalState]);
+
   return (
     <div className="promotion_line_modal">
       <ModalCustomer
@@ -897,29 +1051,28 @@ const PromotionLineModal = () => {
                       </div>
                     </div>
                   </div>
-                  {formState.typePromotionId != "V" && (
-                    <div className="promotion_line_form_group">
-                      <div className="promotion_line_form_label">Mã KM</div>
-                      <div className="promotion_line_form_input_wrap">
-                        <Input
-                          className="promotion_line_form_input"
-                          size="small"
-                          disabled={disabledInput("id")}
-                          value={formState.id}
-                          status={errMessage.id && "error"}
-                          onChange={({ target }) => {
-                            setFormState({
-                              ...formState,
-                              id: target.value,
-                            });
-                          }}
-                        />
-                        <div className="promotion_line_form_input_err">
-                          {errMessage.id}
-                        </div>
+
+                  <div className="promotion_line_form_group">
+                    <div className="promotion_line_form_label">Mã KM</div>
+                    <div className="promotion_line_form_input_wrap">
+                      <Input
+                        className="promotion_line_form_input"
+                        size="small"
+                        disabled={disabledInput("id")}
+                        value={formState.id}
+                        status={errMessage.id && "error"}
+                        onChange={({ target }) => {
+                          setFormState({
+                            ...formState,
+                            id: target.value,
+                          });
+                        }}
+                      />
+                      <div className="promotion_line_form_input_err">
+                        {errMessage.id}
                       </div>
                     </div>
-                  )}
+                  </div>
 
                   <div className="promotion_line_form_group">
                     <div className="promotion_line_form_label">Thời gian</div>
@@ -1091,18 +1244,16 @@ const PromotionLineModal = () => {
                       disabledInput={disabledInput}
                     />
                   )}
-                  {formState.typePromotionId == "V" &&
-                    modalState.type == "create" && (
+                  {formState.typePromotionId == "V" && (
+                    <>
                       <VoucherPromotion
                         setLvErrMessage={setLvErrMessage}
                         lvErrMessage={lvErrMessage}
                         tableData={listVoucherCreate}
                         setTableData={setListVoucherCreate}
+                        modalState={modalState}
                       />
-                    )}
-                  {formState.typePromotionId == "V" &&
-                    modalState.type != "create" && (
-                      <VoucherPromotionDetail
+                      {/* <VoucherPromotionDetail
                         modalType={modalState.type}
                         formState={formState.V}
                         setFormState={(value) => {
@@ -1119,8 +1270,9 @@ const PromotionLineModal = () => {
                           });
                         }}
                         disabledInput={disabledInput}
-                      />
-                    )}
+                      /> */}
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -1132,7 +1284,7 @@ const PromotionLineModal = () => {
                 marginTop: "12px",
               }}
             >
-              {modalState.type == "create" ? (
+              {modalState.type == "create" && (
                 <>
                   <Button
                     type="primary"
@@ -1151,7 +1303,8 @@ const PromotionLineModal = () => {
                     Lưu & Đóng
                   </Button>
                 </>
-              ) : (
+              )}
+              {modalState.type == "update" && (
                 <Button
                   type="primary"
                   onClick={() => {
@@ -1162,7 +1315,7 @@ const PromotionLineModal = () => {
                 </Button>
               )}
               <Button type="primary" danger onClick={closeModal}>
-                Hủy bỏ
+                Đóng
               </Button>
             </Space>
           </div>

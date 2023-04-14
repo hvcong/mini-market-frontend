@@ -17,6 +17,7 @@ class PriceHeaderApi {
   }
 
   updateOne(formData) {
+    console.log(formData);
     let url = `priceHeader/update?id=${formData.id}`;
     return axiosClient.put(url, formData);
   }

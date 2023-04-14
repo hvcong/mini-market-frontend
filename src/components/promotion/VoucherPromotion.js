@@ -7,12 +7,15 @@ import {
   Popover,
   Select,
   Table,
+  Tag,
+  message,
 } from "antd";
 import { Typography } from "antd";
 import { PlusOutlined, DeleteOutlined, DiffOutlined } from "@ant-design/icons";
-import { uid } from "../../utils";
+import { compareDMY, uid } from "../../utils";
 import { codeVocherGenarate } from "../../utils";
 import CopyVoucherButton from "./CopyVoucherButton";
+import promotionApi from "../../api/promotionApi";
 
 const typeMPs = [
   {
@@ -39,8 +42,13 @@ const VoucherPromotion = ({
   setTableData,
   setLvErrMessage,
   lvErrMessage,
+  modalState,
 }) => {
   const [allColumns, setAllColumns] = useState([]);
+  const [time, setTime] = useState({
+    startDate: "",
+    endDate: "",
+  });
 
   async function handleOnChange(rowId, name, value) {
     clearItemMessage(rowId, name);
@@ -115,6 +123,7 @@ const VoucherPromotion = ({
               <Button
                 size="small"
                 danger
+                disabled={disableInputInTable("btnDelete", rowData)}
                 icon={<DeleteOutlined />}
                 onClick={() => deleteRow(id)}
               />
@@ -141,6 +150,7 @@ const VoucherPromotion = ({
                 <Input
                   value={code}
                   size="small"
+                  disabled={disableInputInTable("code", rowData)}
                   className="promotion_voucher_create_input"
                   onChange={({ target }) => {
                     handleOnChange(rowData.id, "code", target.value);
@@ -181,6 +191,7 @@ const VoucherPromotion = ({
               <div className="promotion_voucher_create_input_wrap">
                 <Select
                   size="small"
+                  disabled={disableInputInTable("type", rowData)}
                   className="promotion_voucher_create_input"
                   options={typeMPs}
                   value={type}
@@ -212,7 +223,10 @@ const VoucherPromotion = ({
                   onChange={(value) => {
                     handleOnChange(rowData.id, "discountMoney", value);
                   }}
-                  disabled={rowData.type == "discountRate"}
+                  disabled={
+                    rowData.type == "discountRate" ||
+                    disableInputInTable("discountMoney", rowData)
+                  }
                   status={
                     lvErrMessage[rowData.id] &&
                     lvErrMessage[rowData.id].discountMoney &&
@@ -244,7 +258,10 @@ const VoucherPromotion = ({
                   onChange={(value) => {
                     handleOnChange(rowData.id, "discountRate", value);
                   }}
-                  disabled={rowData.type == "discountMoney"}
+                  disabled={
+                    rowData.type == "discountMoney" ||
+                    disableInputInTable("discountRate", rowData)
+                  }
                   status={
                     lvErrMessage[rowData.id] &&
                     lvErrMessage[rowData.id].discountRate &&
@@ -279,7 +296,10 @@ const VoucherPromotion = ({
                   onChange={(value) => {
                     handleOnChange(rowData.id, "maxDiscountMoney", value);
                   }}
-                  disabled={rowData.type == "discountMoney"}
+                  disabled={
+                    rowData.type == "discountMoney" ||
+                    disableInputInTable("maxDiscountMoney", rowData)
+                  }
                   status={
                     lvErrMessage[rowData.id] &&
                     lvErrMessage[rowData.id].maxDiscountMoney &&
@@ -296,12 +316,26 @@ const VoucherPromotion = ({
         },
       },
       {
+        title: "Tình trạng",
+        dataIndex: "used",
+        render: (used, rowData) => {
+          if (!rowData.isLastRow) {
+            if (used) {
+              return <Tag color="red">Đã sử dụng</Tag>;
+            } else {
+              return <Tag color="red">Chưa sử dụng</Tag>;
+            }
+          }
+        },
+      },
+      {
         title: "",
         width: 32,
         render: (_, rowData) => {
           if (!rowData.isLastRow) {
             return (
               <CopyVoucherButton
+                disabled={disableInputInTable("addMore", rowData)}
                 addNewMore={(quantity) => {
                   addNewMore(rowData, quantity);
                 }}
@@ -312,7 +346,62 @@ const VoucherPromotion = ({
       },
     ]);
     return () => {};
-  }, [tableData, lvErrMessage]);
+  }, [tableData, lvErrMessage, time]);
+
+  useEffect(() => {
+    if (modalState.type != "create" && modalState.idSelected) {
+      loadGroupVoucher(modalState.idSelected);
+    }
+    return () => {};
+  }, [modalState]);
+
+  async function loadGroupVoucher(voucherId) {
+    // load group theo id
+
+    let res = await promotionApi.getOneVById(voucherId);
+    if (res.isSuccess) {
+      let voucher = res.voucher;
+      let groupVoucher = voucher.groupVoucher;
+      res = await promotionApi.getAllByGroup(groupVoucher);
+      if (res.isSuccess) {
+        let vouches = res.vouches || [];
+
+        let _tableData = vouches.map((voucher) => {
+          return {
+            id: voucher.id,
+            code: voucher.code,
+            discountMoney: voucher.discountMoney || 0,
+            discountRate: voucher.discountRate || 0,
+            maxDiscountMoney: voucher.maxDiscountMoney || 0,
+            type: voucher.type,
+            used: voucher.PromotionResult && true,
+            isExistInDB: true,
+          };
+        });
+
+        if (voucher) {
+          setTime({
+            startDate: voucher.startDate,
+            endDate: voucher.endDate,
+          });
+          let start = new Date(voucher.startDate);
+          let end = new Date(voucher.endDate);
+          let now = new Date();
+          let state = voucher.state;
+
+          if (compareDMY(start, now) > 0) {
+            // Sắp tới
+
+            _tableData.push({
+              isLastRow: true,
+            });
+          }
+        }
+
+        setTableData(_tableData);
+      }
+    }
+  }
 
   function addNewRow() {
     let _tableData = [...tableData];
@@ -345,6 +434,7 @@ const VoucherPromotion = ({
       let id = uid();
       let newRow = {
         ...rowData,
+        isExistInDB: false,
         id,
         code: codeVocherGenarate(),
       };
@@ -369,6 +459,33 @@ const VoucherPromotion = ({
     let _errMess = { ...lvErrMessage };
     _errMess[rowId] = null;
     setLvErrMessage(_errMess);
+  }
+
+  function disableInputInTable(name, rowData) {
+    if (time) {
+      let start = new Date(time.startDate);
+      let end = new Date(time.endDate);
+      let now = new Date();
+      let isFuture = false;
+      let isExistInDB = rowData.isExistInDB;
+      let used = rowData.used;
+
+      if (compareDMY(start, now) > 0) {
+        // Sắp tới
+        isFuture = true;
+      }
+
+      if (isFuture) {
+        return false;
+      }
+
+      if (isExistInDB) {
+        return true;
+      }
+
+      if (name == "btnDelete") {
+      }
+    }
   }
 
   return (

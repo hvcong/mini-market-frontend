@@ -148,13 +148,10 @@ const PromotionLineTable = ({
           <>
             <Button
               size="small"
-              icon={
-                <EditOutlined
-                  onClick={() => {
-                    onClickRowId(row);
-                  }}
-                />
-              }
+              onClick={() => {
+                onClickRowId(row);
+              }}
+              icon={<EditOutlined />}
             />
             <Button
               style={{
@@ -256,11 +253,33 @@ const PromotionLineTable = ({
   }
 
   function onClickRowId(rowData) {
+    let type = "view";
+    if (rowData) {
+      let start = new Date(rowData.startDate);
+      let end = new Date(rowData.endDate);
+      let now = new Date();
+      let state = rowData.state;
+
+      if (compareDMY(start, now) > 0) {
+        // Sắp tới
+        type = "update";
+      }
+
+      if (compareDMY(start, now) <= 0 && compareDMY(end, now) >= 0) {
+        if (state && headerState) {
+          // Đang áp dụng
+          type = "update";
+        } else {
+          // Tạm ngưng
+          type = "update";
+        }
+      }
+    }
     dispatch(
       setOpen({
         name: "PromotionLineModal",
         modalState: {
-          type: "update",
+          type: type,
           visible: true,
           idSelected: rowData.id,
           promotionHeaderId,
@@ -297,7 +316,7 @@ const PromotionLineTable = ({
       res = await promotionApi.deleteOneDRP(lineId);
     }
     if (promotionTypeId == "V") {
-      res = await promotionApi.deleteOneV(lineId);
+      res = await promotionApi.deleteByGroup(rowData.groupVoucher);
     }
 
     if (res.isSuccess) {
@@ -326,7 +345,9 @@ const PromotionLineTable = ({
       res = await promotionApi.updateOneDRP(lineId, formData);
     }
     if (promotionTypeId == "V") {
-      res = await promotionApi.updateOneV(lineId, formData);
+      res = await promotionApi.updateByGroup(rowData.groupVoucher, {
+        state: is,
+      });
     }
 
     if (res.isSuccess) {

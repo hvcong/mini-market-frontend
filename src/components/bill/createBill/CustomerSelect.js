@@ -82,6 +82,7 @@ const CustomerSelect = (props) => {
     setInput(phone);
     let res = await userApi.addOneCustomer({
       phonenumber: phone,
+      id: "KH" + uid(),
     });
     if (res.isSuccess) {
       handleChange(phone);

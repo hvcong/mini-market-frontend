@@ -62,11 +62,16 @@ const Employee = ({}) => {
         return (
           <Typography.Link
             onClick={() => {
-              setModalState({
-                visible: true,
-                type: "update",
-                rowSelected: rowData,
-              });
+              dispatch(
+                setOpen({
+                  name: "ProfileModal",
+                  modalState: {
+                    visible: true,
+                    type: "update",
+                    idSelected: rowData.id,
+                  },
+                })
+              );
             }}
           >
             {rowData.id}

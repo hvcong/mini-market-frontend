@@ -2,11 +2,17 @@ import React, { Component, useEffect, useState } from "react";
 import "../../assets/styles/auth.scss";
 import logo from "../../assets/images/logo.png";
 import { Button, Checkbox, Form, Input, Typography, message } from "antd";
-import { FacebookOutlined, GoogleOutlined } from "@ant-design/icons";
+import {
+  EyeInvisibleOutlined,
+  EyeTwoTone,
+  FacebookOutlined,
+  GoogleOutlined,
+} from "@ant-design/icons";
 import userApi from "./../../api/userApi";
 import { useDispatch, useSelector } from "react-redux";
 import { employeeLoginOke } from "../../store/slices/userSlice";
 import { Navigate, useNavigate } from "react-router-dom";
+import ForgotPassword from "./ForgotPassword";
 
 const Auth = function () {
   let hideLoading = null;
@@ -17,10 +23,11 @@ const Auth = function () {
 
   const [username, setUsername] = useState("0868283911");
   const [password, setPassword] = useState("22222222");
-  useEffect(() => {
-    onSubmit();
-    return () => {};
-  }, []);
+  const [isForgot, setIsForgot] = useState(false);
+  // useEffect(() => {
+  //   onSubmit();
+  //   return () => {};
+  // }, []);
 
   useEffect(() => {
     return () => {
@@ -51,65 +58,81 @@ const Auth = function () {
             })
           );
         }, 1000);
+      } else {
+        message.error("Tài khoản hoặc mật khẩu không chính xác!");
       }
     } else {
       hideLoading();
-      message.error("Tài khoản hoặc mật khẩu không hợp lệ!");
+      message.error("Tài khoản hoặc mật khẩu không chính xác!");
     }
   }
   return (
     <div className="auth">
       <div className="container" id="container">
         <div className="form-container sign-in-container">
-          <form action="#">
-            <h2>ĐĂNG NHẬP</h2>
-            <div className="social-container">
-              <Typography.Link className="social_item_fb">
-                <FacebookOutlined
-                  style={{
-                    fontSize: 20,
-                    color: "#424ae2",
-                  }}
-                />
-              </Typography.Link>
-              <Typography.Link className="social_item_gg">
-                <GoogleOutlined
-                  style={{
-                    fontSize: 20,
-                    color: "#b7b032",
-                  }}
-                />
-              </Typography.Link>
-            </div>
-            <span>hoặc sử dụng tài khoản</span>
-            <div className="auth_input_wrap">
-              <Input
-                className="auth_input"
-                value={username}
-                onChange={({ target }) => {
-                  setUsername(target.value);
-                }}
-                placeholder="Email / Số điện thoại"
-              />
-              <div className="auth_input_err"></div>
-            </div>
+          <h2>{isForgot ? "XÁC THỰC OTP" : "ĐĂNG NHẬP"}</h2>
+          {isForgot ? (
+            <ForgotPassword setIsForgot={setIsForgot} />
+          ) : (
+            <form action="#">
+              <div className="social-container">
+                <Typography.Link className="social_item_fb">
+                  <FacebookOutlined
+                    style={{
+                      fontSize: 20,
+                      color: "#424ae2",
+                    }}
+                  />
+                </Typography.Link>
+                <Typography.Link className="social_item_gg">
+                  <GoogleOutlined
+                    style={{
+                      fontSize: 20,
+                      color: "#b7b032",
+                    }}
+                  />
+                </Typography.Link>
+              </div>
+              <span>hoặc sử dụng tài khoản</span>
 
-            <div className="auth_input_wrap">
-              <Input
-                className="auth_input"
-                value={password}
-                onChange={({ target }) => {
-                  setPassword(target.value);
+              <div className="auth_input_wrap">
+                <Input
+                  className="auth_input"
+                  value={username}
+                  onChange={({ target }) => {
+                    setUsername(target.value);
+                  }}
+                  placeholder="Email / Số điện thoại"
+                />
+                <div className="auth_input_err"></div>
+              </div>
+
+              <div className="auth_input_wrap">
+                <Input.Password
+                  className="auth_input"
+                  iconRender={(visible) =>
+                    visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                  }
+                  value={password}
+                  onChange={({ target }) => {
+                    setPassword(target.value);
+                  }}
+                  placeholder="Mật khẩu"
+                />
+                <div className="auth_input_err"></div>
+              </div>
+              <Typography.Link
+                onClick={() => {
+                  setIsForgot(true);
                 }}
-                placeholder="Mật khẩu"
-              />
-              <div className="auth_input_err"></div>
-            </div>
-            <Typography.Link>Quên mật khẩu?</Typography.Link>
-            <Button type="primary" className="button" onClick={onSubmit}>
-              Đăng Nhập
-            </Button>
-          </form>
+              >
+                Quên mật khẩu?
+              </Typography.Link>
+              <Button type="primary" className="button" onClick={onSubmit}>
+                Đăng Nhập
+              </Button>
+            </form>
+          )}
         </div>
         <div className="overlay-container">
           <div className="overlay-panel">

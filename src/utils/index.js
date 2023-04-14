@@ -160,7 +160,7 @@ export function formatDateJsToYMD(date) {
 }
 
 export function isVietnamesePhoneNumberValid(number) {
-  return /(((\+|)84)|0)(3|5|7|8|9)+([0-9]{8})\b/.test(number);
+  return /0(3|5|7|8|9)+([0-9]{8})\b/.test(number);
 }
 
 export function isEmailValid(email) {

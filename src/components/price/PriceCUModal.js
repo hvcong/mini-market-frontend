@@ -267,9 +267,10 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
 
         let res = await priceHeaderApi.updateOne({
           id: formState.id,
-          startDate: formState.startDate,
+          startDate: start,
         });
         if (res.isSuccess) {
+          dispatch(setRefreshPriceHeaders());
           setFormState({
             ...formState,
             startDate: string,
@@ -389,9 +390,10 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
       if (modalState.type == "update") {
         let res = await priceHeaderApi.updateOne({
           id: formState.id,
-          endDate: formState.endDate,
+          endDate: end,
         });
         if (res.isSuccess) {
+          dispatch(setRefreshPriceHeaders());
           setFormState({
             ...formState,
             endDate: string,
@@ -574,6 +576,22 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
                       formState.startDate,
                       formState.endDate
                     )}
+                  />
+                </div>
+              )}
+
+              {modalState.type == "create" && (
+                <div className="input__container">
+                  <Text className="input__label">Trạng thái</Text>
+                  <Switch
+                    checkedChildren="On"
+                    unCheckedChildren="Off"
+                    onChange={(is) => {
+                      setFormState({
+                        ...formState,
+                        state: is,
+                      });
+                    }}
                   />
                 </div>
               )}

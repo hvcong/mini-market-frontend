@@ -604,28 +604,30 @@ const PromotionHeaderModal = ({
                       </div>
                     </div>
                   </div>
-                  <div className="promotion_header_form_group">
-                    <div className="promotion_header_form_label" style={{}}>
-                      Trạng thái
-                    </div>
-                    <div className="promotion_header_form_input_wrap">
-                      <Switch
-                        onChange={async (is) => {
-                          await handleOnChangeState(is, formState.id);
-                          setFormState({
-                            ...formState,
-                            state: is,
-                          });
-                        }}
-                        disabled={disabledChangeHeaderState()}
-                        checked={state}
-                        status={errMessage.state && "error"}
-                      />
-                      <div className="promotion_header_form_input_err">
-                        {errMessage.state}
+                  {modalState.type != "create" && (
+                    <div className="promotion_header_form_group">
+                      <div className="promotion_header_form_label" style={{}}>
+                        Trạng thái
+                      </div>
+                      <div className="promotion_header_form_input_wrap">
+                        <Switch
+                          onChange={async (is) => {
+                            await handleOnChangeState(is, formState.id);
+                            setFormState({
+                              ...formState,
+                              state: is,
+                            });
+                          }}
+                          disabled={disabledChangeHeaderState()}
+                          checked={state}
+                          status={errMessage.state && "error"}
+                        />
+                        <div className="promotion_header_form_input_err">
+                          {errMessage.state}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 

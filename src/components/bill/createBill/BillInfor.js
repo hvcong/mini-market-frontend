@@ -26,6 +26,7 @@ import VoucherEnter from "./VoucherEnter";
 import BillInforTop from "./BillInforTop";
 import BillInforTotal from "./BillInforTotal";
 import BillPrint from "../BillPrint";
+import productApi from "../../../api/productApi";
 
 const BillInfor = ({
   listPromotionLinesOnActive,
@@ -111,7 +112,7 @@ const BillInfor = ({
     hideLoading = message.loading("Đang tiến hành thanh toán ...", 0);
     let priceIds = [];
 
-    tableData.map((row) => {
+    for (const row of tableData) {
       if (!row.isRowNotData) {
         if (!row.isPromotion) {
           priceIds.push({
@@ -120,7 +121,7 @@ const BillInfor = ({
           });
         }
       }
-    });
+    }
 
     let formData = {
       cost: amountMoney.total,
@@ -163,9 +164,56 @@ const BillInfor = ({
       }
     }
     hideLoading();
-
     async function checkData() {
       let isCheck = true;
+
+      const _quantitys = {};
+
+      for (const rowData of tableData) {
+        if (rowData.isRowNotData) {
+          continue;
+        }
+
+        if (rowData.ProductUnitType) {
+          let productId = rowData.ProductUnitType.ProductId;
+          let convertionQuantity =
+            rowData.ProductUnitType.UnitType.convertionQuantity;
+          let quantity = rowData.quantity;
+
+          if (!_quantitys[productId]) {
+            _quantitys[productId] = 0;
+          }
+          _quantitys[productId] += quantity * convertionQuantity;
+        }
+      }
+
+      const isEnoughProducts = {};
+      let productIds = Object.keys(_quantitys);
+      let isEnough = true;
+
+      for (const productId of productIds) {
+        let quantityChange = -_quantitys[productId];
+        let res = await productApi.updateQuantity(productId, quantityChange);
+        if (res.isSuccess) {
+          isEnoughProducts[productId] = true;
+        } else {
+          isEnough = false;
+        }
+      }
+
+      // không đủ cập nhật lại toàn bộ
+      if (!isEnough) {
+        for (const productId of productIds) {
+          if (isEnoughProducts[productId]) {
+            let quantityChange = _quantitys[productId];
+            await productApi.updateQuantity(productId, quantityChange);
+          }
+        }
+        isCheck = false;
+        message.error(
+          "Không đủ số lượng, vui lòng tải lại cửa sổ để cập nhật số lượng mới nhất!"
+        );
+      }
 
       return isCheck;
     }

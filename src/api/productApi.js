@@ -41,6 +41,13 @@ class ProductApi {
     let url = `product/getName?name=${name}`;
     return axiosClient.get(url);
   }
+
+  updateQuantity(id, quantityChange) {
+    let url = `product/updateQuantity?id=${id}`;
+    return axiosClient.put(url, {
+      quantityChange,
+    });
+  }
 }
 
 const productApi = new ProductApi();

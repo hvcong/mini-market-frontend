@@ -203,6 +203,7 @@ const MoneyProductPromotion = ({
                     setFormState({
                       ...formState,
                       budget: value,
+                      availableBudget: value,
                     });
                   }
                 }}
@@ -226,25 +227,9 @@ const MoneyProductPromotion = ({
                 }
                 parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
                 disabled
-                value={
-                  modalType == "create"
-                    ? formState.budget
-                    : formState.availableBudget
-                }
-                onChange={(value) => {
-                  if (value) {
-                    setFormState({
-                      ...formState,
-                      availableBudget: value,
-                    });
-                  }
-                }}
+                value={formState.availableBudget}
                 min={1}
-                status={errMessage.availableBudget && "error"}
               />
-              <div className="promotion_line_form_input_err">
-                {errMessage.availableBudget}
-              </div>
             </div>
           </div>
         </div>

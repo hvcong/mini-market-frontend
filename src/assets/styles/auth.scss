@@ -12,6 +12,7 @@
 
   h2 {
     text-align: center;
+    padding-top: 42px;
   }
 
   p {
@@ -60,8 +61,8 @@
     justify-content: center;
     flex-direction: column;
     padding: 0 50px;
-    height: 100%;
     text-align: center;
+    height: 320px;
   }
 
   input {
@@ -233,6 +234,7 @@
     width: 300px;
     .auth_input {
       width: 300px;
+      background-color: #eee;
     }
     .auth_input_err {
       font-size: 11px;

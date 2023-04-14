@@ -2,7 +2,7 @@ import { Button, InputNumber, Popconfirm, message } from "antd";
 import React, { useState } from "react";
 import { DiffOutlined } from "@ant-design/icons";
 
-const CopyVoucherButton = ({ addNewMore }) => {
+const CopyVoucherButton = ({ addNewMore, disabled }) => {
   const [numberInput, setNumberInput] = useState(0);
   const confirm = () => {
     addNewMore(numberInput);
@@ -35,12 +35,15 @@ const CopyVoucherButton = ({ addNewMore }) => {
       onConfirm={confirm}
       okText="Tạo nhanh"
       cancelText="Đóng"
+      disabled={disabled}
     >
-      <DiffOutlined
-        style={{
-          cursor: "pointer",
-        }}
-      />
+      {!disabled && (
+        <DiffOutlined
+          style={{
+            cursor: "pointer",
+          }}
+        />
+      )}
     </Popconfirm>
   );
 };

@@ -116,6 +116,21 @@ class PromotionApi {
     console.log(url);
     return axiosClient.get(url);
   }
+
+  getAllByGroup(groupVoucher) {
+    let url = `voucher/getAllByGroup?groupVoucher=${groupVoucher}`;
+    return axiosClient.get(url);
+  }
+
+  updateByGroup(groupVoucher, formData) {
+    let url = `voucher/updateByGroup?groupVoucher=${groupVoucher}`;
+    return axiosClient.put(url, formData);
+  }
+
+  deleteByGroup(groupVoucher) {
+    let url = `voucher/deleteByGroup?groupVoucher=${groupVoucher}`;
+    return axiosClient.delete(url);
+  }
   // updateOneV(id, formData) {
   //   let url = `moneyPromotion/update?id=${id}`;
   //   return axiosClient.put(url, formData);
