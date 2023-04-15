@@ -40,11 +40,7 @@ const PriceLineTable = ({
           width: 160,
           render: (_, rowData) => {
             if (rowData) {
-              return (
-                <Typography.Link>
-                  {rowData.ProductUnitType.ProductId}
-                </Typography.Link>
-              );
+              return <div>{rowData.ProductUnitType.ProductId}</div>;
             }
           },
         },
@@ -63,11 +59,7 @@ const PriceLineTable = ({
 
           render: (_, rowData) => {
             if (rowData) {
-              return (
-                <Typography.Link>
-                  {rowData.ProductUnitType.UnitTypeId}
-                </Typography.Link>
-              );
+              return <>{rowData.ProductUnitType.UnitTypeId}</>;
             }
           },
         },

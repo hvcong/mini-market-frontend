@@ -55,7 +55,7 @@ const Employee = ({}) => {
     {
       title: "Mã nhân viên",
       dataIndex: "id",
-      width: 200,
+      width: 160,
       fixed: "left",
       fixedShow: true,
       render: (_, rowData) => {

@@ -199,7 +199,7 @@ const BillCUModal = () => {
             <Typography.Title level={4} className="title">
               {type == "retrieve" && "Thông tin hóa đơn đã trả"}
               {type == "success" && "Thông tin chi tiết hóa đơn"}
-              {type == "pending" || (type == "cancel" && "Thông tin đơn hàng")}
+              {(type == "pending" || type == "cancel") && "Thông tin đơn hàng"}
             </Typography.Title>
           </div>
           <div className="form__container">
@@ -246,9 +246,7 @@ const BillCUModal = () => {
                     <div className="bill_form_group">
                       <div className="bill_form_label">Mã nhân viên</div>
                       <div className="bill_form_input_wrap">
-                        <Typography.Link>
-                          {formState.EmployeeId}
-                        </Typography.Link>
+                        <div>{formState.EmployeeId}</div>
                         <div className="bill_form_input_err"></div>
                       </div>
                     </div>
@@ -256,7 +254,7 @@ const BillCUModal = () => {
                   <div className="bill_form_group">
                     <div className="bill_form_label">Mã khách hàng</div>
                     <div className="bill_form_input_wrap">
-                      <Typography.Link>{formState.CustomerId}</Typography.Link>
+                      <div>{formState.CustomerId}</div>
 
                       <div className="bill_form_input_err"></div>
                     </div>
@@ -395,7 +393,7 @@ const BillCUModal = () => {
                       orderToBill(formState.id);
                     }}
                   >
-                    Thanh toán
+                    Xác nhận
                   </Button>
                   <Button
                     onClick={() => {

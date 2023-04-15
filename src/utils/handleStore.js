@@ -88,6 +88,9 @@ class HandleAfter {
     let billDetails = bill.BillDetails || [];
     let employeeId = bill.EmployeeId;
 
+    // tính lại số lượng để cộng lại cho đồng bộ
+    let _quantitys = {};
+
     let storeTrans = [];
 
     billDetails.map((billDetail) => {
@@ -96,6 +99,9 @@ class HandleAfter {
         ProductUnitTypeId: billDetail.Price.ProductUnitTypeId,
         type: "Bán hàng",
         employeeId: employeeId,
+        productId: billDetail.Price.ProductUnitType.ProductId,
+        convertionQuantity:
+          billDetail.Price.ProductUnitType.UnitType.convertionQuantity,
       });
     });
 
@@ -120,6 +126,9 @@ class HandleAfter {
               ProductUnitTypeId: row.ProductUnitType.id,
               type: "Khuyến mãi bán hàng",
               employeeId: employeeId,
+              productId: row.ProductUnitType.ProductId,
+              convertionQuantity:
+                row.ProductUnitType.UnitType.convertionQuantity,
             });
           }
         }
@@ -165,8 +174,35 @@ class HandleAfter {
 
     // create store
     await storeApi.addMany({
-      data: storeTrans,
+      data: storeTrans.map((item) => {
+        return {
+          quantity: item.quantity,
+          ProductUnitTypeId: item.ProductUnitTypeId,
+          type: item.type,
+          employeeId: item.employeeId,
+        };
+      }),
     });
+    console.log(storeTrans);
+
+    // cộng lại số lượng đã trừ trước khi tạo bill
+
+    for (const item of storeTrans) {
+      let productId = item.productId;
+      let convertionQuantity = item.convertionQuantity;
+      let quantity = item.quantity * -1;
+      let quantityChange = quantity * convertionQuantity;
+      if (!_quantitys[productId]) {
+        _quantitys[productId] = 0;
+      }
+      _quantitys[productId] += quantityChange;
+    }
+
+    let productIds = Object.keys(_quantitys);
+
+    for (const productId of productIds) {
+      await productApi.updateQuantity(productId, _quantitys[productId]);
+    }
   }
 
   // async handleAfterCancelOrder(billId) {

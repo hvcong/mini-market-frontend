@@ -983,7 +983,7 @@ const PromotionLineModal = () => {
       return false;
     }
 
-    if (modalState.type == "view") {
+    if (modalState.type == "view" || modalState.type == "view-one-voucher") {
       return true;
     }
   }
@@ -1246,31 +1246,34 @@ const PromotionLineModal = () => {
                   )}
                   {formState.typePromotionId == "V" && (
                     <>
-                      <VoucherPromotion
-                        setLvErrMessage={setLvErrMessage}
-                        lvErrMessage={lvErrMessage}
-                        tableData={listVoucherCreate}
-                        setTableData={setListVoucherCreate}
-                        modalState={modalState}
-                      />
-                      {/* <VoucherPromotionDetail
-                        modalType={modalState.type}
-                        formState={formState.V}
-                        setFormState={(value) => {
-                          setFormState({
-                            ...formState,
-                            V: value,
-                          });
-                        }}
-                        errMessage={errMessage.V}
-                        setErrMessage={(value) => {
-                          setErrMessage({
-                            ...errMessage,
-                            V: value,
-                          });
-                        }}
-                        disabledInput={disabledInput}
-                      /> */}
+                      {modalState.type == "view-one-voucher" ? (
+                        <VoucherPromotionDetail
+                          modalType={modalState.type}
+                          formState={formState.V}
+                          setFormState={(value) => {
+                            setFormState({
+                              ...formState,
+                              V: value,
+                            });
+                          }}
+                          errMessage={errMessage.V}
+                          setErrMessage={(value) => {
+                            setErrMessage({
+                              ...errMessage,
+                              V: value,
+                            });
+                          }}
+                          disabledInput={disabledInput}
+                        />
+                      ) : (
+                        <VoucherPromotion
+                          setLvErrMessage={setLvErrMessage}
+                          lvErrMessage={lvErrMessage}
+                          tableData={listVoucherCreate}
+                          setTableData={setListVoucherCreate}
+                          modalState={modalState}
+                        />
+                      )}
                     </>
                   )}
                 </div>

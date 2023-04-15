@@ -93,22 +93,36 @@ const Bill = ({}) => {
       {
         title: "Mã nhân viên",
         dataIndex: "EmployeeId",
-        render: (EmployeeId, rowData) => {
-          return <Typography.Link>{EmployeeId}</Typography.Link>;
-        },
       },
       {
         title: "Tên nhân viên",
         dataIndex: "Employee",
         render: (Employee) => {
-          return <Typography.Link>{Employee && Employee.name}</Typography.Link>;
+          return Employee && Employee.name;
         },
       },
       {
         title: "Mã khách hàng",
         dataIndex: "CustomerId",
         render: (CustomerId, rowData) => {
-          return <Typography.Link>{CustomerId}</Typography.Link>;
+          return (
+            <Typography.Link
+              onClick={() => {
+                dispatch(
+                  setOpen({
+                    name: "CustomerCUModal",
+                    modalState: {
+                      visible: true,
+                      idSelected: CustomerId,
+                      type: "view",
+                    },
+                  })
+                );
+              }}
+            >
+              {CustomerId}
+            </Typography.Link>
+          );
         },
       },
 
@@ -164,6 +178,13 @@ const Bill = ({}) => {
 
     if (res.isSuccess) {
       dispatch(setBills(res.bills));
+    } else {
+      dispatch(
+        setBills({
+          rows: [],
+          count: 0,
+        })
+      );
     }
     hideLoading();
   }

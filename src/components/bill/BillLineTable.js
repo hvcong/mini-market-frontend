@@ -138,9 +138,6 @@ const BillLineTable = ({ BillDetails = [], listKM = [], bill = {} }) => {
         title: "Mã sản phẩm",
         dataIndex: "productId",
         width: 200,
-        render: (productId) => {
-          return <Typography.Link>{productId}</Typography.Link>;
-        },
       },
 
       {
@@ -162,9 +159,6 @@ const BillLineTable = ({ BillDetails = [], listKM = [], bill = {} }) => {
       {
         title: "Mã đơn vị tính",
         dataIndex: "utId",
-        render: (utId) => {
-          return <Typography.Link>{utId}</Typography.Link>;
-        },
       },
 
       {
@@ -327,7 +321,7 @@ const BillLineTable = ({ BillDetails = [], listKM = [], bill = {} }) => {
                       setOpen({
                         name: "PromotionLineModal",
                         modalState: {
-                          type: "view",
+                          type: "view-one-voucher",
                           visible: true,
                           idSelected: Vused.id,
                           promotionHeaderId: rowData.PromotionHeaderId,

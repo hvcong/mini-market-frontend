@@ -31,6 +31,7 @@ import "../../assets/styles/bill.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import {
+  convertToVND,
   handleAfter,
   sqlToDDmmYYY,
   sqlToHHmmDDmmYYYY,
@@ -81,12 +82,37 @@ const Order = ({}) => {
           return sqlToHHmmDDmmYYYY(orderDate);
         },
       },
+      {
+        title: "Tổng tiền",
+        dataIndex: "cost",
+        align: "right",
+        render: (cost) => {
+          return convertToVND(cost);
+        },
+      },
 
       {
         title: "Mã khách hàng",
         dataIndex: "CustomerId",
         render: (CustomerId, rowData) => {
-          return <Typography.Link>{CustomerId}</Typography.Link>;
+          return (
+            <Typography.Link
+              onClick={() => {
+                dispatch(
+                  setOpen({
+                    name: "CustomerCUModal",
+                    modalState: {
+                      idSelected: CustomerId,
+                      type: "view",
+                      visible: true,
+                    },
+                  })
+                );
+              }}
+            >
+              {CustomerId}
+            </Typography.Link>
+          );
         },
       },
       {
@@ -128,7 +154,7 @@ const Order = ({}) => {
                           orderToBill(rowData.id);
                         }}
                       >
-                        Thanh toán
+                        Xác nhận
                       </Button>
                       <Button
                         size="small"
@@ -179,8 +205,16 @@ const Order = ({}) => {
   async function getOrders(page, limit) {
     hideLoading = message.loading("Tải dữ liệu hóa đơn...", 0);
     let res = await billApi.getLimitOrders(page, limit);
+
     if (res.isSuccess) {
       dispatch(setBills(res.bills));
+    } else {
+      dispatch(
+        setBills({
+          rows: [],
+          count: 0,
+        })
+      );
     }
     hideLoading();
   }

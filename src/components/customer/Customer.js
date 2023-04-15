@@ -32,6 +32,7 @@ import DropSelectColum from "./../product/DropSelectColum";
 import CustomerCUModal from "./CustomerCUModal";
 import userApi from "./../../api/userApi";
 import { setCustomers } from "../../store/slices/customerSlice";
+import { setOpen } from "../../store/slices/modalSlice";
 
 const { Text } = Typography;
 
@@ -39,22 +40,25 @@ const Customer = ({}) => {
   const { customers, refresh, count } = useSelector((state) => state.customer);
   const dispatch = useDispatch();
 
-  const [modalState, setModalState] = useState({
-    visible: false,
-    type: "",
-    rowSelected: null,
-  });
-
   const [pageState, setPageState] = useState({
     page: 1,
     limit: 10,
   });
 
+  function setModalState(state) {
+    dispatch(
+      setOpen({
+        name: "CustomerCUModal",
+        modalState: state,
+      })
+    );
+  }
+
   const [allColumns, setAllColumns] = useState([
     {
       title: "Mã KH",
       dataIndex: "id",
-      width: 100,
+      width: 160,
       fixed: "left",
       fixedShow: true,
       render: (_, rowData) => {
@@ -64,7 +68,7 @@ const Customer = ({}) => {
               setModalState({
                 type: "update",
                 visible: true,
-                rowSelected: rowData,
+                idSelected: rowData.id,
               });
             }}
           >
@@ -94,7 +98,7 @@ const Customer = ({}) => {
               setModalState({
                 type: "update",
                 visible: true,
-                rowSelected: rowData,
+                idSelected: rowData.id,
               });
             }}
           >
@@ -225,7 +229,6 @@ const Customer = ({}) => {
           hideOnSinglePage
         />
       </div>
-      <CustomerCUModal modalState={modalState} setModalState={setModalState} />
     </div>
   );
 };

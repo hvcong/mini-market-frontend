@@ -74,7 +74,7 @@ const StoreEnterTicket = ({}) => {
       dataIndex: "EmployeeId",
       render: (_, rowData) => {
         if (rowData) {
-          return <Typography.Link>{rowData.EmployeeId}</Typography.Link>;
+          return <div>{rowData.EmployeeId}</div>;
         }
       },
     },

@@ -50,6 +50,16 @@ const initState = {
       idSelected: "",
       refresh: false,
     },
+    EmployeeCUModal: {
+      visible: false,
+      type: "view",
+      idSelected: "",
+    },
+    CustomerCUModal: {
+      visible: false,
+      type: "view",
+      idSelected: "",
+    },
   },
 };
 
@@ -58,6 +68,7 @@ export const modalSlice = createSlice({
   initialState: initState,
   reducers: {
     setOpen: (state, action) => {
+      console.log(action);
       state.modals[action.payload.name] = action.payload.modalState;
     },
     setRefreshModal: (state, action) => {

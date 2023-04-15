@@ -94,7 +94,7 @@ const ReceiveBill = ({}) => {
     {
       title: "Tên nhân viên",
       render: (_, rowData) => {
-        return <Typography.Link>{rowData.Bill.Employee.name}</Typography.Link>;
+        return rowData.Bill.Employee.name;
       },
     },
     {
@@ -108,6 +108,7 @@ const ReceiveBill = ({}) => {
     {
       title: "Tên khách hàng",
       render: (_, rowData) => {
+        console.log(rowData.Bill.Customer);
         let firstName =
           (rowData.Bill.Customer.firstName &&
             rowData.Bill.Customer.firstName + " ") ||
@@ -115,13 +116,27 @@ const ReceiveBill = ({}) => {
         let lastName =
           rowData.Bill.Customer.lastName &&
           rowData.Bill.Customer.lastName + " " + " ";
-        let name = firstName + lastName;
+        let name = firstName || "" + lastName || "";
+        console.log(firstName, lastName);
 
         if (name) {
           name = name.trim();
         }
         return (
-          <Typography.Link>
+          <Typography.Link
+            onClick={() => {
+              dispatch(
+                setOpen({
+                  name: "CustomerCUModal",
+                  modalState: {
+                    visible: true,
+                    type: "view",
+                    idSelected: rowData.Bill.Customer.id,
+                  },
+                })
+              );
+            }}
+          >
             {name || rowData.Bill.Customer.phonenumber}
           </Typography.Link>
         );

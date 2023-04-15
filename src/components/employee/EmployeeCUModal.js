@@ -23,11 +23,12 @@ import {
 import ModalCustomer from "../ModalCustomer";
 import unitTypeApi from "./../../api/unitTypeApi";
 import userApi from "./../../api/userApi";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setRefreshEmployees } from "../../store/slices/employeeSlice";
 import { isEmailValid, isVietnamesePhoneNumberValid } from "../../utils";
 import AddressSelectAll from "../AddressSelectAll";
 import addressApi from "../../api/addressApi";
+import { setOpen } from "../../store/slices/modalSlice";
 
 const roles = [
   {
@@ -67,11 +68,11 @@ const initErrMessage = {
   role: "NV",
 };
 
-const EmployeeCUModal = ({ modalState, setModalState }) => {
+const EmployeeCUModal = () => {
   let hideLoading = null;
   const dispatch = useDispatch();
 
-  const [oldPhone, setOldPhone] = useState(null);
+  const modalState = useSelector((state) => state.modal.modals.EmployeeCUModal);
 
   const [formState, setFormState] = useState(initFormState);
   const [errMessage, setErrMessage] = useState(initErrMessage);
@@ -221,6 +222,15 @@ const EmployeeCUModal = ({ modalState, setModalState }) => {
 
       return isCheck;
     }
+  }
+
+  function setModalState(state) {
+    dispatch(
+      setOpen({
+        name: "EmployeeCUModal",
+        modalState: state,
+      })
+    );
   }
 
   return (

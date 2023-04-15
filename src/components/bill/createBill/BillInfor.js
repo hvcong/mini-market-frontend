@@ -211,7 +211,7 @@ const BillInfor = ({
         }
         isCheck = false;
         message.error(
-          "Không đủ số lượng, vui lòng tải lại cửa sổ để cập nhật số lượng mới nhất!"
+          "Không đủ số lượng, vui lòng tải lại trình duyệt để cập nhật số lượng mới nhất!"
         );
       }
 

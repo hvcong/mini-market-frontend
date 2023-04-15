@@ -75,7 +75,7 @@ const Auth = function () {
             <ForgotPassword setIsForgot={setIsForgot} />
           ) : (
             <form action="#">
-              <div className="social-container">
+              {/* <div className="social-container">
                 <Typography.Link className="social_item_fb">
                   <FacebookOutlined
                     style={{
@@ -93,7 +93,7 @@ const Auth = function () {
                   />
                 </Typography.Link>
               </div>
-              <span>hoặc sử dụng tài khoản</span>
+              <span>hoặc sử dụng tài khoản</span> */}
 
               <div className="auth_input_wrap">
                 <Input

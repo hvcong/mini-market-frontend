@@ -26,9 +26,10 @@ import CustomerGroupSelect from "../customerGroup/CustomerGroupSelect";
 import AddressSelectAll from "../AddressSelectAll";
 import addressApi from "./../../api/addressApi";
 import userApi from "../../api/userApi";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setRefreshCustomer } from "../../store/slices/customerSlice";
 import { isEmailValid, isVietnamesePhoneNumberValid } from "../../utils";
+import { setOpen } from "../../store/slices/modalSlice";
 
 const initFormState = {
   id: "",
@@ -59,9 +60,11 @@ const initErrMessage = {
   },
 };
 
-const CustomerCUModal = ({ modalState, setModalState }) => {
+const CustomerCUModal = () => {
   let hideLoading = null;
   const dispatch = useDispatch();
+
+  const modalState = useSelector((state) => state.modal.modals.CustomerCUModal);
 
   const [formState, setFormState] = useState(initFormState);
   const [errMessage, setErrMessage] = useState(initErrMessage);
@@ -77,8 +80,18 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
   } = formState;
 
   useEffect(() => {
-    let { visible, rowSelected, type } = modalState;
-    if (visible && rowSelected && type) {
+    let { visible, idSelected, type } = modalState;
+    if (visible && idSelected && type) {
+      loadCustomer(idSelected);
+    }
+
+    return () => {};
+  }, [modalState]);
+
+  async function loadCustomer(id) {
+    let res = await userApi.getOneCustomerById(id);
+    if (res.isSuccess) {
+      let customer = res.customer;
       let {
         firstName,
         lastName,
@@ -87,7 +100,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
         phonenumber,
         HomeAddress,
         TypeCustomerId,
-      } = rowSelected;
+      } = customer;
 
       let _address = {};
       if (HomeAddress) {
@@ -107,9 +120,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
         typeCustomerId: TypeCustomerId,
       });
     }
-
-    return () => {};
-  }, [modalState]);
+  }
 
   function closeModal() {
     setModalState({
@@ -277,6 +288,27 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
     }
   }
 
+  function setModalState(state) {
+    dispatch(
+      setOpen({
+        name: "CustomerCUModal",
+        modalState: state,
+      })
+    );
+  }
+
+  function disabledInputs(name) {
+    let type = modalState.type;
+
+    if (type == "view") return true;
+
+    if (type == "update") {
+      if (name == "id") return true;
+      if (name == "phonenumber") return true;
+      if (name == "type") return true;
+    }
+  }
+
   return (
     <div className="customer_modal">
       <ModalCustomer
@@ -308,7 +340,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                       className="customer_form_input"
                       size="small"
                       value={id}
-                      disabled={modalState.type == "update"}
+                      disabled={disabledInputs("id")}
                       onChange={({ target }) => {
                         setFormState({
                           ...formState,
@@ -329,6 +361,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                       className="customer_form_input"
                       size="small"
                       value={firstName}
+                      disabled={disabledInputs("firstName")}
                       onChange={({ target }) => {
                         setFormState({
                           ...formState,
@@ -349,6 +382,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                       className="customer_form_input"
                       size="small"
                       value={lastName}
+                      disabled={disabledInputs("lastName")}
                       onChange={({ target }) => {
                         setFormState({
                           ...formState,
@@ -375,7 +409,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                           phonenumber: target.value,
                         });
                       }}
-                      disabled={modalState.type == "update"}
+                      disabled={disabledInputs("phonenumber")}
                       status={errMessage.phonenumber && "error"}
                     />
                     <div className="customer_form_input_err">
@@ -396,6 +430,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                           email: target.value,
                         });
                       }}
+                      disabled={disabledInputs("email")}
                       status={errMessage.email && "error"}
                     />
                     <div className="customer_form_input_err">
@@ -415,6 +450,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                         });
                       }}
                       value={typeCustomerId}
+                      disabled={disabledInputs("type")}
                       status={errMessage.typeCustomerId && "error"}
                     />
                     <div className="customer_form_input_err">
@@ -426,6 +462,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
               <div className="customer_form_right">
                 <AddressSelectAll
                   address={address}
+                  disabled={disabledInputs("address")}
                   setAddress={(address) => {
                     setFormState({
                       ...formState,
@@ -444,7 +481,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                 marginTop: "12px",
               }}
             >
-              {modalState.type == "create" ? (
+              {modalState.type == "create" && (
                 <>
                   <Button
                     type="primary"
@@ -463,7 +500,9 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                     Lưu & Đóng
                   </Button>
                 </>
-              ) : (
+              )}
+
+              {modalState.type == "update" && (
                 <Button
                   type="primary"
                   onClick={() => {
@@ -474,7 +513,7 @@ const CustomerCUModal = ({ modalState, setModalState }) => {
                 </Button>
               )}
               <Button type="primary" danger onClick={closeModal}>
-                Hủy bỏ
+                Đóng
               </Button>
             </Space>
           </div>

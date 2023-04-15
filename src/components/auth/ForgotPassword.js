@@ -22,7 +22,7 @@ const ForgotPassword = ({ setIsForgot }) => {
     captcha: "",
   });
 
-  function sendPhone() {
+  async function sendPhone() {
     if (!phone) {
       message.error("Số điện thoại không hợp lệ!");
       return;
@@ -30,6 +30,12 @@ const ForgotPassword = ({ setIsForgot }) => {
 
     if (!isVietnamesePhoneNumberValid(phone)) {
       message.error("Số điện thoại không hợp lệ!");
+      return;
+    }
+
+    let res = await userApi.getOneEmployeeByPhone(phone);
+    if (!res.isSuccess || !res.employee) {
+      message.error("Số điện thoại này chưa đăng kí tài khoản!");
       return;
     }
 

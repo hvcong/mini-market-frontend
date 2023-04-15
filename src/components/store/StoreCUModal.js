@@ -537,12 +537,12 @@ const StoreCUModal = () => {
                     Mã nhân viên kiểm
                   </div>
                   <div className="store_checking_modal_form_input_wrap">
-                    <Typography.Link
+                    <div
                       className="store_checking_modal_form_input_number"
                       size="small"
                     >
                       {formState.EmployeeId}
-                    </Typography.Link>
+                    </div>
                   </div>
                 </div>
                 <div className="store_checking_modal_form_group">

@@ -10,6 +10,7 @@ const AddressSelectItem = ({
   districtId,
   setAddressItem,
   value,
+  disabledFromParent,
   ...props
 }) => {
   const [list, setList] = useState([]);
@@ -78,7 +79,7 @@ const AddressSelectItem = ({
         onChange={setAddressItem}
         size="small"
         allowClear
-        disabled={disabled}
+        disabled={disabled || disabledFromParent}
       />
     </>
   );

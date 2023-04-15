@@ -323,7 +323,7 @@ const VoucherPromotion = ({
             if (used) {
               return <Tag color="red">Đã sử dụng</Tag>;
             } else {
-              return <Tag color="red">Chưa sử dụng</Tag>;
+              return <Tag color="green">Chưa sử dụng</Tag>;
             }
           }
         },

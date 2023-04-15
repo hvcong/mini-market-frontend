@@ -2,7 +2,7 @@ import React from "react";
 import AddressSelectItem from "./AddressSelectItem";
 import { Input } from "antd";
 
-const AddressSelectAll = ({ address, setAddress, errMess }) => {
+const AddressSelectAll = ({ address, setAddress, errMess, disabled }) => {
   return (
     <div className="address_select">
       <div className="address_select_title">Địa chỉ</div>
@@ -12,6 +12,7 @@ const AddressSelectAll = ({ address, setAddress, errMess }) => {
           <AddressSelectItem
             style={{ width: 170 }}
             placeholder="--- Tỉnh/Thành phố ---"
+            disabledFromParent={disabled}
             type="city"
             setAddressItem={(value) => {
               setAddress({
@@ -38,6 +39,7 @@ const AddressSelectAll = ({ address, setAddress, errMess }) => {
                 districtId: value,
               });
             }}
+            disabledFromParent={disabled}
             value={address.districtId}
             status={errMess.districtId && "error"}
           />
@@ -60,6 +62,7 @@ const AddressSelectAll = ({ address, setAddress, errMess }) => {
                 wardId: value,
               });
             }}
+            disabledFromParent={disabled}
             value={address.wardId}
             status={errMess.wardId && "error"}
           />
@@ -80,6 +83,7 @@ const AddressSelectAll = ({ address, setAddress, errMess }) => {
                 homeAddress: target.value,
               });
             }}
+            disabled={disabled}
             status={errMess.homeAddress && "error"}
           />
           <div className="address_select_input">{errMess.homeAddress}</div>

@@ -67,7 +67,7 @@ const ListPromotion = ({ listKM = [] }) => {
                   setOpen({
                     name: "PromotionLineModal",
                     modalState: {
-                      type: "view",
+                      type: type == "V" ? "view-one-voucher" : "view",
                       visible: true,
                       idSelected: id,
                       promotionHeaderId,
