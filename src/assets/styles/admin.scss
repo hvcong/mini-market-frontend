@@ -681,3 +681,20 @@
     padding-top: 2px;
   }
 }
+
+.clock_container {
+  color: whitesmoke;
+  padding: 4px;
+  text-align: center;
+  border: 1px solid #2f694b;
+  border-radius: 4px;
+  margin-right: -12px;
+  margin-left: 4px;
+
+  .time {
+  }
+
+  .date {
+    padding-top: 2px;
+  }
+}

@@ -8,6 +8,8 @@ import { DownOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { setOpen } from "../../../store/slices/modalSlice";
 import { logOut } from "../../../store/slices/userSlice";
+import Clock from "../../common/Clock";
+import TalkWithUser from "../../common/TalkWithUser";
 
 const AdminHeader = () => {
   let hideLoading = null;
@@ -39,7 +41,7 @@ const AdminHeader = () => {
         </div>
         <div className="right">
           <div className="hello_group">
-            <div className="hellow_text">Xin chào </div>
+            <TalkWithUser name={account.name} />
             <div className="name">{account.name}</div>
           </div>
           <div className="right__item">
@@ -82,6 +84,7 @@ const AdminHeader = () => {
               </div>
             </div>
           </div>
+          <Clock />
         </div>
       </div>
     </Layout>
