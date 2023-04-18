@@ -8,6 +8,7 @@ import {
   Spin,
   Tag,
   Tooltip,
+  message,
 } from "antd";
 import { useEffect, useRef, useState } from "react";
 import userApi from "../../../api/userApi";
@@ -24,7 +25,7 @@ import {
   PlusOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
-import { isVietnamesePhoneNumberValid, uid } from "../../../utils";
+import { isVietnamesePhoneNumberValid, uid, uidNumber } from "../../../utils";
 
 const CustomerSelect = (props) => {
   const { activeKey } = useSelector((state) => state.createBill.tabState);
@@ -80,11 +81,23 @@ const CustomerSelect = (props) => {
 
   async function addNewCustomer(phone) {
     setInput(phone);
-    let res = await userApi.addOneCustomer({
+    let customerId = "KH" + uidNumber();
+
+    let res = await userApi.getOneCustomerById(customerId);
+
+    message.info(uidNumber());
+
+    if (res.isSuccess) {
+      customerId = "KH" + uidNumber();
+    }
+
+    res = await userApi.addOneCustomer({
       phonenumber: phone,
-      id: "KH" + uid(),
+      id: customerId,
     });
     if (res.isSuccess) {
+      message.info("Thêm mới thành công");
+      handleSearch(phone);
       handleChange(phone);
     }
   }
@@ -117,7 +130,7 @@ const CustomerSelect = (props) => {
         dropdownRender={(menu) => (
           <>
             {menu}
-            {data.length == 0 && !errMess && (
+            {data.length == 0 && !errMess && input && (
               <>
                 <Divider
                   style={{

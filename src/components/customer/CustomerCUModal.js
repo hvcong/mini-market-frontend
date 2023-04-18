@@ -28,11 +28,15 @@ import addressApi from "./../../api/addressApi";
 import userApi from "../../api/userApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setRefreshCustomer } from "../../store/slices/customerSlice";
-import { isEmailValid, isVietnamesePhoneNumberValid } from "../../utils";
+import {
+  isEmailValid,
+  isVietnamesePhoneNumberValid,
+  uidNumber,
+} from "../../utils";
 import { setOpen } from "../../store/slices/modalSlice";
 
 const initFormState = {
-  id: "",
+  id: "KH" + uidNumber(),
   firstName: "",
   lastName: "",
   phonenumber: "",
@@ -450,7 +454,7 @@ const CustomerCUModal = () => {
                         });
                       }}
                       value={typeCustomerId}
-                      disabled={disabledInputs("type")}
+                      // disabled={disabledInputs("type")}
                       status={errMessage.typeCustomerId && "error"}
                     />
                     <div className="customer_form_input_err">

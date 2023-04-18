@@ -25,7 +25,11 @@ import unitTypeApi from "./../../api/unitTypeApi";
 import userApi from "./../../api/userApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setRefreshEmployees } from "../../store/slices/employeeSlice";
-import { isEmailValid, isVietnamesePhoneNumberValid } from "../../utils";
+import {
+  isEmailValid,
+  isVietnamesePhoneNumberValid,
+  uidNumber,
+} from "../../utils";
 import AddressSelectAll from "../AddressSelectAll";
 import addressApi from "../../api/addressApi";
 import { setOpen } from "../../store/slices/modalSlice";
@@ -42,7 +46,7 @@ const roles = [
 ];
 
 const initFormState = {
-  id: "",
+  id: "NV" + uidNumber(),
   name: "",
   phonenumber: "",
   email: "",
@@ -68,11 +72,9 @@ const initErrMessage = {
   role: "NV",
 };
 
-const EmployeeCUModal = () => {
+const EmployeeCUModal = ({ modalState, setModalState }) => {
   let hideLoading = null;
   const dispatch = useDispatch();
-
-  const modalState = useSelector((state) => state.modal.modals.EmployeeCUModal);
 
   const [formState, setFormState] = useState(initFormState);
   const [errMessage, setErrMessage] = useState(initErrMessage);
@@ -86,9 +88,23 @@ const EmployeeCUModal = () => {
     clearModal();
   }
 
+  useEffect(() => {
+    if (modalState.type == "create") {
+      setFormState({
+        ...formState,
+        id: "NV" + uidNumber(),
+      });
+    }
+
+    return () => {};
+  }, [modalState]);
+
   function clearModal() {
     setErrMessage(initErrMessage);
-    setFormState(initFormState);
+    setFormState({
+      ...initFormState,
+      id: "NV" + uidNumber(),
+    });
   }
 
   async function onSubmit(type, isClose) {
@@ -102,6 +118,7 @@ const EmployeeCUModal = () => {
         phonenumber,
         email,
         HomeAddressId: HomeAddressId,
+        role: formState.role,
       };
       let res = {};
       if (type == "create") {
@@ -222,15 +239,6 @@ const EmployeeCUModal = () => {
 
       return isCheck;
     }
-  }
-
-  function setModalState(state) {
-    dispatch(
-      setOpen({
-        name: "EmployeeCUModal",
-        modalState: state,
-      })
-    );
   }
 
   return (

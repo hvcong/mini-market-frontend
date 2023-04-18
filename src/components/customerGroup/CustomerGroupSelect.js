@@ -14,6 +14,7 @@ const CustomerGroupSelect = ({ ...props }) => {
 
   async function getCustomerTypes() {
     let res = await userApi.getAllCustomerType();
+    console.log(res);
     if (res.isSuccess) {
       setListType(res.typeCustomers);
     }
@@ -36,6 +37,9 @@ const CustomerGroupSelect = ({ ...props }) => {
           label: item.name,
         };
       })}
+      onClick={() => {
+        getCustomerTypes();
+      }}
       size="small"
       allowClear
     />

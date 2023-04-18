@@ -89,25 +89,36 @@ const Employee = ({}) => {
     {
       title: "Số điện thoại",
       dataIndex: "phonenumber",
-      render: (phonenumber, rowData) => {
-        return (
-          <Typography.Link
-            onClick={() => {
-              dispatch(
-                setOpen({
-                  name: "ProfileModal",
-                  modalState: {
-                    visible: true,
-                    type: "update",
-                    idSelected: rowData.id,
-                  },
-                })
-              );
-            }}
-          >
-            {phonenumber}
-          </Typography.Link>
-        );
+    },
+    {
+      title: "Chức vụ",
+      fixedShow: true,
+      render: (_, rowData) => {
+        if (rowData.Account) {
+          return rowData.Account.role == "NV"
+            ? "Nhân viên bán hàng"
+            : "Quản lí";
+        }
+      },
+    },
+    {
+      title: "Địa chỉ",
+      width: 260,
+      dataIndex: "address",
+      render: (_, rowData) => {
+        if (
+          rowData.HomeAddress &&
+          rowData.HomeAddress.Ward &&
+          rowData.HomeAddress.Ward.District &&
+          rowData.HomeAddress.Ward.District.City
+        ) {
+          let _addr = rowData.HomeAddress.homeAddress;
+          _addr += ", " + rowData.HomeAddress.Ward.name;
+          _addr += ", " + rowData.HomeAddress.Ward.District.name;
+          _addr += ", " + rowData.HomeAddress.Ward.District.City.name;
+          return _addr;
+        }
+        return "";
       },
     },
   ]);

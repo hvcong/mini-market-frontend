@@ -109,6 +109,10 @@ export function codeVocherGenarate() {
   );
 }
 
+export function uidNumber() {
+  return `${Math.random()}`.substr(2, 7);
+}
+
 export function compareDMY(jsDate1, jsDate2) {
   let d1 = jsDate1.getDate();
   let m1 = jsDate1.getMonth();
