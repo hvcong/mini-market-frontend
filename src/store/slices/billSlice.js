@@ -15,7 +15,7 @@ export const billSlice = createSlice({
       state.count = action.payload.count;
       state.refresh = false;
     },
-    setRefreshBills: (state) => {
+    setRefreshBills: (state, action) => {
       state.refresh = true;
     },
   },

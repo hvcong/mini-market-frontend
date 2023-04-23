@@ -38,11 +38,23 @@ const Sidenav = ({ isAdmin }) => {
         "store_tiket"
       ),
     ]),
-    getItem(
-      <NavLink to="">Thống kê</NavLink>,
-      "statistic",
-      <FileDoneOutlined />
-    ),
+    getItem("Thống kê", "statistic", <FileDoneOutlined />, [
+      getItem(
+        <NavLink to="statistic/bills-customers">Bán hàng theo KH</NavLink>,
+        "banhangtheokh"
+      ),
+      getItem(
+        <NavLink to="statistic/bills-days">Bán hàng theo ngày</NavLink>,
+        "banhangtheongay"
+      ),
+      getItem(<NavLink to="statistic/retrieves">Trả hàng</NavLink>, "trahang"),
+      getItem(
+        <NavLink to="statistic/promotions">Tổng kết KM</NavLink>,
+        "khuyenmai"
+      ),
+      getItem(<NavLink to="statistic/inputs">Nhập hàng</NavLink>, "nhaphang"),
+      getItem(<NavLink to="statistic/storage">Tồn kho</NavLink>, "tonkho"),
+    ]),
     getItem(
       <NavLink to="prices">Bảng giá</NavLink>,
       "price",

@@ -2,6 +2,7 @@ import {
   Button,
   Col,
   Dropdown,
+  Input,
   message,
   Modal,
   Pagination,
@@ -33,124 +34,301 @@ import EmployeeCUModal from "./EmployeeCUModal";
 import userApi from "./../../api/userApi";
 import { setEmployees } from "../../store/slices/employeeSlice";
 import { setOpen } from "../../store/slices/modalSlice";
+import HighlightedText from "../HighlightedText";
 
 const { Text } = Typography;
 
 const Employee = ({}) => {
-  const { employees, refresh, count } = useSelector((state) => state.employee);
-  const dispatch = useDispatch();
-
+  const { employees, refresh } = useSelector((state) => state.employee);
+  let data = employees;
   const [modalState, setModalState] = useState({
     visible: false,
-    type: "",
-    rowSelected: null,
+  });
+
+  const [dataAfterFilted, setDataAfterFilted] = useState([]);
+  const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [dataTable, setDataTable] = useState([{ isFirstRow: true }]);
+  const [allColumns, setAllColumns] = useState([]);
+
+  const [filterState, setFilterState] = useState({
+    id: "",
+    name: "",
+    phonenumber: "",
+    role: "",
   });
 
   const [pageState, setPageState] = useState({
     page: 1,
     limit: 10,
+    total: 20,
   });
 
-  const [allColumns, setAllColumns] = useState([
-    {
-      title: "Mã nhân viên",
-      dataIndex: "id",
-      width: 160,
-      fixed: "left",
-      fixedShow: true,
-      render: (_, rowData) => {
-        return (
-          <Typography.Link
-            onClick={() => {
-              dispatch(
-                setOpen({
-                  name: "ProfileModal",
-                  modalState: {
-                    visible: true,
-                    type: "update",
-                    idSelected: rowData.id,
-                  },
-                })
-              );
-            }}
-          >
-            {rowData.id}
-          </Typography.Link>
-        );
-      },
-    },
-    {
-      title: "Tên nhân viên",
-      dataIndex: "name",
-      width: 200,
-      fixed: "left",
-      fixedShow: true,
-    },
-    {
-      title: "Số điện thoại",
-      dataIndex: "phonenumber",
-    },
-    {
-      title: "Chức vụ",
-      fixedShow: true,
-      render: (_, rowData) => {
-        if (rowData.Account) {
-          return rowData.Account.role == "NV"
-            ? "Nhân viên bán hàng"
-            : "Quản lí";
-        }
-      },
-    },
-    {
-      title: "Địa chỉ",
-      width: 260,
-      dataIndex: "address",
-      render: (_, rowData) => {
-        if (
-          rowData.HomeAddress &&
-          rowData.HomeAddress.Ward &&
-          rowData.HomeAddress.Ward.District &&
-          rowData.HomeAddress.Ward.District.City
-        ) {
-          let _addr = rowData.HomeAddress.homeAddress;
-          _addr += ", " + rowData.HomeAddress.Ward.name;
-          _addr += ", " + rowData.HomeAddress.Ward.District.name;
-          _addr += ", " + rowData.HomeAddress.Ward.District.City.name;
-          return _addr;
-        }
-        return "";
-      },
-    },
-  ]);
+  function clearFilter() {
+    setFilterState({});
+  }
 
   useEffect(() => {
-    getEmployees(pageState.page, pageState.limit);
+    setAllColumns([
+      {
+        title: "STT",
+        width: 44,
+        dataIndex: "index",
+      },
+
+      {
+        title: "Mã nhân viên",
+        dataIndex: "id",
+        width: 160,
+        fixed: "left",
+        fixedShow: true,
+        render: (_, rowData) => {
+          if (rowData.isFirstRow) {
+            return (
+              <Input
+                placeholder="Tìm kiếm"
+                value={filterState.id}
+                allowClear
+                onChange={({ target }) => {
+                  setFilterState({
+                    ...filterState,
+                    id: target.value,
+                  });
+                }}
+              />
+            );
+          }
+
+          return (
+            <Typography.Link
+              onClick={() => {
+                dispatch(
+                  setOpen({
+                    name: "ProfileModal",
+                    modalState: {
+                      visible: true,
+                      type: "update",
+                      idSelected: rowData.id,
+                    },
+                  })
+                );
+              }}
+            >
+              <HighlightedText text={_} highlightText={filterState.id} />
+            </Typography.Link>
+          );
+        },
+      },
+      {
+        title: "Tên nhân viên",
+        dataIndex: "name",
+        width: 200,
+        fixed: "left",
+        fixedShow: true,
+        render: (_, rowData) => {
+          if (rowData.isFirstRow) {
+            return (
+              <Input
+                placeholder="Tìm kiếm"
+                value={filterState.name}
+                allowClear
+                onChange={({ target }) => {
+                  setFilterState({
+                    ...filterState,
+                    name: target.value,
+                  });
+                }}
+              />
+            );
+          }
+
+          return <HighlightedText text={_} highlightText={filterState.name} />;
+        },
+      },
+      {
+        title: "Số điện thoại",
+        dataIndex: "phonenumber",
+        render: (_, rowData) => {
+          if (rowData.isFirstRow) {
+            return (
+              <Input
+                placeholder="Tìm kiếm"
+                value={filterState.phonenumber}
+                allowClear
+                onChange={({ target }) => {
+                  setFilterState({
+                    ...filterState,
+                    phonenumber: target.value,
+                  });
+                }}
+              />
+            );
+          }
+
+          return (
+            <HighlightedText text={_} highlightText={filterState.phonenumber} />
+          );
+        },
+      },
+      {
+        title: "Chức vụ",
+        fixedShow: true,
+        render: (_, rowData) => {
+          if (rowData.Account) {
+            return rowData.Account.role == "NV"
+              ? "Nhân viên bán hàng"
+              : "Quản lí";
+          }
+        },
+      },
+      {
+        title: "Địa chỉ",
+        width: 260,
+        dataIndex: "address",
+        render: (_, rowData) => {
+          if (
+            rowData.HomeAddress &&
+            rowData.HomeAddress.Ward &&
+            rowData.HomeAddress.Ward.District &&
+            rowData.HomeAddress.Ward.District.City
+          ) {
+            let _addr = rowData.HomeAddress.homeAddress;
+            _addr += ", " + rowData.HomeAddress.Ward.name;
+            _addr += ", " + rowData.HomeAddress.Ward.District.name;
+            _addr += ", " + rowData.HomeAddress.Ward.District.City.name;
+            return _addr;
+          }
+          return "";
+        },
+      },
+    ]);
+
     return () => {};
-  }, [pageState.page]);
+  }, [filterState]);
+
+  useEffect(() => {
+    loadAllData();
+    return () => {};
+  }, []);
+
+  useEffect(() => {
+    handleUpliedFilters();
+
+    return () => {};
+  }, [filterState, data]);
+
+  async function loadAllData() {
+    setIsLoading(true);
+
+    let res = await userApi.getLimitEmployees(1, 1000);
+
+    if (res.isSuccess) {
+      dispatch(setEmployees(res.employees));
+    } else {
+      message.error("Có lỗi xảy ra, vui lòng thử lại!");
+    }
+    setIsLoading(false);
+  }
+
+  function handleUpliedFilters() {
+    setIsLoading(true);
+    if (data) {
+      let _list = [...data];
+
+      if (filterState.id) {
+        _list = _list.filter((item) => {
+          let id = item.id?.toLowerCase();
+          let searchInput = filterState.id?.toLowerCase();
+
+          if (id?.includes(searchInput)) {
+            return true;
+          } else {
+            return false;
+          }
+        });
+      }
+      if (filterState.name) {
+        _list = _list.filter((item) => {
+          let name = item.name?.toLowerCase();
+          let searchInput = filterState.name?.toLowerCase();
+
+          if (name?.includes(searchInput)) {
+            return true;
+          } else {
+            return false;
+          }
+        });
+      }
+      if (filterState.phonenumber) {
+        _list = _list.filter((item) => {
+          let phonenumber = item.phonenumber?.toLowerCase();
+          let searchInput = filterState.phonenumber?.toLowerCase();
+
+          if (phonenumber?.includes(searchInput)) {
+            return true;
+          } else {
+            return false;
+          }
+        });
+      }
+
+      setTimeout(() => {
+        setDataAfterFilted(
+          (_list || []).map((item, index) => {
+            return {
+              ...item,
+              index: index + 1,
+            };
+          })
+        );
+        setIsLoading(false);
+      }, 500);
+    } else {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    let startIndex = pageState.limit * (pageState.page - 1);
+    let endIndex = startIndex + pageState.limit;
+    let _dataTable = dataAfterFilted.slice(startIndex, endIndex);
+    _dataTable.unshift({
+      isFirstRow: true,
+    });
+    setDataTable(_dataTable);
+
+    return () => {};
+  }, [pageState]);
+
+  useEffect(() => {
+    setPageState({
+      page: 1,
+      limit: 10,
+      total: dataAfterFilted && dataAfterFilted.length,
+    });
+
+    return () => {};
+  }, [dataAfterFilted]);
+
+  function onChangePageNumber(pageNumber) {
+    setIsLoading(true);
+    setTimeout(() => {
+      setPageState({
+        ...pageState,
+        page: pageNumber,
+      });
+      setIsLoading(false);
+    }, 500);
+  }
 
   useEffect(() => {
     if (refresh) {
-      getEmployees(pageState.page, pageState.limit);
+      loadAllData();
     }
 
     return () => {};
   }, [refresh]);
-
-  async function getEmployees(page, limit) {
-    let res = await userApi.getLimitEmployees(page, limit);
-    console.log(res);
-    if (res.isSuccess) {
-      dispatch(setEmployees(res.employees));
-    }
-  }
-
-  // pagination handle
-  function onChangePageNumber(pageNumber, pageSize) {
-    setPageState({
-      page: pageNumber,
-      limit: pageSize,
-    });
-  }
 
   return (
     <div className="employee">
@@ -181,6 +359,7 @@ const Employee = ({}) => {
               Thêm mới
             </Button>
           </div>
+
           <div className="btn__item">
             <DropSelectColum
               allColumns={allColumns}
@@ -192,21 +371,22 @@ const Employee = ({}) => {
         {/* table */}
 
         <Table
-          columns={allColumns.filter((col) => !col.hidden)}
-          dataSource={employees}
-          pagination={false}
+          columns={allColumns}
+          dataSource={dataTable}
           size="small"
           scroll={{
             x: allColumns.filter((item) => !item.hidden).length * 150,
             y: window.innerHeight * 0.66,
           }}
           className="table"
+          pagination={false}
+          loading={isLoading}
         />
         <div className="pagination__container">
           <Pagination
             onChange={onChangePageNumber}
-            total={count}
-            pageSize={10}
+            total={pageState.total}
+            pageSize={pageState.limit}
             current={pageState.page}
             hideOnSinglePage
           />

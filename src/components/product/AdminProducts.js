@@ -3,6 +3,7 @@ import {
   Col,
   Dropdown,
   Image,
+  Input,
   message,
   Modal,
   Pagination,
@@ -32,150 +33,279 @@ import ExpandRowRender from "./ExpandRowRender";
 import DropSelectColum from "./DropSelectColum";
 import ProductDetailModal from "./ProductDetailModal";
 import StoreTransationDetailModal from "./../StoreTransationDetailModal";
+import HighlightedText from "../HighlightedText";
 
 const { Text } = Typography;
 
 const AdminProducts = ({}) => {
-  const product = useSelector((state) => state.product);
-  const { products = [], count, refresh } = product;
-  const dispatch = useDispatch();
+  const {
+    products = [],
+    count,
+    refresh,
+  } = useSelector((state) => state.product);
 
-  const [pageState, setPageState] = useState({
-    page: 1,
-    limit: 10,
-  });
-  const [
-    isShowStoreTransactionDetailModal,
-    setIsShowStoreTransactionDetailModal,
-  ] = useState(false);
-  const [idTransactionSelected, setIdTransactionSelected] = useState(null);
   const [modalState, setModalState] = useState({
     visible: false,
     type: "",
     rowSelected: null,
   });
 
-  const [allColumns, setAllColumns] = useState([
-    {
-      title: "Id",
-      dataIndex: "id",
-      width: 100,
-      fixed: "left",
-      fixedShow: true,
-      render: (_, rowData) => {
-        return (
-          <Typography.Link
-            onClick={() => {
-              setModalState({
-                type: "update",
-                visible: true,
-                rowSelected: rowData,
-              });
-            }}
-          >
-            {rowData.id}
-          </Typography.Link>
-        );
-      },
-    },
-    {
-      title: "Tên",
-      dataIndex: "name",
-      width: 200,
-      fixed: "left",
-      fixedShow: true,
-    },
-    {
-      title: "Hình ảnh",
-      dataIndex: "images",
-      width: 200,
-      render: (images) => {
-        return (
-          <div>
-            {images &&
-              images.map((image) => {
-                return (
-                  <Image
-                    width={36}
-                    height={36}
-                    src={image.uri}
-                    style={{
-                      border: "1px solid #ccc",
-                    }}
-                  />
-                );
-              })}
-          </div>
-        );
-      },
-    },
+  let data = products;
 
-    {
-      title: "Nhóm sản phẩm",
-      dataIndex: "category",
-      render: (_, product) => {
-        return product.SubCategory.name;
-      },
-    },
-    {
-      title: "Mô tả",
-      dataIndex: "description",
-      render: (description) => {
-        return description && description.slice(0, 50) + "...";
-      },
-    },
+  const [dataAfterFilted, setDataAfterFilted] = useState([]);
+  const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(false);
 
-    {
-      title: "Trạng thái",
-      dataIndex: "active",
-      render: (_, product) => (
-        <>
-          {product.state ? (
-            <div style={{ color: "green" }}>Đang kinh doanh</div>
-          ) : (
-            <div style={{ color: "red" }}>Đã ngưng</div>
-          )}
-        </>
-      ),
-    },
-  ]);
+  const [dataTable, setDataTable] = useState([{ isFirstRow: true }]);
+  const [allColumns, setAllColumns] = useState([]);
+
+  const [filterState, setFilterState] = useState({
+    id: "",
+    name: "",
+  });
+
+  const [pageState, setPageState] = useState({
+    page: 1,
+    limit: 10,
+    total: 20,
+  });
 
   useEffect(() => {
-    getProducts(pageState.page, pageState.limit);
+    setAllColumns([
+      {
+        title: "STT",
+        width: 44,
+        fixed: "left",
+        dataIndex: "index",
+      },
+
+      {
+        title: "Mã SP",
+        dataIndex: "id",
+        width: 160,
+        fixed: "left",
+        fixedShow: true,
+        render: (_, rowData) => {
+          if (rowData.isFirstRow) {
+            return (
+              <Input
+                placeholder="Tìm kiếm"
+                value={filterState.id}
+                allowClear
+                onChange={({ target }) => {
+                  setFilterState({
+                    ...filterState,
+                    id: target.value,
+                  });
+                }}
+              />
+            );
+          }
+
+          return (
+            <Typography.Link
+              onClick={() => {
+                setModalState({
+                  type: "update",
+                  visible: true,
+                  rowSelected: rowData,
+                });
+              }}
+            >
+              <HighlightedText text={_} highlightText={filterState.id} />
+            </Typography.Link>
+          );
+        },
+      },
+      {
+        title: "Tên",
+        dataIndex: "name",
+        width: 200,
+        fixedShow: true,
+        render: (_, rowData) => {
+          if (rowData.isFirstRow) {
+            return (
+              <Input
+                placeholder="Tìm kiếm"
+                value={filterState.name}
+                allowClear
+                onChange={({ target }) => {
+                  setFilterState({
+                    ...filterState,
+                    name: target.value,
+                  });
+                }}
+              />
+            );
+          }
+
+          return <HighlightedText text={_} highlightText={filterState.name} />;
+        },
+      },
+      {
+        title: "Hình ảnh",
+        dataIndex: "images",
+        width: 200,
+        render: (images) => {
+          return (
+            <div>
+              {images &&
+                images.map((image) => {
+                  return (
+                    <Image
+                      width={36}
+                      height={36}
+                      src={image.uri}
+                      style={{
+                        border: "1px solid #ccc",
+                      }}
+                    />
+                  );
+                })}
+            </div>
+          );
+        },
+      },
+
+      {
+        title: "Nhóm sản phẩm",
+        dataIndex: "SubCategory",
+        render: (_, rowData) => {
+          if (!rowData.isFirstRow) {
+            return _?.name;
+          }
+        },
+      },
+      {
+        title: "Mô tả",
+        dataIndex: "description",
+        render: (description) => {
+          return description && description.slice(0, 50) + "...";
+        },
+      },
+
+      {
+        title: "Trạng thái",
+        dataIndex: "state",
+        render: (_, rowData) => {
+          if (!rowData.isFirstRow) {
+            return _ ? (
+              <div style={{ color: "green" }}>Đang kinh doanh</div>
+            ) : (
+              <div style={{ color: "red" }}>Đã ngưng</div>
+            );
+          }
+        },
+      },
+    ]);
+
+    return () => {};
+  }, [filterState]);
+
+  useEffect(() => {
+    loadAllData();
+    return () => {};
+  }, []);
+
+  useEffect(() => {
+    handleUpliedFilters();
+
+    return () => {};
+  }, [filterState, data]);
+
+  async function loadAllData() {
+    setIsLoading(true);
+
+    let res = await productApi.getMany(1, 1000);
+
+    if (res.isSuccess) {
+      dispatch(setProducts(res.products));
+    } else {
+      message.error("Có lỗi xảy ra, vui lòng thử lại!");
+    }
+    setIsLoading(false);
+  }
+
+  function handleUpliedFilters() {
+    setIsLoading(true);
+    if (data) {
+      let _list = [...data];
+
+      let [...filterNames] = Object.keys(filterState);
+      filterNames.map((key) => {
+        if (filterState[key]) {
+          _list = _list.filter((item) => {
+            let text = item[key]?.toLowerCase();
+            let searchInput = filterState[key]?.toLowerCase();
+
+            if (text?.includes(searchInput)) {
+              return true;
+            } else {
+              return false;
+            }
+          });
+        }
+      });
+
+      setTimeout(() => {
+        setDataAfterFilted(
+          (_list || []).map((item, index) => {
+            return {
+              ...item,
+              index: index + 1,
+            };
+          })
+        );
+        setIsLoading(false);
+      }, 500);
+    } else {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    let startIndex = pageState.limit * (pageState.page - 1);
+    let endIndex = startIndex + pageState.limit;
+    let _dataTable = dataAfterFilted.slice(startIndex, endIndex);
+    _dataTable.unshift({
+      isFirstRow: true,
+    });
+    setDataTable(_dataTable);
+
     return () => {};
   }, [pageState]);
 
   useEffect(() => {
+    setPageState({
+      page: 1,
+      limit: 10,
+      total: dataAfterFilted && dataAfterFilted.length,
+    });
+
+    return () => {};
+  }, [dataAfterFilted]);
+
+  function onChangePageNumber(pageNumber) {
+    setIsLoading(true);
+    setTimeout(() => {
+      setPageState({
+        ...pageState,
+        page: pageNumber,
+      });
+      setIsLoading(false);
+    }, 500);
+  }
+
+  useEffect(() => {
     if (refresh) {
-      getProducts(pageState.page, pageState.limit);
+      loadAllData();
     }
+
     return () => {};
   }, [refresh]);
 
-  async function getProducts(page, limit) {
-    let hidingLoading = message.loading("Tải dữ liệu sản phẩm...");
-    const res = await productApi.getMany(page, limit);
-    dispatch(setProducts(res.products));
-    hidingLoading();
-  }
-
-  // expand when click row
-  // function expandedRowRender(rowData) {
-  //   return (
-  //     <ExpandRowRender
-  //       rowData={rowData}
-  //       modalState={modalState}
-  //       setModalState={setModalState}
-  //     />
-  //   );
-  // }
-
-  // pagination handle
-  function onChangePageNumber(pageNumber, pageSize) {
-    setPageState({
-      page: pageNumber,
-      limit: pageSize,
-    });
+  function clearFilter() {
+    setFilterState({});
   }
 
   return (
@@ -219,29 +349,22 @@ const AdminProducts = ({}) => {
 
       <Table
         columns={allColumns.filter((col) => !col.hidden)}
-        dataSource={products.map((item) => {
-          return {
-            ...item,
-            key: item.id,
-          };
-        })}
+        dataSource={dataTable}
         pagination={false}
         size="small"
         scroll={{
-          x: allColumns.filter((item) => !item.hidden).length * 150,
+          x: allColumns.filter((item) => !item.hidden).length * 180,
           y: window.innerHeight * 0.66,
         }}
-        // expandable={{
-        //   expandedRowRender,
-        //   expandRowByClick: true,
-        // }}
         className="table"
+        loading={isLoading}
       />
       <div className="pagination__container">
         <Pagination
           onChange={onChangePageNumber}
-          total={count}
-          defaultCurrent={pageState.page}
+          total={pageState.total}
+          pageSize={pageState.limit}
+          current={pageState.page}
           hideOnSinglePage
         />
       </div>

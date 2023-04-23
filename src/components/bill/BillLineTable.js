@@ -146,11 +146,11 @@ const BillLineTable = ({ BillDetails = [], listKM = [], bill = {} }) => {
         width: 200,
         render: (productName, rowData) => {
           if (rowData.isMPusedRow && MPused) {
-            return <Typography.Link>{MPused.title}</Typography.Link>;
+            return MPused.title;
           }
 
           if (rowData.isVusedRow && Vused) {
-            return <Typography.Link>{Vused.title}</Typography.Link>;
+            return Vused.title;
           }
 
           return productName;

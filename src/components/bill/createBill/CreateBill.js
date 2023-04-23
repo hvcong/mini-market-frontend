@@ -8,6 +8,7 @@ import ListProduct from "./ListProduct";
 import BillInfor from "./BillInfor";
 import { FullscreenOutlined } from "@ant-design/icons";
 import SearchProductInput from "./SearchProductInput";
+import barcodeImage from "../../../assets/images/barcode_icon.jpg";
 
 const CreateBill = () => {
   const { tabState, listState } = useSelector((state) => state.createBill);
@@ -27,7 +28,15 @@ const CreateBill = () => {
           }}
         />
 
-        <div className="scan_qr"></div>
+        <div className="scan_qr">
+          <img
+            src={barcodeImage}
+            style={{
+              width: "32px",
+              height: "32px",
+            }}
+          />
+        </div>
         <div className="tabs_wrap">
           <TabsCreateBill />
         </div>

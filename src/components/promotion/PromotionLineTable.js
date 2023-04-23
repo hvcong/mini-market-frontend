@@ -397,7 +397,6 @@ const PromotionLineTable = ({
         <div className="btn__item">
           <Button
             type="dashed"
-            size="small"
             icon={<PlusOutlined />}
             style={{
               marginRight: "12px",

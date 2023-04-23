@@ -18,6 +18,12 @@ import CreateBill from "../components/bill/createBill/CreateBill";
 import Order from "../components/order/Order";
 import Auth from "../components/auth/Auth";
 import StoreEnterTicket from "../components/store/StoreEnterTicket";
+import StatisStoreInput from "../components/statistical/StatisStoreInput";
+import StatisStorage from "../components/statistical/StatisStorage";
+import StatisPromotions from "./../components/statistical/StatisPromotions";
+import StatisRetrieves from "./../components/statistical/StatisRetrieves";
+import StatisBillsCustomers from "./../components/statistical/StatisBillsCustomers";
+import StatisBillsDay from "./../components/statistical/StatisBillsDay";
 
 function App() {
   return (
@@ -46,6 +52,16 @@ function App() {
           <Route path="employee" element={<Employee />} />
           <Route path="create_bill" element={<CreateBill />} />
           <Route path="orders" element={<Order />} />
+
+          <Route path="statistic/inputs" element={<StatisStoreInput />} />
+          <Route path="statistic/storage" element={<StatisStorage />} />
+          <Route path="statistic/promotions" element={<StatisPromotions />} />
+          <Route path="statistic/retrieves" element={<StatisRetrieves />} />
+          <Route
+            path="statistic/bills-customers"
+            element={<StatisBillsCustomers />}
+          />
+          <Route path="statistic/bills-days" element={<StatisBillsDay />} />
         </Route>
         <Route path="auth" element={<Auth />} />
       </Routes>

@@ -18,6 +18,7 @@ import billLineReducer from "../store/slices/billLineSlice";
 import receiveBillReducer from "../store/slices/receiveBillSlice";
 import modalReducer from "../store/slices/modalSlice";
 import storeEnterTicketReducer from "../store/slices/storeEnterTicketSlice";
+import statisReducer from "../store/slices/statisticSlice";
 
 const rootReducer = {
   product: productReducer,
@@ -39,6 +40,7 @@ const rootReducer = {
   receiveBill: receiveBillReducer,
   modal: modalReducer,
   storeEnterTicket: storeEnterTicketReducer,
+  statis: statisReducer,
 };
 
 export const store = configureStore({

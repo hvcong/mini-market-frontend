@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Typography, message } from "antd";
+import { Button, Popover, Typography, message } from "antd";
 import DropSelectColum from "../product/DropSelectColum";
 import { Table } from "antd";
 import { compareDMY, convertToVND, sqlToDDmmYYY } from "../../utils";
@@ -12,6 +12,9 @@ import {
 } from "../../store/slices/priceLineSlice";
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import PriceLineModal from "./priceLineModal";
+import ExportExcelButton from "../common/ExportExcelButton";
+import ImportExcelButton from "../common/ImportExcelButton";
+import DownLoadTemplate from "../common/DownLoadTemplate";
 
 const PriceLineTable = ({
   headerPriceId,
@@ -173,6 +176,16 @@ const PriceLineTable = ({
     };
   }, [modalState]);
 
+  let dataToExport = priceLines.map((item) => {
+    return {
+      productId: item.ProductUnitType.Product.id,
+      productName: item.ProductUnitType.Product.name,
+      unitTypeId: item.ProductUnitType.UnitType.id,
+      convertionQuantity: item.ProductUnitType.UnitType.convertionQuantity,
+      price: item.price,
+    };
+  });
+
   return (
     <div>
       <div className="table__header">
@@ -188,9 +201,65 @@ const PriceLineTable = ({
         </div>
 
         <div className="btn__item">
+          <Popover
+            placement="leftTop"
+            content={
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <div
+                  style={{
+                    marginBottom: 4,
+                  }}
+                >
+                  <ExportExcelButton
+                    data={dataToExport}
+                    nameTemplate={"price"}
+                    title={"Bảng giá tháng 3"}
+                  />
+                </div>
+                <div
+                  style={{
+                    marginBottom: 4,
+                  }}
+                >
+                  <DownLoadTemplate
+                    nameTemplate={"price"}
+                    title={"Mẫu nhập giá"}
+                  />
+                </div>
+                <div
+                  style={{
+                    marginBottom: 4,
+                  }}
+                >
+                  <ImportExcelButton
+                    disabled={isDisabledAddButton}
+                    templateName="price"
+                    priceHeaderId={headerPriceId}
+                    oldData={priceLines.map((item) => {
+                      return {
+                        productId: item.ProductUnitType.ProductId,
+                        unitTypeId: item.ProductUnitType.UnitType.id,
+                        price: item.price,
+                        putId: item.ProductUnitType.id,
+                      };
+                    })}
+                  />
+                </div>
+              </div>
+            }
+          >
+            <Button>Nhập / Xuất bằng file</Button>
+          </Popover>
+        </div>
+
+        <div className="btn__item">
           <Button
             type="dashed"
-            size="small"
             icon={<PlusOutlined />}
             style={{
               marginRight: "12px",

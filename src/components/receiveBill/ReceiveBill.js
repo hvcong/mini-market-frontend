@@ -87,14 +87,14 @@ const ReceiveBill = ({}) => {
     {
       title: "Mã nhân viên",
       render: (_, rowData) => {
-        return <Typography.Link>{rowData.Bill.EmployeeId}</Typography.Link>;
+        return <Typography.Link>{rowData.Bill?.EmployeeId}</Typography.Link>;
       },
       hidden: true,
     },
     {
       title: "Tên nhân viên",
       render: (_, rowData) => {
-        return rowData.Bill.Employee.name;
+        return rowData.Bill.Employee?.name;
       },
     },
     {

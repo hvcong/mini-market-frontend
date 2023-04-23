@@ -20,6 +20,7 @@ import priceLineApi from "../../../api/priceLineApi";
 import { addOneProductToActiveTab } from "../../../store/slices/createBillSlice";
 import priceHeaderApi from "../../../api/priceHeaderApi";
 import { compareDMY, convertToVND } from "../../../utils";
+import useScanDetection from "use-scan-detection";
 
 const SearchProductInput = (props) => {
   const dispatch = useDispatch();
@@ -30,6 +31,11 @@ const SearchProductInput = (props) => {
   const [quantityInput, setQuantityInput] = useState(1);
   const [priceSelected, setPriceSelected] = useState();
   const [maxQuantityAvailabe, setMaxQuantityAvailabe] = useState(1);
+
+  const [barcodeScan, setBarcodeScan] = useState("no bar code scanned");
+  useScanDetection({
+    onComplete: setBarcodeScan,
+  });
 
   const quantityRef = useRef();
   const searchInput = useRef();

@@ -32,6 +32,13 @@ export function sqlToHHmmDDmmYYYY(date) {
   if (m < 10) {
     m = "0" + m;
   }
+  if (hh < 10) {
+    hh = "0" + hh;
+  }
+
+  if (minutes < 10) {
+    minutes = "0" + minutes;
+  }
 
   return hh + ":" + minutes + " , " + d + "/" + m + "/" + y;
 }
@@ -78,6 +85,13 @@ export function antdToYmd(date) {
   let m = date.$M + 1 < 10 ? "0" + (date.$M + 1) : date.$M + 1;
   let y = date.$y;
   return y + "/" + m + "/" + d;
+}
+
+export function getStartToDay() {
+  let now = new Date();
+  now.setHours(0);
+  now.setMinutes(0);
+  return now;
 }
 
 export function dmyToYmd(dmy) {
@@ -172,15 +186,17 @@ export function isEmailValid(email) {
 }
 
 export async function getPUTid(productId, utId) {
+  if (!productId) return null;
+  if (!utId) return null;
   let res = await productApi.findOneById(productId);
   if (!res.isSuccess) {
     return;
   }
 
-  let putId = res.product.ProductUnitTypes.filter(
+  let put = res.product.ProductUnitTypes.filter(
     (item) => item.UnitTypeId == utId
-  )[0].id;
-  return putId;
+  )[0];
+  return put && put.id;
 }
 
 export const uploadImage = {

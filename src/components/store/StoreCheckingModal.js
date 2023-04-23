@@ -19,6 +19,7 @@ import {
   Divider,
   Table,
   message,
+  Popover,
 } from "antd";
 import ModalCustomer from "../ModalCustomer";
 
@@ -26,7 +27,13 @@ import DropSelectColum from "../product/DropSelectColum";
 import { DeleteOutlined } from "@ant-design/icons";
 import { PlusOutlined } from "@ant-design/icons";
 import ProductIdIInputSearchSelect from "../common/ProductIdIInputSearchSelect";
-import { getPUTid, handleAfter, sqlToAntd, uid } from "../../utils";
+import {
+  getPUTid,
+  handleAfter,
+  sqlToAntd,
+  sqlToDDmmYYY,
+  uid,
+} from "../../utils";
 import productApi from "../../api/productApi";
 import unitTypeApi from "./../../api/unitTypeApi";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,6 +42,9 @@ import UnitTypeSelectByProductId from "../promotion/UnitTypeSelectByProductId";
 import { setRefreshStoreTrans } from "../../store/slices/storeTranSlice";
 import { setOpen } from "../../store/slices/modalSlice";
 import { setRefreshStoreTickets } from "../../store/slices/storeTicketSlice";
+import ExportExcelButton from "../common/ExportExcelButton";
+import DownLoadTemplate from "../common/DownLoadTemplate";
+import ImportExcelButton from "../common/ImportExcelButton";
 
 const lastItemOfTable = {
   isLastRow: true,
@@ -593,6 +603,8 @@ const StoreCheckingModal = () => {
      */
   }
 
+  function handleInportOke(addList) {}
+
   return (
     <div className="price__modal">
       <ModalCustomer
@@ -707,6 +719,70 @@ const StoreCheckingModal = () => {
                 >
                   Danh sách sản phẩm kiểm kho{" "}
                 </Typography.Title>
+              </div>
+              <div className="btn__item">
+                <Popover
+                  placement="leftTop"
+                  content={
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
+                      <div
+                        style={{
+                          marginBottom: 4,
+                        }}
+                      >
+                        <ExportExcelButton
+                          data={[]}
+                          disabled={modalState.type == "create"}
+                          nameTemplate={"storeChecking"}
+                          title={
+                            "Phiếu kiểm kho " + sqlToDDmmYYY(formState.createAt)
+                          }
+                          inputStoreId={formState.id}
+                        />
+                      </div>
+                      <div
+                        style={{
+                          marginBottom: 4,
+                        }}
+                      >
+                        <DownLoadTemplate
+                          nameTemplate={"storeChecking"}
+                          title={"Mẫu kiểm kho"}
+                        />
+                      </div>
+                      <div
+                        style={{
+                          marginBottom: 4,
+                        }}
+                      >
+                        <ImportExcelButton
+                          disabled={modalState.type != "create"}
+                          templateName="storeChecking"
+                          oldData={dataTable
+                            .filter((item) => {
+                              console.log(item);
+                              return item.product && item.utSelectedId;
+                            })
+                            .map((item) => {
+                              return {
+                                productId: item.product.id,
+                                quantity: item.quantity,
+                                unitTypeId: item.utSelectedId,
+                              };
+                            })}
+                          handleInportOke={handleInportOke}
+                        />
+                      </div>
+                    </div>
+                  }
+                >
+                  <Button>Nhập / Xuất bằng file</Button>
+                </Popover>
               </div>
 
               <div className="btn__item">
