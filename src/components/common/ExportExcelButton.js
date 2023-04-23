@@ -7,6 +7,8 @@ import priceHeaderApi from "../../api/priceHeaderApi";
 import storeApi from "../../api/storeApi";
 import { compareDMY, sqlToDDmmYYY, sqlToHHmmDDmmYYYY } from "../../utils";
 import { useSelector } from "react-redux";
+const numFmtStr = '_(""* #,##0_);_(""* (#,##0);_(""* "-"??_);_(@_)';
+const moneyFmtStr = '_(""* #,##0.00_);_(""* (#,##0.00);_(""* "-"??_);_(@_)';
 
 const ExportExcelButton = ({ nameTemplate, disabled, ...props }) => {
   function exportFile() {
@@ -160,16 +162,16 @@ function statisStorage({ data, headerNameList, fromDate, toDate }) {
     keys = Object.keys(element);
     worksheet.addRow(keys.map((key) => element[key]));
   });
-  worksheet.autoFilter = {
-    from: {
-      row: 8,
-      column: 2,
-    },
-    to: {
-      row: 8,
-      column: keys.length,
-    },
-  };
+  // worksheet.autoFilter = {
+  //   from: {
+  //     row: 8,
+  //     column: 2,
+  //   },
+  //   to: {
+  //     row: 8,
+  //     column: keys.length,
+  //   },
+  // };
 
   ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
     saveAs(
@@ -249,16 +251,10 @@ function statisStoreInput({ data, headerNameList, fromDate, toDate }) {
     keys = Object.keys(element);
     worksheet.addRow(keys.map((key) => element[key]));
   });
-  worksheet.autoFilter = {
-    from: {
-      row: 8,
-      column: 2,
-    },
-    to: {
-      row: 8,
-      column: keys.length,
-    },
-  };
+
+  worksheet.getColumn("E").numFmt = numFmtStr;
+  worksheet.getColumn("F").numFmt = numFmtStr;
+  worksheet.getColumn("G").numFmt = moneyFmtStr;
 
   // sumary
 
@@ -363,16 +359,40 @@ function statisPromotions({
     keys = Object.keys(element);
     worksheet.addRow(keys.map((key) => element[key]));
   });
-  worksheet.autoFilter = {
-    from: {
-      row: 8,
-      column: 2,
-    },
-    to: {
-      row: 8,
-      column: keys.length,
-    },
-  };
+
+  worksheet.getColumn("H").numFmt = numFmtStr;
+  worksheet.getColumn("J").numFmt = moneyFmtStr;
+  worksheet.getColumn("K").numFmt = moneyFmtStr;
+  worksheet.getColumn("L").numFmt = moneyFmtStr;
+  worksheet.getColumn("M").numFmt = moneyFmtStr;
+  // sumary
+
+  let Hsum = 0;
+  let Jsum = 0;
+  let Ksum = 0;
+  let Lsum = 0;
+  let Msum = 0;
+
+  data.map((item) => {
+    Hsum += item.quantityApplied || 0;
+    Jsum += item.discount || 0;
+    Ksum += item.budget || 0;
+    Lsum += item.discounted || 0;
+    Msum += item.availableBudget || 0;
+  });
+
+  newRow = worksheet.addRow();
+  newRow.font = { bold: true };
+  newRow.alignment = { vertical: "middle", horizontal: "right" };
+  let tmp = `A${data.length + 9}:B${data.length + 9}`;
+  worksheet.mergeCells(tmp);
+
+  newRow.getCell(1).value = "Tổng CTKM";
+  newRow.getCell("H").value = Hsum;
+  newRow.getCell("J").value = Jsum;
+  newRow.getCell("K").value = Ksum;
+  newRow.getCell("L").value = Lsum;
+  newRow.getCell("M").value = Msum;
 
   ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
     saveAs(
@@ -452,16 +472,32 @@ function statisRetrieves({ data, headerNameList, fromDate, toDate }) {
     keys = Object.keys(element);
     worksheet.addRow(keys.map((key) => element[key]));
   });
-  worksheet.autoFilter = {
-    from: {
-      row: 8,
-      column: 2,
-    },
-    to: {
-      row: 8,
-      column: keys.length,
-    },
-  };
+
+  worksheet.getColumn("K").numFmt = numFmtStr;
+  worksheet.getColumn("L").numFmt = numFmtStr;
+  worksheet.getColumn("M").numFmt = numFmtStr;
+  worksheet.getColumn("N").numFmt = moneyFmtStr;
+
+  // sumary
+
+  let Msum = 0;
+  let Nsum = 0;
+
+  data.map((item) => {
+    Msum += item.totalQuantity || 0;
+
+    Nsum += item.totalMoney || 0;
+  });
+
+  newRow = worksheet.addRow();
+  newRow.font = { bold: true };
+  newRow.alignment = { vertical: "middle", horizontal: "right" };
+  let tmp = `A${data.length + 9}:J${data.length + 9}`;
+  worksheet.mergeCells(tmp);
+
+  newRow.getCell(1).value = "Tổng giá trị";
+  newRow.getCell("M").value = Msum;
+  newRow.getCell("N").value = Nsum;
 
   ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
     saveAs(
@@ -552,6 +588,10 @@ function statisBillsCustomers({ data, headerNameList, fromDate, toDate }) {
     },
   };
 
+  worksheet.getColumn("K").numFmt = moneyFmtStr;
+  worksheet.getColumn("L").numFmt = moneyFmtStr;
+  worksheet.getColumn("M").numFmt = moneyFmtStr;
+
   // row sumary
 
   ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
@@ -632,16 +672,44 @@ function statisBillsDay({ data, headerNameList, fromDate, toDate }) {
     keys = Object.keys(element);
     worksheet.addRow(keys.map((key) => element[key]));
   });
-  worksheet.autoFilter = {
-    from: {
-      row: 8,
-      column: 2,
-    },
-    to: {
-      row: 8,
-      column: keys.length,
-    },
-  };
+
+  worksheet.getColumn("E").numFmt = moneyFmtStr;
+  worksheet.getColumn("F").numFmt = moneyFmtStr;
+  worksheet.getColumn("G").numFmt = moneyFmtStr;
+
+  // worksheet.autoFilter = {
+  //   from: {
+  //     row: 8,
+  //     column: 2,
+  //   },
+  //   to: {
+  //     row: 8,
+  //     column: keys.length,
+  //   },
+  // };
+
+  // sumary
+
+  let Esum = 0;
+  let Fsum = 0;
+  let Gsum = 0;
+
+  data.map((item) => {
+    Esum += item.discount;
+    Fsum += item.beforeDiscount || 0;
+    Gsum += item.cost || 0;
+  });
+
+  newRow = worksheet.addRow();
+  newRow.font = { bold: true };
+  newRow.alignment = { vertical: "middle", horizontal: "right" };
+  let tmp = `A${data.length + 9}:D${data.length + 9}`;
+  worksheet.mergeCells(tmp);
+
+  newRow.getCell(1).value = "Tổng giá trị";
+  newRow.getCell("E").value = Esum;
+  newRow.getCell("F").value = Fsum;
+  newRow.getCell("G").value = Gsum;
 
   ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
     saveAs(
@@ -780,16 +848,16 @@ async function storeInputExport({ data, title, inputStoreId }) {
     cell.value = header[i];
   }
 
-  worksheet.autoFilter = {
-    from: {
-      row: 9,
-      column: 1,
-    },
-    to: {
-      row: 9,
-      column: 4,
-    },
-  };
+  // worksheet.autoFilter = {
+  //   from: {
+  //     row: 9,
+  //     column: 1,
+  //   },
+  //   to: {
+  //     row: 9,
+  //     column: 4,
+  //   },
+  // };
 
   data.forEach((element) => {
     worksheet.addRow([
