@@ -222,4 +222,20 @@ export const uploadImage = {
   },
 };
 
+export function sortData(data = [], key) {
+  let newData = [...data];
+  function compare(a, b) {
+    if (a[key] < b[key]) {
+      return -1;
+    }
+    if (a[key] > b[key]) {
+      return 1;
+    }
+    return 0;
+  }
+
+  newData.sort(compare);
+  return newData;
+}
+
 export { handleAfter };

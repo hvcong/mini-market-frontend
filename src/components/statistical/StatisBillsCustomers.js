@@ -15,6 +15,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import {
   convertToVND,
   getStartToDay,
+  sortData,
   sqlToAntd,
   sqlToDDmmYYY,
 } from "../../utils";
@@ -47,7 +48,7 @@ const StatisBillsCustomers = () => {
   const [allColumns, setAllColumns] = useState([]);
 
   const [filterState, setFilterState] = useState({
-    fromDate: getStartToDay(),
+    fromDate: new Date("2023/04/01"),
     toDate: new Date(),
     customerId: "",
     typeCustomer: "",
@@ -310,7 +311,9 @@ const StatisBillsCustomers = () => {
     });
 
     if (res.isSuccess) {
-      dispatch(setAllBillsCustomers(res.bills));
+      let dataBills = res.bills || [];
+
+      dispatch(setAllBillsCustomers(sortData(dataBills, "customerId")));
     } else {
       message.error("Có lỗi xảy ra, vui lòng thử lại!");
     }

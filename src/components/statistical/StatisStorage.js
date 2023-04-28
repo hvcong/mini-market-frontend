@@ -27,6 +27,7 @@ import { useEffect } from "react";
 import promotionApi from "../../api/promotionApi";
 import {
   setAllBillsCustomers,
+  setAllStorages,
   setAllStoreInputs,
 } from "../../store/slices/statisticSlice";
 import statisApi from "../../api/statisApi";
@@ -34,9 +35,7 @@ import DatePickerCustom from "../promotion/DatePickerCustom";
 import HighlightedText from "../HighlightedText";
 
 const StatisBillsCustomers = () => {
-  const { data, refresh } = useSelector(
-    (state) => state.statis.allBillsCustomers
-  );
+  const { data, refresh } = useSelector((state) => state.statis.allStorages);
 
   const [dataAfterFilted, setDataAfterFilted] = useState([]);
   const dispatch = useDispatch();
@@ -47,10 +46,11 @@ const StatisBillsCustomers = () => {
   const [allColumns, setAllColumns] = useState([]);
 
   const [filterState, setFilterState] = useState({
-    fromDate: getStartToDay(),
-    toDate: new Date(),
-    customerId: "",
-    typeCustomer: "",
+    date: new Date(),
+    category: "",
+    subCategory: "",
+    productId: "",
+    productName: "",
   });
 
   const [pageState, setPageState] = useState({
@@ -61,8 +61,7 @@ const StatisBillsCustomers = () => {
 
   function clearFilter() {
     setFilterState({
-      fromDate: getStartToDay(),
-      toDate: new Date(),
+      date: new Date(),
     });
   }
 
@@ -196,12 +195,12 @@ const StatisBillsCustomers = () => {
           },
           {
             title: "ĐVT báo cáo",
-            dataIndex: "unitTypeReportId",
+            dataIndex: "reportUnit",
             width: 160,
           },
           {
             title: "ĐVT cơ bản",
-            dataIndex: "unitTypeBaseId",
+            dataIndex: "baseUnit",
             width: 160,
           },
           {
@@ -217,18 +216,21 @@ const StatisBillsCustomers = () => {
         children: [
           {
             title: "SL ĐVT báo cáo",
-            dataIndex: "unitTypeBC",
-            width: 160,
+            dataIndex: "reportQty",
+            width: 100,
+            align: "right",
           },
           {
             title: "SL ĐVT cơ bản",
-            dataIndex: "unitTypeBC",
-            width: 160,
+            dataIndex: "reportBaseQty",
+            width: 100,
+            align: "right",
           },
           {
             title: "Doanh số",
             dataIndex: "unitTypeBC",
             width: 160,
+            align: "right",
           },
         ],
       },
@@ -238,18 +240,21 @@ const StatisBillsCustomers = () => {
         children: [
           {
             title: "SL ĐVT báo cáo",
-            dataIndex: "unitTypeBC",
-            width: 160,
+            dataIndex: "holdingReport",
+            width: 100,
+            align: "right",
           },
           {
             title: "SL ĐVT cơ bản",
-            dataIndex: "unitTypeBC",
-            width: 160,
+            dataIndex: "holdingBase",
+            width: 100,
+            align: "right",
           },
           {
             title: "Doanh số",
             dataIndex: "unitTypeBC",
             width: 160,
+            align: "right",
           },
         ],
       },
@@ -259,19 +264,22 @@ const StatisBillsCustomers = () => {
         title: "Tồn Kho Có Thể Bán",
         children: [
           {
+            width: 100,
+            align: "right",
             title: "SL ĐVT báo cáo",
-            dataIndex: "unitTypeBC",
-            width: 160,
+            dataIndex: "sellAble",
           },
           {
             title: "SL ĐVT cơ bản",
-            dataIndex: "unitTypeBC",
-            width: 160,
+            dataIndex: "baseSellAble",
+            width: 100,
+            align: "right",
           },
           {
             title: "Doanh số",
             dataIndex: "unitTypeBC",
             width: 160,
+            align: "right",
           },
         ],
       },
@@ -283,7 +291,7 @@ const StatisBillsCustomers = () => {
   useEffect(() => {
     loadAllData();
     return () => {};
-  }, [filterState.fromDate, filterState.toDate]);
+  }, [filterState.date]);
 
   useEffect(() => {
     handleUpliedFilters();
@@ -294,15 +302,14 @@ const StatisBillsCustomers = () => {
   async function loadAllData() {
     setIsLoading(true);
 
-    let res = await statisApi.getAllByCustomer({
-      fromDate: filterState.fromDate,
-      toDate: filterState.toDate,
+    let res = await statisApi.getAllStorage({
+      date: filterState.date,
     });
 
     if (res.isSuccess) {
-      dispatch(setAllBillsCustomers(res.bills));
+      dispatch(setAllStorages(res.transactions));
     } else {
-      message.error("Có lỗi xảy ra, vui lòng thử lại!");
+      dispatch(setAllStorages([]));
     }
     setIsLoading(false);
   }
@@ -312,30 +319,22 @@ const StatisBillsCustomers = () => {
     if (data) {
       let _list = [...data];
 
-      if (filterState.customerId) {
-        _list = _list.filter((item) => {
-          let customerId = item.customerId?.toLowerCase();
-          let searchInput = filterState.customerId?.toLowerCase();
+      let [date, ...keys] = Object.keys(filterState);
 
-          if (customerId?.includes(searchInput)) {
-            return true;
-          } else {
-            return false;
-          }
-        });
-      }
-      if (filterState.typeCustomer) {
-        _list = _list.filter((item) => {
-          let typeCustomer = item.typeCustomer?.toLowerCase();
-          let searchInput = filterState.typeCustomer?.toLowerCase();
+      (keys || []).map((key) => {
+        if (filterState[key]) {
+          _list = _list.filter((item) => {
+            let text = item[key]?.toLowerCase();
+            let searchInput = filterState[key]?.toLowerCase();
 
-          if (typeCustomer?.includes(searchInput)) {
-            return true;
-          } else {
-            return false;
-          }
-        });
-      }
+            if (text?.includes(searchInput)) {
+              return true;
+            } else {
+              return false;
+            }
+          });
+        }
+      });
 
       setTimeout(() => {
         setDataAfterFilted(
@@ -412,22 +411,12 @@ const StatisBillsCustomers = () => {
             </Typography.Title>
           </div>
           <div className="btn__item">
-            <DatePickerCustom
-              value={[filterState.fromDate, filterState.toDate]}
-              onChangeDate={(strings) => {
-                if (strings && strings[0] && strings[1]) {
-                  setFilterState({
-                    ...filterState,
-                    fromDate: strings[0],
-                    toDate: strings[1],
-                  });
-                } else {
-                  setFilterState({
-                    ...filterState,
-                    fromDate: getStartToDay(),
-                    toDate: new Date(),
-                  });
-                }
+            <DatePicker
+              value={filterState.date && sqlToAntd(filterState.date)}
+              onChange={(_, string) => {
+                setFilterState({
+                  date: string,
+                });
               }}
             />
           </div>
@@ -442,25 +431,27 @@ const StatisBillsCustomers = () => {
               data={dataAfterFilted.map((item) => {
                 return {
                   index: item.index,
-                  customerId: item.customerId,
-                  customerName: item.customerName,
-                  address: item.address,
-                  ward: item.ward,
-                  district: item.district,
-                  city: item.city,
-                  typeCustomer: item.typeCustomer,
-                  categories: item.categories,
-                  subCategories: item.subCategories,
-                  beforeDiscount: item.beforeDiscount,
-                  discount: item.discount,
-                  cost: item.cost,
+                  category: item.category,
+                  subCategory: item.subCategory,
+                  productId: item.productId,
+                  productName: item.productName,
+                  reportUnit: item.reportUnit,
+                  baseUnit: item.baseUnit,
+                  basePrice: 0,
+                  reportQty: item.reportQty,
+                  reportBaseQty: item.reportBaseQty,
+                  sum1: 0,
+                  holdingReport: item.holdingReport,
+                  holdingBase: item.holdingBase,
+                  sum2: 0,
+                  sellAble: item.sellAble,
+                  baseSellAble: item.baseSellAble,
+                  sum3: 0,
                 };
               })}
               nameTemplate={"StatisStorage"}
               headerNameList={allColumns}
-              fromDate={filterState.fromDate}
-              toDate={filterState.toDate}
-              sta
+              date={filterState.date}
             />
           </div>
           <div className="btn__item">

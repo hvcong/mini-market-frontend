@@ -7,6 +7,12 @@ class StatisApi {
     return axiosClient.post(url, formData);
   }
 
+  getAllStorage(formData) {
+    let url = `store/stastics`;
+
+    return axiosClient.post(url, formData);
+  }
+
   getAllRetrieves(formData) {
     let url = `bill/retrieve`;
     return axiosClient.post(url, formData);

@@ -15,6 +15,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import {
   convertToVND,
   getStartToDay,
+  sortData,
   sqlToAntd,
   sqlToDDmmYYY,
 } from "../../utils";
@@ -196,7 +197,7 @@ const StatisBillsDay = () => {
     });
 
     if (res.isSuccess) {
-      dispatch(setAllBillsDay(res.bills));
+      dispatch(setAllBillsDay(sortData(res.bills, "employeeId")));
     } else {
       dispatch(setAllBillsDay([]));
     }

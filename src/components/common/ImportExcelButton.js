@@ -10,6 +10,9 @@ import { useDispatch } from "react-redux";
 import { setRefreshPriceLines } from "../../store/slices/priceLineSlice";
 import storeApi from "../../api/storeApi";
 import productApi from "../../api/productApi";
+import fileaaa from "../../assets/files/reportFile.xlsx";
+import imageApi from "../../api/imageApi";
+console.log("file", fileaaa);
 
 const ImportExcelButton = ({
   disabled,

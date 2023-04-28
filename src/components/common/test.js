@@ -58,86 +58,121 @@ const ExportExcelButton = ({ nameTemplate, disabled, ...props }) => {
 
 export default ExportExcelButton;
 
-async function statisStorage({ data, headerNameList, date }) {
-  let newFile = await createFile(
-    "http://localhost:3000/files/reportFile.xlsx",
-    "xlsx"
-  );
+async function statisStorage({ data, headerNameList, fromDate, toDate }) {
+  let headerNames2 = [];
+  headerNameList.map((item) => {
+    if (item.children) {
+      item.children.map((child) => {
+        headerNames2.push(child.title);
+      });
+    }
+  });
 
-  const newData = await newFile.arrayBuffer();
   const ExcelJSWorkbook = new ExcelJS.Workbook();
-  await ExcelJSWorkbook.xlsx.load(newData);
-
-  ExcelJSWorkbook.removeWorksheet("Bảng Kê Trả Hàng");
-  ExcelJSWorkbook.removeWorksheet("DSBH Theo Ngay");
-  ExcelJSWorkbook.removeWorksheet("Tong ket KM");
-  ExcelJSWorkbook.removeWorksheet("Bang Ke Hang Hoa Nhap Vao");
-  // ExcelJSWorkbook.removeWorksheet("Báo Cáo Tồn Kho");
-  ExcelJSWorkbook.removeWorksheet("DSBH Theo KH");
-  let worksheet = ExcelJSWorkbook.getWorksheet("Báo Cáo Tồn Kho");
-
-  let headerNames2 = headerNameList.map((item) => item.title);
+  var worksheet = ExcelJSWorkbook.addWorksheet("DSTonKho");
 
   // header info
-  var newRow = worksheet.getRow(1);
+  var newRow = worksheet.addRow();
   newRow.getCell(1).value = "Tên cửa hàng: ECO MARKET";
 
-  var newRow = worksheet.getRow(2);
+  var newRow = worksheet.addRow();
   newRow.getCell(1).value =
     "Địa chỉ cửa hàng: 29/8/7 đại lộ 15, tòa nhà 7, Hiệp Bình Chánh, Thủ Đức";
 
-  var newRow = worksheet.getRow(3);
+  var newRow = worksheet.addRow();
   newRow.getCell(1).value = "Ngày in: " + sqlToHHmmDDmmYYYY(new Date());
 
-  // time
-  var customCell = worksheet.getRow(6).getCell(1);
-  customCell.value = "Ngày:" + sqlToDDmmYYY(date);
+  var newRow = worksheet.addRow();
+  newRow.getCell(1).value = "Tên báo cáo: BCTK";
 
-  // add data
+  worksheet.mergeCells("A1:Q1");
+  worksheet.mergeCells("A2:Q2");
+  worksheet.mergeCells("A3:Q3");
+  worksheet.mergeCells("A4:Q4");
+  worksheet.mergeCells("A5:Q5");
+  worksheet.mergeCells("A6:Q6");
+  worksheet.mergeCells("A7:H7");
+  worksheet.mergeCells("I7:K7");
+  worksheet.mergeCells("L7:N7");
+  worksheet.mergeCells("O7:Q7");
 
-  let rowStartInd = 9;
-  let length = (data && data.length) || 0;
-  if (length != 0) {
-    worksheet.duplicateRow(rowStartInd, length - 1, true);
-    data.map((item, index) => {
-      let indRow = index + rowStartInd;
-      var row = worksheet.getRow(indRow);
-      let keys = Object.keys(item);
-      keys.map((key, i) => {
-        row.getCell(i + 1).value = item[key];
-      });
-    });
+  var customCell = worksheet.getCell("A5");
+  customCell.font = {
+    name: "Times New Roman",
+    family: 4,
+    size: 20,
+    bold: true,
+  };
+  customCell.alignment = { vertical: "middle", horizontal: "center" };
+  customCell.value = "BÁO CÁO TỒN KHO";
 
-    worksheet.mergeCells(`A${length + rowStartInd}:G${length + rowStartInd}`);
-    let lastRow = worksheet.getRow(rowStartInd + length);
-    lastRow.getCell("I").value = {
-      formula: `SUM(I9:I${rowStartInd + length - 1})`,
-    };
-    lastRow.getCell("J").value = {
-      formula: `SUM(J9:J${rowStartInd + length - 1})`,
-    };
-    lastRow.getCell("K").value = {
-      formula: `SUM(K9:K${rowStartInd + length - 1})`,
-    };
-    lastRow.getCell("L").value = {
-      formula: `SUM(L9:L${rowStartInd + length - 1})`,
-    };
-    lastRow.getCell("M").value = {
-      formula: `SUM(M9:M${rowStartInd + length - 1})`,
-    };
-    lastRow.getCell("N").value = {
-      formula: `SUM(N9:N${rowStartInd + length - 1})`,
-    };
-    lastRow.getCell("O").value = {
-      formula: `SUM(O9:O${rowStartInd + length - 1})`,
-    };
-    lastRow.getCell("P").value = {
-      formula: `SUM(P9:P${rowStartInd + length - 1})`,
-    };
-    lastRow.getCell("N").value = {
-      formula: `SUM(N9:N${rowStartInd + length - 1})`,
-    };
+  customCell = worksheet.getCell("A6");
+  customCell.alignment = { vertical: "middle", horizontal: "center" };
+  if (compareDMY(new Date(fromDate), new Date(toDate)) == 0) {
+    customCell.value = "Ngày:" + sqlToDDmmYYY(fromDate);
+  } else {
+    customCell.value =
+      "Từ  ngày:" +
+      sqlToDDmmYYY(fromDate) +
+      " đến ngày:" +
+      sqlToDDmmYYY(toDate);
   }
+
+  customCell = worksheet.getRow(7).getCell("I");
+  customCell.alignment = { vertical: "middle", horizontal: "center" };
+  customCell.font = {
+    bold: true,
+    size: 13,
+  };
+  customCell.value = "Tồn kho trên báo cáo";
+
+  customCell = worksheet.getRow(7).getCell("L");
+  customCell.alignment = { vertical: "middle", horizontal: "center" };
+  customCell.font = {
+    bold: true,
+    size: 13,
+  };
+  customCell.value = "Hàng đang giữ của giao dịch bán hàng";
+
+  customCell = worksheet.getRow(7).getCell("O");
+  customCell.alignment = { vertical: "middle", horizontal: "center" };
+  customCell.font = {
+    bold: true,
+    size: 13,
+  };
+  customCell.value = "Tồn Kho Có Thể Bán";
+
+  // table
+  let headerTable = worksheet.addRow();
+  headerTable.font = { bold: true };
+
+  for (let i = 0; i < headerNames2.length; i++) {
+    if (i == 0) {
+      worksheet.getColumn(i + 1).width = 5;
+    } else {
+      worksheet.getColumn(i + 1).width = 20;
+    }
+    let cell = headerTable.getCell(i + 1);
+    cell.value = headerNames2[i];
+  }
+
+  let keys = [];
+
+  data.forEach((element) => {
+    keys = Object.keys(element);
+    worksheet.addRow(keys.map((key) => element[key]));
+  });
+  // worksheet.autoFilter = {
+  //   from: {
+  //     row: 8,
+  //     column: 2,
+  //   },
+  //   to: {
+  //     row: 8,
+  //     column: keys.length,
+  //   },
+  // };
+
   ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
     saveAs(
       new Blob([buffer], { type: "application/octet-stream" }),
@@ -439,7 +474,6 @@ async function statisRetrieves({ data, headerNameList, fromDate, toDate }) {
   });
 }
 
-//done
 async function statisBillsCustomers({
   data,
   headerNameList,
@@ -475,7 +509,7 @@ async function statisBillsCustomers({
   newRow.getCell(1).value = "Ngày in: " + sqlToHHmmDDmmYYYY(new Date());
 
   // time
-  var customCell = worksheet.getRow(5).getCell(1);
+  var customCell = worksheet.getRow(6).getCell(1);
   if (compareDMY(new Date(fromDate), new Date(toDate)) == 0) {
     customCell.value = "Ngày:" + sqlToDDmmYYY(fromDate);
   } else {
@@ -488,87 +522,6 @@ async function statisBillsCustomers({
 
   // add data
 
-  let rowStartInd = 8;
-  let length = (data && data.length) || 0;
-
-  let stt = 1;
-  let newList = data.map((item, index) => {
-    if (index < length - 1) {
-      let nextItem = data[index + 1];
-      if (item["customerId"] == nextItem["customerId"]) {
-        return {
-          ...item,
-          index: stt,
-        };
-      } else {
-        stt += 1;
-        return {
-          ...item,
-          index: stt - 1,
-        };
-      }
-    } else {
-      return {
-        ...item,
-        index: stt,
-      };
-    }
-  });
-
-  data = newList;
-
-  if (length != 0) {
-    worksheet.duplicateRow(rowStartInd, length - 1, true);
-    let count = 0;
-    data.map((item, index) => {
-      count++;
-      let rowInd = index + rowStartInd;
-      let row = worksheet.getRow(rowInd);
-
-      if (index < length - 1) {
-        let nextItem = data[index + 1];
-        if (item["customerId"] != nextItem["customerId"]) {
-          if (count > 1) {
-            worksheet.mergeCells(`A${rowInd - count + 1}:A${rowInd}`);
-            count = 0;
-          }
-        }
-      } else {
-        let beforeItem = data[index - 1];
-        if (item["customerId"] == beforeItem["customerId"]) {
-          if (count > 1) {
-            worksheet.mergeCells(`A${rowInd - count + 1}:A${rowInd}`);
-            count = 0;
-          }
-        }
-      }
-
-      let keys = Object.keys(item);
-      keys.map((key, index) => {
-        row.getCell(index + 1).value = item[key];
-      });
-    });
-
-    // sum row
-    // let lastRow = worksheet.getRow(rowStartInd + length);
-
-    // lastRow.getCell("N").value = {
-    //   formula: `SUM(N9:N${rowStartInd + length - 1})`,
-    // };
-
-    // lastRow.getCell("M").value = {
-    //   formula: `SUM(M9:M${rowStartInd + length - 1})`,
-    // };
-
-    // worksheet.mergeCells(`A${length + rowStartInd}:I${length + rowStartInd}`);
-    // lastRow.getCell(1).value = "Tổng giá trị";
-    // lastRow.getCell(1).alignment = {
-    //   horizontal: "right",
-    // };
-  } else {
-    worksheet.spliceRows(10, 1);
-    worksheet.spliceRows(9, 1);
-  }
   //row sumary
 
   ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
@@ -579,38 +532,46 @@ async function statisBillsCustomers({
   });
 }
 
-// done
 async function statisBillsDay({ data, headerNameList, fromDate, toDate }) {
-  let newFile = await createFile(
-    "http://localhost:3000/files/reportFile.xlsx",
-    "xlsx"
-  );
+  let headerNames2 = headerNameList.map((item) => item.title);
 
-  const newData = await newFile.arrayBuffer();
   const ExcelJSWorkbook = new ExcelJS.Workbook();
-  await ExcelJSWorkbook.xlsx.load(newData);
-
-  ExcelJSWorkbook.removeWorksheet("Bảng Kê Trả Hàng");
-  // ExcelJSWorkbook.removeWorksheet("DSBH Theo Ngay");
-  ExcelJSWorkbook.removeWorksheet("Tong ket KM");
-  ExcelJSWorkbook.removeWorksheet("Bang Ke Hang Hoa Nhap Vao");
-  ExcelJSWorkbook.removeWorksheet("Báo Cáo Tồn Kho");
-  ExcelJSWorkbook.removeWorksheet("DSBH Theo KH");
-  let worksheet = ExcelJSWorkbook.getWorksheet("DSBH Theo Ngay");
+  var worksheet = ExcelJSWorkbook.addWorksheet("DanhSoBanHangTheoNgay");
 
   // header info
-  var newRow = worksheet.getRow(1);
+  var newRow = worksheet.addRow();
   newRow.getCell(1).value = "Tên cửa hàng: ECO MARKET";
 
-  var newRow = worksheet.getRow(2);
+  var newRow = worksheet.addRow();
   newRow.getCell(1).value =
     "Địa chỉ cửa hàng: 29/8/7 đại lộ 15, tòa nhà 7, Hiệp Bình Chánh, Thủ Đức";
 
-  var newRow = worksheet.getRow(3);
+  var newRow = worksheet.addRow();
   newRow.getCell(1).value = "Ngày in: " + sqlToHHmmDDmmYYYY(new Date());
 
-  // time
-  var customCell = worksheet.getRow(5).getCell(1);
+  var newRow = worksheet.addRow();
+  newRow.getCell(1).value = "Tên báo cáo: BKCTMT";
+
+  worksheet.mergeCells("A1:G1");
+  worksheet.mergeCells("A2:G2");
+  worksheet.mergeCells("A3:G3");
+  worksheet.mergeCells("A4:G4");
+  worksheet.mergeCells("A5:G5");
+  worksheet.mergeCells("A6:G6");
+  worksheet.mergeCells("A7:G7");
+
+  var customCell = worksheet.getCell("A5");
+  customCell.font = {
+    name: "Times New Roman",
+    family: 4,
+    size: 20,
+    bold: true,
+  };
+  customCell.alignment = { vertical: "middle", horizontal: "center" };
+  customCell.value = "DOANH SỐ BÁN HÀNG THEO NGÀY";
+
+  customCell = worksheet.getCell("A6");
+  customCell.alignment = { vertical: "middle", horizontal: "center" };
   if (compareDMY(new Date(fromDate), new Date(toDate)) == 0) {
     customCell.value = "Ngày:" + sqlToDDmmYYY(fromDate);
   } else {
@@ -621,98 +582,64 @@ async function statisBillsDay({ data, headerNameList, fromDate, toDate }) {
       sqlToDDmmYYY(toDate);
   }
 
-  // add data
+  // table
+  let headerTable = worksheet.addRow();
+  headerTable.font = { bold: true };
 
-  let rowStartInd = 8;
-  let length = (data && data.length) || 0;
-
-  if (length != 0) {
-    let newData = [];
-    let count = 0;
-    let stt = 1;
-    let Esum = 0;
-    let Fsum = 0;
-    let Gsum = 0;
-    data.map((item, index) => {
-      newData.push({ ...item, index: stt });
-      count++;
-      if (index < length - 2) {
-        let nextItem = data[index + 1];
-        if (item["employeeId"] != nextItem["employeeId"]) {
-          newData.push({
-            isSubTotalRow: true,
-            count,
-            index: stt,
-          });
-          count = 0;
-          stt++;
-        }
-      }
-      if (index == length - 1) {
-        newData.push({
-          isSubTotalRow: true,
-          count,
-          index: stt,
-        });
-        count = 0;
-        stt++;
-      }
-    });
-
-    worksheet.duplicateRow(rowStartInd, newData.length - 1, true);
-
-    newData.map((item, index) => {
-      let rowInd = index + rowStartInd;
-
-      let row = worksheet.getRow(rowInd);
-
-      if (!item.isSubTotalRow) {
-        let keys = Object.keys(item);
-        keys.map((key, index) => {
-          row.getCell(index + 1).value = item[key];
-
-          if (index == 4) {
-            Esum += item[key];
-          }
-          if (index == 5) {
-            Fsum += item[key];
-          }
-          if (index == 6) {
-            Gsum += item[key];
-          }
-        });
-      } else {
-        worksheet.mergeCells(`A${rowInd - item.count}:A${rowInd}`);
-        row.getCell(1).value = item.index;
-
-        var customCell = row.getCell("D");
-        customCell.value = "Tổng cộng";
-
-        var customCell = row.getCell("E");
-        customCell.value = {
-          formula: `SUM(E${rowInd - item.count}:E${rowInd - 1})`,
-        };
-        var customCell = row.getCell("F");
-        customCell.value = {
-          formula: `SUM(F${rowInd - item.count}:F${rowInd - 1})`,
-        };
-        var customCell = row.getCell("G");
-        customCell.value = {
-          formula: `SUM(G${rowInd - item.count}:G${rowInd - 1})`,
-        };
-      }
-    });
-
-    // sum row
-    let lastRow = worksheet.getRow(rowStartInd + newData.length);
-
-    lastRow.getCell("E").value = Esum;
-    lastRow.getCell("F").value = Fsum;
-    lastRow.getCell("G").value = Gsum;
-  } else {
-    worksheet.spliceRows(rowStartInd, 1);
+  for (let i = 0; i < headerNames2.length; i++) {
+    if (i == 0) {
+      worksheet.getColumn(i + 1).width = 5;
+    } else {
+      worksheet.getColumn(i + 1).width = 20;
+    }
+    let cell = headerTable.getCell(i + 1);
+    cell.value = headerNames2[i];
   }
-  //row sumary
+
+  let keys = [];
+
+  data.forEach((element) => {
+    keys = Object.keys(element);
+    worksheet.addRow(keys.map((key) => element[key]));
+  });
+
+  worksheet.getColumn("E").numFmt = moneyFmtStr;
+  worksheet.getColumn("F").numFmt = moneyFmtStr;
+  worksheet.getColumn("G").numFmt = moneyFmtStr;
+
+  // worksheet.autoFilter = {
+  //   from: {
+  //     row: 8,
+  //     column: 2,
+  //   },
+  //   to: {
+  //     row: 8,
+  //     column: keys.length,
+  //   },
+  // };
+
+  // sumary
+
+  let Esum = 0;
+  let Fsum = 0;
+  let Gsum = 0;
+
+  data.map((item) => {
+    Esum += item.discount;
+    Fsum += item.beforeDiscount || 0;
+    Gsum += item.cost || 0;
+  });
+
+  newRow = worksheet.addRow();
+  newRow.font = { bold: true };
+  newRow.alignment = { vertical: "middle", horizontal: "right" };
+  let tmp = `A${data.length + 9}:D${data.length + 9}`;
+  worksheet.mergeCells(tmp);
+
+  newRow.getCell(1).value = "Tổng giá trị";
+  newRow.getCell("E").value = Esum;
+  newRow.getCell("F").value = Fsum;
+  newRow.getCell("G").value = Gsum;
 
   ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
     saveAs(
