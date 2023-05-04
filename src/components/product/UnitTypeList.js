@@ -31,7 +31,7 @@ const UnitTypeList = ({
         {/* <Text className="unittype_label id">Mã đvt</Text> */}
         <Text className="unittype_label name">Tên </Text>
         <Text className="unittype_label convertion">Đơn vị quy đổi </Text>
-        <Text className="unittype_state state">Trạng thái</Text>
+        {/* <Text className="unittype_state state">Trạng thái</Text> */}
       </div>
       {unitList &&
         unitList.map((unit, index) => {
@@ -45,21 +45,21 @@ const UnitTypeList = ({
                   value={unit.id}
                   type={index == 0 && "base"}
                   listIdUTSelected={unitList.map((item) => {
-                    return item.id;
+                    return item?.id;
                   })}
                   disabled={unit.isExistOnDB}
                 />
 
-                <div className="unittype_error">{errList[index].name}</div>
+                <div className="unittype_error">{errList[index]?.name}</div>
               </div>
               <div className="unittype_wrap convertion">
                 <InputNumber
                   className="input"
                   disabled
-                  value={unit.convertionQuantity}
+                  value={unit?.convertionQuantity}
                 />
                 <div className="unittype_error">
-                  {errList[index].convertionQuantity}
+                  {errList[index]?.convertionQuantity}
                 </div>
               </div>
               {/* <Switch
@@ -116,6 +116,7 @@ const UnitTypeList = ({
           setErrList(_errList);
           setUnitList(_unitList);
         }}
+        disabled={typeOfModal == "view"}
       >
         Thêm mới
       </Button>

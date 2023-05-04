@@ -73,7 +73,7 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
     if (
       modalState.rowSelected &&
       modalState.visible &&
-      modalState.type == "update"
+      modalState.type != "create"
     ) {
       setCountDefaultSub(modalState.rowSelected.SubCategories.length);
       setCategoryState({
@@ -152,11 +152,11 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
 
       if (res.isSuccess) {
         if (isClose) {
-          clearForm();
           setModalState({
             ...modalState,
             visible: false,
           });
+          clearForm();
         } else {
           clearForm();
         }
@@ -270,7 +270,9 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                         });
                       }}
                       status={errMessage.categoryId && "error"}
-                      disabled={modalState.type == "update"}
+                      disabled={
+                        modalState.type == "update" || modalState.type == "view"
+                      }
                     />
 
                     <span className="input_error">{errMessage.categoryId}</span>
@@ -291,6 +293,7 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                         });
                       }}
                       status={errMessage.categoryName && "error"}
+                      disabled={modalState.type == "view"}
                     />
                     <span className="input_error">
                       {errMessage.categoryName}
@@ -309,6 +312,7 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                         state: is,
                       });
                     }}
+                    disabled={modalState.type == "view"}
                   />
                 </div>
               </div>
@@ -331,24 +335,26 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                           <div className="sub_input_wrap">
                             <Input
                               className="input"
-                              placeholder=" Nước giải khát "
+                              placeholder=" NGK"
                               size="small"
-                              value={listSub[index].id}
+                              value={listSub[index]?.id}
                               onChange={({ target }) => {
                                 let _lst = [...listSub];
                                 _lst[index].id = target.value;
                                 setListSub(_lst);
                               }}
-                              disabled={item.isExistOnDB}
+                              disabled={
+                                item.isExistOnDB || modalState.type == "view"
+                              }
                               style={{
                                 marginRight: "24px",
                               }}
                               status={
-                                errMessage.subCategories[index].id && "error"
+                                errMessage.subCategories[index]?.id && "error"
                               }
                             />
                             <div className="sub_input_error">
-                              {errMessage.subCategories[index].id}{" "}
+                              {errMessage.subCategories[index]?.id}{" "}
                             </div>
                           </div>
                           <div className="sub_input_wrap">
@@ -356,18 +362,19 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                               className="input"
                               placeholder=" Nước giải khát  "
                               size="small"
-                              value={listSub[index].name}
+                              value={listSub[index]?.name}
                               onChange={({ target }) => {
                                 let _lst = [...listSub];
                                 _lst[index].name = target.value;
                                 setListSub(_lst);
                               }}
+                              disabled={modalState.type == "view"}
                               status={
-                                errMessage.subCategories[index].name && "error"
+                                errMessage.subCategories[index]?.name && "error"
                               }
                             />
                             <div className="sub_input_error">
-                              {errMessage.subCategories[index].name}
+                              {errMessage.subCategories[index]?.name}
                             </div>
                           </div>
                           <Switch
@@ -380,6 +387,7 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                               _lst[index].state = is;
                               setListSub(_lst);
                             }}
+                            disabled={modalState.type == "view"}
                           />
                           <div className="icon_delete">
                             <Button
@@ -401,8 +409,9 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                                 });
                               }}
                               disabled={
-                                modalState.type == "update" &&
-                                index < countDefaultSub
+                                (modalState.type == "update" &&
+                                  index < countDefaultSub) ||
+                                modalState.type == "view"
                               }
                             />
                           </div>
@@ -434,6 +443,7 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                       ],
                     });
                   }}
+                  disabled={modalState.type == "view"}
                 >
                   Thêm mới
                 </Button>
@@ -468,14 +478,18 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                   </Button>
                 </>
               ) : (
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    onSubmit("update", true);
-                  }}
-                >
-                  Cập nhật
-                </Button>
+                <>
+                  {modalState.type != "view" && (
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        onSubmit("update", true);
+                      }}
+                    >
+                      Cập nhật
+                    </Button>
+                  )}
+                </>
               )}
               <Button type="primary" danger onClick={() => onCloseModal()}>
                 Hủy bỏ

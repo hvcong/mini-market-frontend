@@ -2,7 +2,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { Modal, Upload } from "antd";
 import { useState } from "react";
 
-const UploadImageProduct = ({ fileList = [], setFileList }) => {
+const UploadImageProduct = ({ fileList = [], setFileList, disabled }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
   const [previewTitle, setPreviewTitle] = useState("");
@@ -62,6 +62,7 @@ const UploadImageProduct = ({ fileList = [], setFileList }) => {
         onChange={handleChange}
         maxCount={5}
         accept=".png,.jpg,.jpeg"
+        disabled={disabled}
       >
         {fileList.length >= 5 ? null : uploadButton}
       </Upload>

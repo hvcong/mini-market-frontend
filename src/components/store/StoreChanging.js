@@ -43,6 +43,7 @@ const StoreChanging = ({}) => {
   const { storeTrans, refresh, count } = useSelector(
     (state) => state.storeTran
   );
+  const { isAdmin } = useSelector((state) => state.user);
   console.log(storeTrans);
   const dispatch = useDispatch();
 

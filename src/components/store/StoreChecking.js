@@ -42,6 +42,7 @@ const StoreChecking = ({}) => {
   const { storeTickets, refresh, count } = useSelector(
     (state) => state.storeTicket
   );
+  const { isAdmin } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const [pageState, setPageState] = useState({
@@ -153,26 +154,28 @@ const StoreChecking = ({}) => {
             Danh sách phiếu kiểm kê{" "}
           </Typography.Title>
         </div>
-        <div className="btn__item">
-          <Button
-            size="small"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              dispatch(
-                setOpen({
-                  name: "StoreCheckingModal",
-                  modalState: {
-                    type: "create",
-                    visible: true,
-                  },
-                })
-              );
-            }}
-          >
-            Thêm mới
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="btn__item">
+            <Button
+              size="small"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                dispatch(
+                  setOpen({
+                    name: "StoreCheckingModal",
+                    modalState: {
+                      type: "create",
+                      visible: true,
+                    },
+                  })
+                );
+              }}
+            >
+              Thêm mới
+            </Button>
+          </div>
+        )}
         <div className="btn__item">
           <DropSelectColum
             allColumns={allColumns}

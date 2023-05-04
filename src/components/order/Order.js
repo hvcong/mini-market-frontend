@@ -285,21 +285,7 @@ const Order = ({}) => {
             Danh sách đơn đặt hàng{" "}
           </Typography.Title>
         </div>
-        <div className="btn__item">
-          <Button
-            size="small"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              // setModalState({
-              //   type: "create",
-              //   visible: true,
-              // });
-            }}
-          >
-            Thêm mới
-          </Button>
-        </div>
+
         <div className="btn__item">
           <DropSelectColum
             allColumns={allColumns}

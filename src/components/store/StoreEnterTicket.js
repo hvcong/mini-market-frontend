@@ -44,6 +44,7 @@ const StoreEnterTicket = ({}) => {
   const { storeEnterTickets, refresh, count } = useSelector(
     (state) => state.storeEnterTicket
   );
+  const { isAdmin } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const [pageState, setPageState] = useState({
@@ -155,26 +156,28 @@ const StoreEnterTicket = ({}) => {
             Danh sách phiếu nhập kho
           </Typography.Title>
         </div>
-        <div className="btn__item">
-          <Button
-            size="small"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              dispatch(
-                setOpen({
-                  name: "StoreCUModal",
-                  modalState: {
-                    type: "create",
-                    visible: true,
-                  },
-                })
-              );
-            }}
-          >
-            Nhập kho
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="btn__item">
+            <Button
+              size="small"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                dispatch(
+                  setOpen({
+                    name: "StoreCUModal",
+                    modalState: {
+                      type: "create",
+                      visible: true,
+                    },
+                  })
+                );
+              }}
+            >
+              Nhập kho
+            </Button>
+          </div>
+        )}
         <div className="btn__item">
           <DropSelectColum
             allColumns={allColumns}

@@ -81,7 +81,7 @@ const PromotionHeaderModal = ({
   useEffect(() => {
     const { type, rowSelected, visible } = modalState;
 
-    if (type == "update" && rowSelected && visible) {
+    if (type != "create" && rowSelected && visible) {
       getOneHeaderById(rowSelected.id);
     }
 
@@ -90,7 +90,7 @@ const PromotionHeaderModal = ({
       now.setDate(now.getDate() + 1);
 
       setFormState({
-        ...formState,
+        ...initFormState,
         startDate: now,
         endDate: now,
       });
@@ -274,6 +274,7 @@ const PromotionHeaderModal = ({
   }
 
   function disableAddNewPriceLine(startDate, endDate, state) {
+    if (modalState.type == "view") return true;
     if (state) {
       return true;
     }
@@ -433,6 +434,27 @@ const PromotionHeaderModal = ({
     return false;
   }
 
+  function disabledItem(name) {
+    if (modalState.type == "view") return true;
+    if (modalState.type == "update") {
+      if (name == "startDate") {
+        return disableStartDate();
+      }
+      if (name == "endDate") {
+        return disableEndDate();
+      }
+      if (name == "state") {
+        return disabledChangeHeaderState();
+      }
+
+      if (name == "id") {
+        return true;
+      }
+      if (name == "customerType") {
+        return true;
+      }
+    }
+  }
   return (
     <div className="promotion_header_modal">
       <ModalCustomer
@@ -449,9 +471,11 @@ const PromotionHeaderModal = ({
         <div>
           <div className="title__container">
             <Typography.Title level={4} className="title">
-              {modalState.type == "update"
-                ? "Cập nhật thông tin chương trình khuyến mãi"
-                : "Thêm mới chương trình khuyến mãi"}
+              {modalState.type == "update" &&
+                "Cập nhật thông tin chương trình khuyến mãi"}
+              {modalState.type == "view" &&
+                "Xem thông tin chương trình khuyến mãi"}
+              {modalState.type == "create" && "Tạo mới chương trình khuyến mãi"}
             </Typography.Title>
           </div>
           <div className="form__container">
@@ -479,7 +503,7 @@ const PromotionHeaderModal = ({
                             id: target.value,
                           })
                         }
-                        disabled={modalState.type == "update"}
+                        disabled={disabledItem("id")}
                         status={errMessage.id && "error"}
                       />
                       <div className="promotion_header_form_input_err">
@@ -500,6 +524,7 @@ const PromotionHeaderModal = ({
                             title: target.value,
                           })
                         }
+                        disabled={disabledItem("name")}
                         status={errMessage.title && "error"}
                       />
                       <div className="promotion_header_form_input_err">
@@ -520,7 +545,7 @@ const PromotionHeaderModal = ({
                         value={
                           formState.startDate && sqlToAntd(formState.startDate)
                         }
-                        disabled={disableStartDate()}
+                        disabled={disabledItem("startDate")}
                         status={errMessage.startDate && "error"}
                       />
                       <div className="promotion_header_form_input_err">
@@ -541,7 +566,7 @@ const PromotionHeaderModal = ({
                         value={
                           formState.endDate && sqlToAntd(formState.endDate)
                         }
-                        disabled={disableEndDate()}
+                        disabled={disabledItem("endDate")}
                         status={errMessage.endDate && "error"}
                       />
                       <div className="promotion_header_form_input_err">
@@ -568,7 +593,7 @@ const PromotionHeaderModal = ({
                             customerTypeIds: value,
                           });
                         }}
-                        disabled={modalState.type == "update"}
+                        disabled={disabledItem("customerType")}
                         status={errMessage.customerTypeIds && "error"}
                       />
 
@@ -590,6 +615,7 @@ const PromotionHeaderModal = ({
                         placeholder="Mô tả về chương trình khuyến mãi"
                         className="promotion_header_form_input"
                         value={description}
+                        disabled={disabledItem("description")}
                         onChange={({ target }) =>
                           setFormState({
                             ...formState,
@@ -618,7 +644,7 @@ const PromotionHeaderModal = ({
                               state: is,
                             });
                           }}
-                          disabled={disabledChangeHeaderState()}
+                          disabled={disabledItem("state")}
                           checked={state}
                           status={errMessage.state && "error"}
                         />
@@ -631,7 +657,7 @@ const PromotionHeaderModal = ({
                 </div>
               </div>
 
-              {modalState.type == "update" && (
+              {modalState.type != "create" && (
                 <PromotionLineTable
                   promotionHeaderId={
                     modalState.rowSelected && modalState.rowSelected.id
@@ -642,6 +668,7 @@ const PromotionHeaderModal = ({
                     formState.endDate,
                     formState.state
                   )}
+                  modalType={modalState.type}
                 />
               )}
             </div>

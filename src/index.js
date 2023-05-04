@@ -6,14 +6,15 @@ import "./index.css";
 import App from "./views/App";
 import { store } from "./app/store";
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const rootElement = document.getElementById("root");
 
-root.render(
+ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
       <BrowserRouter>
         <App />
       </BrowserRouter>
     </Provider>
-  </React.StrictMode>
+  </React.StrictMode>,
+  rootElement
 );

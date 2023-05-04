@@ -39,6 +39,7 @@ const { Text } = Typography;
 const Category = ({}) => {
   const cate = useSelector((state) => state.cate);
   let { categories = [], count = 0, refresh } = cate;
+  const { isAdmin } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const [modalState, setModalState] = useState({
@@ -173,7 +174,7 @@ const Category = ({}) => {
             onClick={() => {
               setModalState({
                 visible: true,
-                type: "update",
+                type: isAdmin ? "update" : "view",
                 rowSelected: rowData,
               });
             }}
@@ -189,7 +190,6 @@ const Category = ({}) => {
       key: "name",
       fixed: "left",
       fixedShow: true,
-      ...getColumnSearchProps("name"),
     },
     {
       title: "Trạng thái",
@@ -270,22 +270,24 @@ const Category = ({}) => {
             Danh sách nhóm sản phẩm{" "}
           </Typography.Title>
         </div>
-        <div className="btn__item">
-          <Button
-            size="small"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setModalState({
-                ...modalState,
-                visible: true,
-                type: "create",
-              });
-            }}
-          >
-            Thêm mới
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="btn__item">
+            <Button
+              size="small"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setModalState({
+                  ...modalState,
+                  visible: true,
+                  type: "create",
+                });
+              }}
+            >
+              Thêm mới
+            </Button>
+          </div>
+        )}
         <div className="btn__item">
           <DropSelectColum
             allColumns={allColumns}

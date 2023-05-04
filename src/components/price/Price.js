@@ -42,6 +42,8 @@ const Price = ({}) => {
   const { priceHeaders, refresh, count } = useSelector(
     (state) => state.priceHeader
   );
+  const { isAdmin } = useSelector((state) => state.user);
+
   const dispatch = useDispatch();
 
   const [modalState, setModalState] = useState({
@@ -210,7 +212,7 @@ const Price = ({}) => {
 
   function onRowIdClick(row) {
     setModalState({
-      type: "update",
+      type: isAdmin ? "update" : "view",
       visible: true,
       rowSelected: row,
     });
@@ -298,6 +300,7 @@ const Price = ({}) => {
   }
 
   function disabledChangeState(rowData) {
+    if (!isAdmin) return true;
     let start = new Date(rowData.startDate);
     let end = new Date(rowData.endDate);
     let now = new Date();
@@ -322,21 +325,23 @@ const Price = ({}) => {
             Danh sách bảng giá{" "}
           </Typography.Title>
         </div>
-        <div className="btn__item">
-          <Button
-            size="small"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setModalState({
-                type: "create",
-                visible: true,
-              });
-            }}
-          >
-            Thêm mới
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="btn__item">
+            <Button
+              size="small"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setModalState({
+                  type: "create",
+                  visible: true,
+                });
+              }}
+            >
+              Thêm mới
+            </Button>
+          </div>
+        )}
         <div className="btn__item">
           <DropSelectColum
             allColumns={allColumns}

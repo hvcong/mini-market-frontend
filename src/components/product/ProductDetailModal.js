@@ -37,6 +37,7 @@ const { Text } = Typography;
 
 const initFormState = {
   id: "",
+  barcode: "",
   name: "",
   images: [],
   description: "",
@@ -56,6 +57,7 @@ const initFormState = {
 
 const initErrMessage = {
   id: "",
+  barcode: "",
   name: "",
   images: "",
   description: "",
@@ -75,7 +77,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (modalState.type == "update" && modalState.visible) {
+    if (modalState.type != "create" && modalState.visible) {
       loadFormStateWhenUpdate();
     }
 
@@ -83,8 +85,16 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
   }, [modalState.rowSelected]);
 
   async function loadFormStateWhenUpdate() {
-    const { id, name, images, description, quantity, state, SubCategory } =
-      modalState.rowSelected;
+    const {
+      id,
+      barcode,
+      name,
+      images,
+      description,
+      quantity,
+      state,
+      SubCategory,
+    } = modalState.rowSelected;
     let unitList;
 
     let res = await unitTypeApi.findAllByProductId(id);
@@ -104,6 +114,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
     setFormState({
       ...formState,
       id,
+      barcode,
       name,
       images,
       description,
@@ -139,6 +150,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
       if (type == "create") {
         let formData = {
           id: formState.id,
+          barcode: formState.barcode,
           name: formState.name,
           description: formState.description,
           quantity: formState.quantity,
@@ -158,6 +170,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
       if (type == "update") {
         let formData = {
           id: formState.id,
+          barcode: formState.barcode,
           name: formState.name,
           description: formState.description,
           images: listImageUris,
@@ -202,6 +215,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
     let _errMess = { ...errMessage };
     const {
       id,
+      barcode,
       name,
       images = [],
       description,
@@ -217,6 +231,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
     } else {
       _errMess.id = "";
     }
+
     if (!name) {
       console.log(name);
       _errMess.name = "Không được bỏ trống!";
@@ -262,6 +277,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
       }
     });
 
+    console.log(barcode, type);
     // validate with database
     if (type == "create") {
       if (id) {
@@ -271,6 +287,28 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
           isCheck = false;
         } else {
           _errMess.id = "";
+        }
+      }
+
+      if (barcode) {
+        console.log(barcode);
+        let res = await productApi.getOneByBarcode(barcode);
+        console.log(res);
+        if (res.isSuccess) {
+          _errMess.barcode = "Mã vạnh đã trùng với sản phẩm khác!";
+          isCheck = false;
+        }
+      }
+    } else {
+      if (barcode) {
+        let res = await productApi.getOneByBarcode(barcode);
+        console.log(res);
+        if (res.isSuccess) {
+          let product = res.product;
+          if (product.id != id) {
+            _errMess.barcode = "Mã vạnh đã trùng với sản phẩm khác!";
+            isCheck = false;
+          }
         }
       }
     }
@@ -330,9 +368,32 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                           });
                         }}
                         status={errMessage.id && "error"}
-                        disabled={modalState.type == "update"}
+                        disabled={
+                          modalState.type == "update" ||
+                          modalState.type == "view"
+                        }
                       />
                       <div className="input__err">{errMessage.id}</div>
+                    </Col>
+                    <Col span={6}>
+                      <Text>Mã vạch</Text>
+                    </Col>
+                    <Col span={15}>
+                      <Input
+                        className="input"
+                        placeholder=""
+                        size="small"
+                        value={formState.barcode}
+                        onChange={({ target }) => {
+                          setFormState({
+                            ...formState,
+                            barcode: target.value,
+                          });
+                        }}
+                        disabled={modalState.type == "view"}
+                        status={errMessage.barcode && "error"}
+                      />
+                      <div className="input__err">{errMessage.barcode}</div>
                     </Col>
                     <Col span={6}>
                       <Text>Tên sản phẩm</Text>
@@ -349,6 +410,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                             name: target.value,
                           });
                         }}
+                        disabled={modalState.type == "view"}
                         status={errMessage.name && "error"}
                       />
                       <div className="input__err">{errMessage.name}</div>
@@ -368,6 +430,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                             description: target.value,
                           });
                         }}
+                        disabled={modalState.type == "view"}
                         maxLength={500}
                         status={errMessage.description && "error"}
                       />
@@ -449,6 +512,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                             fileList: newFileList,
                           });
                         }}
+                        disabled={modalState.type == "view"}
                       />
                       <div className="input__err">{errMessage.images}</div>
                     </div>
@@ -500,14 +564,18 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
                   </Button>
                 </>
               ) : (
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    onSubmit("update", true);
-                  }}
-                >
-                  Cập nhật
-                </Button>
+                <>
+                  {modalState.type != "view" && (
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        onSubmit("update", true);
+                      }}
+                    >
+                      Cập nhật
+                    </Button>
+                  )}
+                </>
               )}
               <Button type="primary" danger onClick={() => onCloseModal()}>
                 Hủy bỏ

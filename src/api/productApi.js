@@ -48,6 +48,12 @@ class ProductApi {
       quantityChange,
     });
   }
+
+  getOneByBarcode(barcode) {
+    let url = `product/getOneByBarcode?barCode=${barcode}`;
+    console.log(url);
+    return axiosClient.post(url);
+  }
 }
 
 const productApi = new ProductApi();

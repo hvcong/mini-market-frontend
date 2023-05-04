@@ -44,6 +44,7 @@ const AdminProducts = ({}) => {
     refresh,
   } = useSelector((state) => state.product);
 
+  const { isAdmin } = useSelector((state) => state.user);
   const [modalState, setModalState] = useState({
     visible: false,
     type: "",
@@ -106,7 +107,7 @@ const AdminProducts = ({}) => {
             <Typography.Link
               onClick={() => {
                 setModalState({
-                  type: "update",
+                  type: isAdmin ? "update" : "view",
                   visible: true,
                   rowSelected: rowData,
                 });
@@ -321,22 +322,24 @@ const AdminProducts = ({}) => {
             Danh sách sản phẩm{" "}
           </Typography.Title>
         </div>
-        <div className="btn__item">
-          <Button
-            size="small"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setModalState({
-                ...modalState,
-                visible: true,
-                type: "create",
-              });
-            }}
-          >
-            Thêm mới
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="btn__item">
+            <Button
+              size="small"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setModalState({
+                  ...modalState,
+                  visible: true,
+                  type: "create",
+                });
+              }}
+            >
+              Thêm mới
+            </Button>
+          </div>
+        )}
         <div className="btn__item">
           <DropSelectColum
             allColumns={allColumns}

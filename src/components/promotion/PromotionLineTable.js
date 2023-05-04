@@ -18,6 +18,7 @@ const PromotionLineTable = ({
   promotionHeaderId,
   headerState,
   isDisabledAddButton,
+  modalType,
 }) => {
   let hideLoading = null;
   const { promotionLines, refresh, count } = useSelector(
@@ -130,7 +131,7 @@ const PromotionLineTable = ({
               checkedChildren="On"
               unCheckedChildren="Off"
               checked={state}
-              disabled={disableChangeLineState(rowData)}
+              disabled={disableChangeLineState(rowData) || modalType == "view"}
               onChange={(is) => {
                 handleChangeLineState(is, rowData);
               }}
@@ -158,7 +159,7 @@ const PromotionLineTable = ({
                 marginLeft: 8,
               }}
               danger
-              disabled={disabledItem("btnDelete", row)}
+              disabled={disabledItem("btnDelete", row) || modalType == "view"}
               size="small"
               icon={
                 <DeleteOutlined
@@ -279,7 +280,7 @@ const PromotionLineTable = ({
       setOpen({
         name: "PromotionLineModal",
         modalState: {
-          type: type,
+          type: modalType == "view" ? "view" : type,
           visible: true,
           idSelected: rowData.id,
           promotionHeaderId,

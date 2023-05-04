@@ -945,6 +945,7 @@ const PromotionLineModal = () => {
   }
 
   function disabledInput(name) {
+    console.log(modalState.type);
     if (
       modalState.type == "update" &&
       formState.startDate &&

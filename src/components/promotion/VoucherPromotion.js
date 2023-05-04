@@ -173,6 +173,7 @@ const VoucherPromotion = ({
               type="dashed"
               size="small"
               icon={<PlusOutlined />}
+              disabled={disableInputInTable("btnAdd", rowData)}
               onClick={() => {
                 addNewRow();
               }}
@@ -462,6 +463,7 @@ const VoucherPromotion = ({
   }
 
   function disableInputInTable(name, rowData) {
+    if (modalState.type == "view") return true;
     if (time) {
       let start = new Date(time.startDate);
       let end = new Date(time.endDate);

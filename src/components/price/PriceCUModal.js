@@ -421,6 +421,20 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
   }
 
   function disabledItem(name, typeModalItem) {
+    if (modalState.type == "view") return true;
+
+    if (name == "startDate") {
+      return disableStartDate();
+    }
+
+    if (name == "endDate") {
+      return disableEndDate();
+    }
+
+    if (name == "state") {
+      return disableChangeState(formState.startDate, formState.endDate);
+    }
+
     if (modalState.type == "update") {
       let start = new Date(formState.startDate);
       let end = new Date(formState.endDate);
@@ -473,9 +487,9 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
         <div>
           <div className="title__container">
             <Typography.Title level={4} className="title">
-              {modalState.type == "update"
-                ? "Cập nhật thông tin bảng giá"
-                : "Thêm mới bảng giá"}
+              {modalState.type == "update" && "Cập nhật thông tin bảng giá"}
+              {modalState.type == "create" && "Tạo mới bảng giá"}
+              {modalState.type == "view" && "Xem thông tin bảng giá"}
             </Typography.Title>
           </div>
           <div className="form__container">
@@ -494,7 +508,7 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
                       setFormState({ ...formState, id: target.value })
                     }
                     status={errMessage.id && "error"}
-                    disabled={modalState.type == "update"}
+                    disabled={disabledItem("id")}
                   />
                   <div className="input_err">{errMessage.id}</div>
                 </div>
@@ -513,6 +527,7 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
                       setFormState({ ...formState, title: target.value })
                     }
                     status={errMessage.title && "error"}
+                    disabled={disabledItem("name")}
                   />
                   <div className="input_err">{errMessage.title}</div>
                 </div>
@@ -530,7 +545,7 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
                       handleOnChangeStartDate(string);
                     }}
                     disabledDate={disValueStartDate}
-                    disabled={disableStartDate()}
+                    disabled={disabledItem("startDate")}
                     status={errMessage.startDate && "error"}
                   />
 
@@ -543,7 +558,7 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
                   <DatePicker
                     size="small"
                     value={formState.endDate && sqlToAntd(formState.endDate)}
-                    disabled={disableEndDate()}
+                    disabled={disabledItem("endDate")}
                     onChange={(_, string) => {
                       handleOnChangeEndDate(string);
                     }}
@@ -572,10 +587,7 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
                         );
                       }
                     }}
-                    disabled={disableChangeState(
-                      formState.startDate,
-                      formState.endDate
-                    )}
+                    disabled={disabledItem("state")}
                   />
                 </div>
               )}
@@ -596,7 +608,7 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
                 </div>
               )}
             </div>
-            {modalState.type == "update" && (
+            {modalState.type != "create" && (
               <PriceLineTable
                 headerPriceId={formState.id}
                 startDateHeader={formState.startDate}

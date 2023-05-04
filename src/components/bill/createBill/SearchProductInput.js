@@ -20,9 +20,9 @@ import priceLineApi from "../../../api/priceLineApi";
 import { addOneProductToActiveTab } from "../../../store/slices/createBillSlice";
 import priceHeaderApi from "../../../api/priceHeaderApi";
 import { compareDMY, convertToVND } from "../../../utils";
-import useScanDetection from "use-scan-detection";
+import BarcodeScanner from "./BarcodeScanner";
 
-const SearchProductInput = (props) => {
+const SearchProductInput = ({ ...props }) => {
   const dispatch = useDispatch();
   const { activeKey } = useSelector((state) => state.createBill.tabState);
   const list =
@@ -31,11 +31,7 @@ const SearchProductInput = (props) => {
   const [quantityInput, setQuantityInput] = useState(1);
   const [priceSelected, setPriceSelected] = useState();
   const [maxQuantityAvailabe, setMaxQuantityAvailabe] = useState(1);
-
-  const [barcodeScan, setBarcodeScan] = useState("no bar code scanned");
-  useScanDetection({
-    onComplete: setBarcodeScan,
-  });
+  const [isOpen, setIsOpen] = useState(false);
 
   const quantityRef = useRef();
   const searchInput = useRef();
@@ -121,6 +117,17 @@ const SearchProductInput = (props) => {
     searchInput.current.focus();
   }
 
+  async function onScanned(barcode) {
+    let res = await productApi.getOneByBarcode(barcode);
+
+    if (res.isSuccess) {
+      let product = res.product;
+      console.log(product);
+      fetchData(input, setData, setFetching, list, product.id);
+    }
+    searchInput.current.focus();
+  }
+
   return (
     <div
       style={{
@@ -155,6 +162,13 @@ const SearchProductInput = (props) => {
             </div>
           )
         }
+        onBlur={() => {
+          setIsOpen(false);
+        }}
+        onFocus={() => {
+          setIsOpen(true);
+        }}
+        open={isOpen}
         options={(data || []).map((item) => ({
           value: item.value,
           label: item.label,
@@ -184,18 +198,22 @@ const SearchProductInput = (props) => {
         style={{
           width: "88px",
         }}
+        min={1}
       />
+      <BarcodeScanner onScanned={onScanned} />
     </div>
   );
 };
 
-async function fetchData(input, setData, setFetching, list) {
+async function fetchData(input, setData, setFetching, list, productId) {
   setFetching(true);
   let headers = []; // header on using
   let productFounds = [];
   let res = {};
-  res = await productApi.findManyById(input);
-  console.log(res);
+  if (input) {
+    res = await productApi.findManyById(input);
+  }
+
   if (res.isSuccess) {
     productFounds = res.products;
   }
@@ -253,6 +271,12 @@ async function fetchData(input, setData, setFetching, list) {
     let quantity2 =
       (quantity - (quantity % convertionQuantity)) / convertionQuantity;
     return quantity2;
+  }
+
+  if (productId) {
+    _listPrices = _listPrices.filter((item) => {
+      return item?.ProductUnitType.ProductId == productId;
+    });
   }
 
   let data = _listPrices.map((line, index) => {
@@ -325,6 +349,7 @@ async function fetchData(input, setData, setFetching, list) {
       ),
     };
   });
+
   setData(data);
   setFetching(false);
 }

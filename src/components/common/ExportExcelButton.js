@@ -58,6 +58,7 @@ const ExportExcelButton = ({ nameTemplate, disabled, ...props }) => {
 
 export default ExportExcelButton;
 
+// done
 async function statisStorage({ data, headerNameList, date }) {
   let newFile = await createFile(
     "http://localhost:3000/files/reportFile.xlsx",
@@ -137,6 +138,8 @@ async function statisStorage({ data, headerNameList, date }) {
     lastRow.getCell("N").value = {
       formula: `SUM(N9:N${rowStartInd + length - 1})`,
     };
+  } else {
+    worksheet.spliceRows(rowStartInd, 1);
   }
   ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
     saveAs(
@@ -218,8 +221,8 @@ async function statisStoreInput({ data, headerNameList, fromDate, toDate }) {
       horizontal: "right",
     };
   } else {
-    worksheet.spliceRows(10, 1);
-    worksheet.spliceRows(9, 1);
+    worksheet.spliceRows(rowStartInd, 1);
+    worksheet.spliceRows(rowStartInd, 1);
   }
 
   ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
@@ -237,48 +240,32 @@ async function statisPromotions({
   toDate,
   employeeName,
 }) {
-  let headerNames2 = headerNameList.map((item) => item.title);
+  let newFile = await createFile(
+    "http://localhost:3000/files/reportFile.xlsx",
+    "xlsx"
+  );
 
+  const newData = await newFile.arrayBuffer();
   const ExcelJSWorkbook = new ExcelJS.Workbook();
-  var worksheet = ExcelJSWorkbook.addWorksheet("TongKetKhuyenMai");
+  await ExcelJSWorkbook.xlsx.load(newData);
+
+  ExcelJSWorkbook.removeWorksheet("Bảng Kê Trả Hàng");
+  ExcelJSWorkbook.removeWorksheet("DSBH Theo Ngay");
+  // ExcelJSWorkbook.removeWorksheet("Tong ket KM");
+  ExcelJSWorkbook.removeWorksheet("Bang Ke Hang Hoa Nhap Vao");
+  ExcelJSWorkbook.removeWorksheet("Báo Cáo Tồn Kho");
+  ExcelJSWorkbook.removeWorksheet("DSBH Theo KH");
+  let worksheet = ExcelJSWorkbook.getWorksheet("Tong ket KM");
 
   // header info
-  var newRow = worksheet.addRow();
-  newRow.getCell(1).value = "Tên cửa hàng: ECO MARKET";
-
-  var newRow = worksheet.addRow();
+  var newRow = worksheet.getRow(1);
   newRow.getCell(1).value =
-    "Địa chỉ cửa hàng: 29/8/7 đại lộ 15, tòa nhà 7, Hiệp Bình Chánh, Thủ Đức";
+    "Thời gian xuất báo cáo: " + sqlToHHmmDDmmYYYY(new Date());
+  var newRow = worksheet.getRow(2);
+  newRow.getCell(1).value = "Nhân viên xuất báo cáo: " + employeeName;
 
-  var newRow = worksheet.addRow();
-  newRow.getCell(1).value = "Ngày in: " + sqlToHHmmDDmmYYYY(new Date());
-
-  var newRow = worksheet.addRow();
-  newRow.getCell(1).value = "Tên nhân viên xuất báo cáo : " + employeeName;
-
-  var newRow = worksheet.addRow();
-  newRow.getCell(1).value = "Tên báo cáo: BCTKCTKM";
-
-  worksheet.mergeCells("A1:M1");
-  worksheet.mergeCells("A2:M2");
-  worksheet.mergeCells("A3:M3");
-  worksheet.mergeCells("A4:M4");
-  worksheet.mergeCells("A5:M5");
-  worksheet.mergeCells("A6:M6");
-  worksheet.mergeCells("A7:M7");
-
-  var customCell = worksheet.getCell("A5");
-  customCell.font = {
-    name: "Times New Roman",
-    family: 4,
-    size: 20,
-    bold: true,
-  };
-  customCell.alignment = { vertical: "middle", horizontal: "center" };
-  customCell.value = "BÁO CÁO TỔNG KẾT CTKM";
-
-  customCell = worksheet.getCell("A6");
-  customCell.alignment = { vertical: "middle", horizontal: "center" };
+  // time
+  var customCell = worksheet.getRow(4).getCell(1);
   if (compareDMY(new Date(fromDate), new Date(toDate)) == 0) {
     customCell.value = "Ngày:" + sqlToDDmmYYY(fromDate);
   } else {
@@ -289,60 +276,41 @@ async function statisPromotions({
       sqlToDDmmYYY(toDate);
   }
 
-  // table
-  let headerTable = worksheet.addRow();
-  headerTable.font = { bold: true };
+  // add data
 
-  for (let i = 0; i < headerNames2.length; i++) {
-    if (i == 0) {
-      worksheet.getColumn(i + 1).width = 5;
-    } else {
-      worksheet.getColumn(i + 1).width = 20;
-    }
-    let cell = headerTable.getCell(i + 1);
-    cell.value = headerNames2[i];
+  let rowStartInd = 8;
+  let length = (data && data.length) || 0;
+
+  if (length != 0) {
+    worksheet.duplicateRow(rowStartInd, length - 1, true);
+    data.map((item, index) => {
+      let indRow = index + rowStartInd;
+      var row = worksheet.getRow(indRow);
+      let keys = Object.keys(item);
+      keys.map((key, i) => {
+        row.getCell(i + 1).value = item[key];
+      });
+    });
+
+    // sum row
+    // let lastRow = worksheet.getRow(rowStartInd + length);
+
+    // lastRow.getCell("N").value = {
+    //   formula: `SUM(N9:N${rowStartInd + length - 1})`,
+    // };
+
+    // lastRow.getCell("M").value = {
+    //   formula: `SUM(M9:M${rowStartInd + length - 1})`,
+    // };
+
+    // worksheet.mergeCells(`A${length + rowStartInd}:I${length + rowStartInd}`);
+    // lastRow.getCell(1).value = "Tổng giá trị";
+    // lastRow.getCell(1).alignment = {
+    //   horizontal: "right",
+    // };
+  } else {
+    worksheet.spliceRows(rowStartInd, 1);
   }
-
-  let keys = [];
-
-  data.forEach((element) => {
-    keys = Object.keys(element);
-    worksheet.addRow(keys.map((key) => element[key]));
-  });
-
-  worksheet.getColumn("H").numFmt = numFmtStr;
-  worksheet.getColumn("J").numFmt = moneyFmtStr;
-  worksheet.getColumn("K").numFmt = moneyFmtStr;
-  worksheet.getColumn("L").numFmt = moneyFmtStr;
-  worksheet.getColumn("M").numFmt = moneyFmtStr;
-  // sumary
-
-  let Hsum = 0;
-  let Jsum = 0;
-  let Ksum = 0;
-  let Lsum = 0;
-  let Msum = 0;
-
-  data.map((item) => {
-    Hsum += item.quantityApplied || 0;
-    Jsum += item.discount || 0;
-    Ksum += item.budget || 0;
-    Lsum += item.discounted || 0;
-    Msum += item.availableBudget || 0;
-  });
-
-  newRow = worksheet.addRow();
-  newRow.font = { bold: true };
-  newRow.alignment = { vertical: "middle", horizontal: "right" };
-  let tmp = `A${data.length + 9}:B${data.length + 9}`;
-  worksheet.mergeCells(tmp);
-
-  newRow.getCell(1).value = "Tổng CTKM";
-  newRow.getCell("H").value = Hsum;
-  newRow.getCell("J").value = Jsum;
-  newRow.getCell("K").value = Ksum;
-  newRow.getCell("L").value = Lsum;
-  newRow.getCell("M").value = Msum;
 
   ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
     saveAs(
@@ -427,8 +395,8 @@ async function statisRetrieves({ data, headerNameList, fromDate, toDate }) {
       horizontal: "right",
     };
   } else {
-    worksheet.spliceRows(10, 1);
-    worksheet.spliceRows(9, 1);
+    worksheet.spliceRows(rowStartInd, 1);
+    worksheet.spliceRows(rowStartInd, 1);
   }
 
   ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
@@ -566,8 +534,7 @@ async function statisBillsCustomers({
     //   horizontal: "right",
     // };
   } else {
-    worksheet.spliceRows(10, 1);
-    worksheet.spliceRows(9, 1);
+    worksheet.spliceRows(rowStartInd, 1);
   }
   //row sumary
 

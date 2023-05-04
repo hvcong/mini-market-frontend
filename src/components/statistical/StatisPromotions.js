@@ -36,6 +36,7 @@ import HighlightedText from "../HighlightedText";
 
 const StatisPromotions = () => {
   const { data, refresh } = useSelector((state) => state.statis.allPromotions);
+  const { account } = useSelector((state) => state.user);
 
   const [dataAfterFilted, setDataAfterFilted] = useState([]);
   const dispatch = useDispatch();
@@ -68,143 +69,218 @@ const StatisPromotions = () => {
   useEffect(() => {
     setAllColumns([
       {
-        title: "STT",
-        width: 44,
-        dataIndex: "index",
+        title: "",
+        children: [
+          {
+            title: "STT",
+            width: 44,
+            dataIndex: "index",
+          },
+
+          {
+            title: "Mã CTKM",
+            dataIndex: "promotionId",
+            width: 160,
+            render: (_, rowData) => {
+              if (rowData.isFirstRow) {
+                return (
+                  <Input
+                    placeholder="Tìm kiếm"
+                    value={filterState.promotionId}
+                    allowClear
+                    onChange={({ target }) => {
+                      setFilterState({
+                        ...filterState,
+                        promotionId: target.value,
+                      });
+                    }}
+                  />
+                );
+              }
+              return (
+                <HighlightedText
+                  text={_}
+                  highlightText={filterState.promotionId}
+                />
+              );
+            },
+          },
+
+          {
+            title: "Tên CTKM",
+            dataIndex: "name",
+            width: 200,
+            render: (_, rowData) => {
+              if (rowData.isFirstRow) {
+                return (
+                  <Input
+                    placeholder="Tìm kiếm"
+                    value={filterState.name}
+                    allowClear
+                    onChange={({ target }) => {
+                      setFilterState({
+                        ...filterState,
+                        name: target.value,
+                      });
+                    }}
+                  />
+                );
+              }
+              return (
+                <HighlightedText text={_} highlightText={filterState.name} />
+              );
+            },
+          },
+          {
+            title: "Ngày bắt đầu",
+            dataIndex: "startDate",
+            width: 160,
+            render: (_, rowData) => {
+              if (!rowData.isFirstRow) {
+                return sqlToDDmmYYY(_);
+              }
+            },
+          },
+          {
+            title: "Ngày kết thúc",
+            dataIndex: "endDate",
+            width: 160,
+            render: (_, rowData) => {
+              if (!rowData.isFirstRow) {
+                return sqlToDDmmYYY(_);
+              }
+            },
+          },
+        ],
+      },
+      {
+        title: "KM tặng SP",
+        children: [
+          {
+            title: "Mã SP tặng",
+            dataIndex: "giftProductId",
+            width: 160,
+          },
+          {
+            title: "Tên SP tặng",
+            dataIndex: "productName",
+            width: 160,
+          },
+          {
+            title: "SL tặng",
+            dataIndex: "quantityApplied",
+            width: 160,
+          },
+          {
+            title: "Đơn vị tính",
+            dataIndex: "unitType",
+            width: 160,
+          },
+        ],
       },
 
       {
-        title: "Mã CTKM",
-        dataIndex: "promotionId",
-        width: 160,
-        render: (_, rowData) => {
-          if (rowData.isFirstRow) {
-            return (
-              <Input
-                placeholder="Tìm kiếm"
-                value={filterState.promotionId}
-                allowClear
-                onChange={({ target }) => {
-                  setFilterState({
-                    ...filterState,
-                    promotionId: target.value,
-                  });
-                }}
-              />
-            );
-          }
-          return (
-            <HighlightedText text={_} highlightText={filterState.promotionId} />
-          );
-        },
-      },
-
-      {
-        title: "Tên CTKM",
-        dataIndex: "name",
-        width: 200,
-        render: (_, rowData) => {
-          if (rowData.isFirstRow) {
-            return (
-              <Input
-                placeholder="Tìm kiếm"
-                value={filterState.name}
-                allowClear
-                onChange={({ target }) => {
-                  setFilterState({
-                    ...filterState,
-                    name: target.value,
-                  });
-                }}
-              />
-            );
-          }
-          return <HighlightedText text={_} highlightText={filterState.name} />;
-        },
+        title: "Chiếu khấu trên SP",
+        children: [
+          {
+            title: "Tổng tiền đã chiết khấu",
+            dataIndex: "discounted",
+            width: 160,
+            align: "right",
+            render: (_, rowData) => {
+              if (!rowData.isFirstRow) {
+                return convertToVND(_);
+              }
+            },
+          },
+        ],
       },
       {
-        title: "Ngày bắt đầu",
-        dataIndex: "startDate",
-        width: 160,
-        render: (_, rowData) => {
-          if (!rowData.isFirstRow) {
-            return sqlToDDmmYYY(_);
-          }
-        },
+        title: "Chiếu khấu trên đơn hàng",
+        children: [
+          {
+            title: "Ngân sách tổng",
+            dataIndex: "budget",
+            width: 160,
+            align: "right",
+            render: (_, rowData) => {
+              if (!rowData.isFirstRow) {
+                return convertToVND(_);
+              }
+            },
+          },
+          {
+            title: "Ngân sách đã sử dụng",
+            dataIndex: "used",
+            width: 160,
+            align: "right",
+            render: (_, rowData) => {
+              if (!rowData.isFirstRow) {
+                return convertToVND(_);
+              }
+            },
+          },
+          {
+            title: "Ngân sách còn lại",
+            dataIndex: "availableBudget",
+            width: 160,
+            align: "right",
+            render: (_, rowData) => {
+              if (!rowData.isFirstRow) {
+                return convertToVND(_);
+              }
+            },
+          },
+        ],
       },
       {
-        title: "Ngày kết thúc",
-        dataIndex: "endDate",
-        width: 160,
-        render: (_, rowData) => {
-          if (!rowData.isFirstRow) {
-            return sqlToDDmmYYY(_);
-          }
-        },
-      },
-      {
-        title: "Mã SP tặng",
-        dataIndex: "giftProductId",
-        width: 160,
-      },
-      {
-        title: "Tên SP tặng",
-        dataIndex: "productName",
-        width: 160,
-      },
-      {
-        title: "SL tặng",
-        dataIndex: "quantityApplied",
-        width: 160,
-      },
-      {
-        title: "Đơn vị tính",
-        dataIndex: "unitType",
-        width: 160,
-      },
-      {
-        title: "Số tiền chiết khấu",
-        dataIndex: "discounted",
-        width: 160,
-        align: "right",
-        render: (_, rowData) => {
-          if (!rowData.isFirstRow) {
-            return convertToVND(_);
-          }
-        },
-      },
-      {
-        title: "Ngân sách tổng",
-        dataIndex: "budget",
-        width: 160,
-        align: "right",
-        render: (_, rowData) => {
-          if (!rowData.isFirstRow) {
-            return convertToVND(_);
-          }
-        },
-      },
-      {
-        title: "Ngân sách đã sử dụng",
-        dataIndex: "used",
-        width: 160,
-        align: "right",
-        render: (_, rowData) => {
-          if (!rowData.isFirstRow) {
-            return convertToVND(_);
-          }
-        },
-      },
-      {
-        title: "Ngân sách còn lại",
-        dataIndex: "availableBudget",
-        width: 160,
-        align: "right",
-        render: (_, rowData) => {
-          if (!rowData.isFirstRow) {
-            return convertToVND(_);
-          }
-        },
+        title: "Phiếu giảm giá",
+        children: [
+          {
+            title: "Tổng số lượng",
+            dataIndex: "budget",
+            width: 160,
+            align: "right",
+            render: (_, rowData) => {
+              if (!rowData.isFirstRow) {
+                return convertToVND(_);
+              }
+            },
+          },
+          {
+            title: "Số lượng đã sử dụng",
+            dataIndex: "used",
+            width: 160,
+            align: "right",
+            render: (_, rowData) => {
+              if (!rowData.isFirstRow) {
+                return convertToVND(_);
+              }
+            },
+          },
+          {
+            title: "Số lượng còn lại",
+            dataIndex: "availableBudget",
+            width: 160,
+            align: "right",
+            render: (_, rowData) => {
+              if (!rowData.isFirstRow) {
+                return convertToVND(_);
+              }
+            },
+          },
+          {
+            title: "Tổng số tiền đã chiết khấu",
+            dataIndex: "availableBudget",
+            width: 160,
+            align: "right",
+            render: (_, rowData) => {
+              if (!rowData.isFirstRow) {
+                return convertToVND(_);
+              }
+            },
+          },
+        ],
       },
     ]);
 
@@ -391,7 +467,7 @@ const StatisPromotions = () => {
               headerNameList={allColumns}
               fromDate={filterState.fromDate}
               toDate={filterState.toDate}
-              sta
+              employeeName={account.name}
             />
           </div>
           <div className="btn__item">
@@ -416,6 +492,7 @@ const StatisPromotions = () => {
         className="table"
         pagination={false}
         loading={isLoading}
+        bordered
       />
       <div className="pagination__container">
         <Pagination
