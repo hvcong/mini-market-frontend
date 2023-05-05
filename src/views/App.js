@@ -37,7 +37,7 @@ function App() {
       }}
     >
       <Routes>
-        <Route path="/admin" element={<Main />}>
+        <Route path="/" element={<Main />}>
           <Route path="products" element={<AdminProducts />} />
           <Route path="category" element={<Category />} />
           <Route path="prices" element={<Price />} />
@@ -63,8 +63,8 @@ function App() {
             element={<StatisBillsCustomers />}
           />
           <Route path="statistic/bills-days" element={<StatisBillsDay />} />
+          <Route path="auth" element={<Auth />} />
         </Route>
-        <Route path="auth" element={<Auth />} />
       </Routes>
     </ConfigProvider>
   );
