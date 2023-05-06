@@ -238,7 +238,7 @@ const StatisPromotions = () => {
         children: [
           {
             title: "Tổng số lượng",
-            dataIndex: "budget",
+            dataIndex: "sumAllVoucher",
             width: 160,
             align: "right",
             render: (_, rowData) => {
@@ -249,7 +249,7 @@ const StatisPromotions = () => {
           },
           {
             title: "Số lượng đã sử dụng",
-            dataIndex: "used",
+            dataIndex: "voucherUsed",
             width: 160,
             align: "right",
             render: (_, rowData) => {
@@ -260,7 +260,7 @@ const StatisPromotions = () => {
           },
           {
             title: "Số lượng còn lại",
-            dataIndex: "availableBudget",
+            dataIndex: "remaining",
             width: 160,
             align: "right",
             render: (_, rowData) => {
@@ -271,7 +271,7 @@ const StatisPromotions = () => {
           },
           {
             title: "Tổng số tiền đã chiết khấu",
-            dataIndex: "availableBudget",
+            dataIndex: "totalDiscount",
             width: 160,
             align: "right",
             render: (_, rowData) => {

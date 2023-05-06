@@ -103,6 +103,9 @@ export function dmyToYmd(dmy) {
 }
 
 export function convertToVND(value) {
+  if (!value && value != 0) {
+    return;
+  }
   let num = value || 0;
   num = Number(num);
   return num.toLocaleString("it-IT");
