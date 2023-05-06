@@ -7,7 +7,6 @@ import App from "./views/App";
 import { store } from "./app/store";
 
 const rootElement = document.getElementById("root");
-
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>

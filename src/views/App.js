@@ -25,6 +25,7 @@ import StatisRetrieves from "./../components/statistical/StatisRetrieves";
 import StatisBillsCustomers from "./../components/statistical/StatisBillsCustomers";
 import StatisBillsDay from "./../components/statistical/StatisBillsDay";
 import BarcodeScanner from "../components/bill/createBill/BarcodeScanner";
+import { useEffect, useRef } from "react";
 
 function App() {
   return (
@@ -71,44 +72,3 @@ function App() {
 }
 
 export default App;
-
-// grayLighter: "#ddd",
-// gray: "#aaa",
-// gray1: "#666",
-// gray2: "#444",
-// black: "#000",
-// white: "#fff",
-// greenLighter: "#05eb7e",
-// green: "#04c469",
-// green1: "#03a659",
-// green2: "#018547",
-// yellow: "yellow",
-// red: "red",
-
-// import React from "react";
-// import BarcodeScannerComponent from "react-qr-barcode-scanner";
-
-// function App() {
-//   const [data, setData] = React.useState("Not Found");
-//   const [torchOn, setTorchOn] = React.useState(false);
-
-//   return (
-//     <>
-//       <BarcodeScannerComponent
-//         width={500}
-//         height={500}
-//         torch={torchOn}
-//         onUpdate={(err, result) => {
-//           if (result) setData(result.text);
-//           else setData("Not Found");
-//         }}
-//       />
-//       <p>{data}</p>
-//       <button onClick={() => setTorchOn(!torchOn)}>
-//         Switch Torch {torchOn ? "Off" : "On"}
-//       </button>
-//     </>
-//   );
-// }
-
-// export default App;

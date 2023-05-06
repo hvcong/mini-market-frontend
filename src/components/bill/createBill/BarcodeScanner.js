@@ -18,20 +18,20 @@ function BarcodeScanner({ onScanned }) {
     onScanned(data);
   }
 
-  useEffect(() => {
-    setTimeout(() => {
-      sound.play();
-      onScanned("22222");
-    }, 2000);
-    return () => {};
-  }, []);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     sound.play();
+  //     onScanned("22222");
+  //   }, 2000);
+  //   return () => {};
+  // }, []);
 
   return (
     <div className="barcode_container">
       {/* <Webcam ref={camRef} /> */}
       <BarcodeScannerComponent
-        width={500}
-        height={500}
+        width={10}
+        height={10}
         torch={torchOn}
         onUpdate={(err, result) => {
           if (result) setData(result.text);

@@ -44,7 +44,7 @@ const SearchProductInput = ({ ...props }) => {
     fetchData(input, setData, setFetching, list);
   };
   const handleChange = async (value) => {
-    searchInput.current.focus();
+    searchInput.current?.focus();
     if (value) {
       let res = await priceLineApi.getOneById(value);
       if (res.isSuccess) {

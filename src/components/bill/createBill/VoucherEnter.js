@@ -143,14 +143,14 @@ const VoucherEnter = ({ voucherUsed, customer, discountByVoucher }) => {
               - {convertToVND(discountByVoucher || 0)}
             </div>
           </div>
-          <Typography.Link
+          <a
             className="bill_infor_voucher_detail_btn_link"
             onClick={() => {
-              setIsShowDetail(!isShowDetail);
+              message.info("oke");
             }}
           >
             Chi tiết {isShowDetail ? <DownOutlined /> : <UpOutlined />}
-          </Typography.Link>
+          </a>
           {isShowDetail && (
             <div className="bill_infor_voucher_detail_wrap">
               <div className="bill_infor_voucher_detail_item">
