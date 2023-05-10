@@ -2,7 +2,7 @@ import axios from "axios";
 
 // let baseURL = "http://localhost:3000/";
 let baseURL = "https://minimarket-server.onrender.com/";
-
+export { baseURL };
 const axiosClient = axios.create({
   baseURL: baseURL,
   headers: {
