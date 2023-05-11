@@ -446,7 +446,8 @@ const ListProduct = () => {
         },
       },
       {
-        title: "Mã sản phẩm",
+        title: "Mã SP",
+        width: 80,
         render: (_, rowData) => {
           if (!rowData.isRowNotData && rowData && rowData.ProductUnitType) {
             return rowData.ProductUnitType.ProductId;
@@ -454,7 +455,7 @@ const ListProduct = () => {
         },
       },
       {
-        title: "Tên sản phẩm",
+        title: "Tên SP",
         width: 200,
         render: (_, rowData) => {
           if (!rowData.isRowNotData && rowData && rowData.ProductUnitType) {
@@ -555,6 +556,7 @@ const ListProduct = () => {
       {
         title: "Tổng",
         align: "right",
+        width: 150,
         render: (_, rowData) => {
           if (!rowData.isRowNotData && rowData) {
             let total = 0;
