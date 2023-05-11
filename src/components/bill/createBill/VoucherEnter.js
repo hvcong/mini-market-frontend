@@ -146,7 +146,7 @@ const VoucherEnter = ({ voucherUsed, customer, discountByVoucher }) => {
           <a
             className="bill_infor_voucher_detail_btn_link"
             onClick={() => {
-              message.info("oke");
+              setIsShowDetail(!isShowDetail);
             }}
           >
             Chi tiết {isShowDetail ? <DownOutlined /> : <UpOutlined />}

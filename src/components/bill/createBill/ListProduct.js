@@ -66,6 +66,7 @@ const ListProduct = () => {
   async function loadPromotionLinesActiveCanUsed() {
     let res = await promotionApi.getAllOnActive();
     let listLinePromotions = [];
+    console.log(res);
 
     if (res.isSuccess) {
       let promotions = res.promotions || [];
@@ -454,6 +455,7 @@ const ListProduct = () => {
       },
       {
         title: "Tên sản phẩm",
+        width: 200,
         render: (_, rowData) => {
           if (!rowData.isRowNotData && rowData && rowData.ProductUnitType) {
             return rowData.ProductUnitType.Product.name;
