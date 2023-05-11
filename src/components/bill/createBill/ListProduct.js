@@ -410,6 +410,13 @@ const ListProduct = () => {
 
     // first row for calculate
     _tableData.unshift({ isFirstRow: true, isRowNotData: true });
+    console.log(_tableData);
+    _tableData = _tableData.filter((rowData) => {
+      if (rowData.quantity == 0 && rowData.isPromotion) {
+        return rowData.quantity > 0;
+      }
+      return true;
+    });
 
     setTableData(_tableData);
     setCostBeforeDiscountVoucher(subTotal - discountOnBill);
