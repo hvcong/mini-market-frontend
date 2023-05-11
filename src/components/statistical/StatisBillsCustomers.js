@@ -454,11 +454,11 @@ const StatisBillsCustomers = () => {
               }}
             />
           </div>
-          <div className="btn__item">
+          {/* <div className="btn__item">
             <Button onClick={clearFilter} type={"primary"} danger>
               Xóa Lọc
             </Button>
-          </div>
+          </div> */}
 
           <div className="btn__item">
             <ExportExcelButton

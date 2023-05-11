@@ -283,7 +283,7 @@ const ProfileAccount = ({ account }) => {
             <Select
               className="profile_account_input"
               options={roles}
-              disabled={disabledInput("role")}
+              disabled
               value={formState.role}
               onChange={(value) => {
                 setFormState({
@@ -314,14 +314,6 @@ const ProfileAccount = ({ account }) => {
           </>
         ) : (
           <>
-            <Button
-              className="profile_btn"
-              onClick={() => {
-                setIsEdit(true);
-              }}
-            >
-              Chỉnh sửa
-            </Button>
             <Button
               className="profile_btn"
               onClick={() => {

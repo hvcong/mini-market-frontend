@@ -39,6 +39,7 @@ const UnitType = ({}) => {
   const { modalState } = useSelector(
     (state) => state.modal.modals["UnitTypeCUModal"]
   );
+  const { isAdmin } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   function setModalState(state) {
@@ -64,7 +65,7 @@ const UnitType = ({}) => {
         <Typography.Link
           onClick={() => {
             setModalState({
-              type: "update",
+              type: isAdmin ? "update" : "view",
               visible: true,
               idSelected: row.id,
             });
@@ -128,21 +129,23 @@ const UnitType = ({}) => {
               Danh sách đơn vị tính
             </Typography.Title>
           </div>
-          <div className="btn__item">
-            <Button
-              size="small"
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setModalState({
-                  type: "create",
-                  visible: true,
-                });
-              }}
-            >
-              Thêm mới
-            </Button>
-          </div>
+          {isAdmin && (
+            <div className="btn__item">
+              <Button
+                size="small"
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  setModalState({
+                    type: "create",
+                    visible: true,
+                  });
+                }}
+              >
+                Thêm mới
+              </Button>
+            </div>
+          )}
           <div className="btn__item">
             <DropSelectColum
               allColumns={allColumns}

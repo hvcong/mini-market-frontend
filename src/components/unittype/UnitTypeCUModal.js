@@ -55,7 +55,7 @@ const UnitTypeCUModal = () => {
       idInputRef.current.focus();
     }
     if (
-      modalState.type == "update" &&
+      modalState.type != "create" &&
       modalState.visible == true &&
       modalState.idSelected
     ) {
@@ -210,7 +210,9 @@ const UnitTypeCUModal = () => {
                         id: target.value,
                       });
                     }}
-                    disabled={modalState.type == "update"}
+                    disabled={
+                      modalState.type == "update" || modalState.type == "view"
+                    }
                     status={errMessage.id && "error"}
                   />
                   <div className="unitType_form_input_err">{errMessage.id}</div>
@@ -229,6 +231,7 @@ const UnitTypeCUModal = () => {
                         name: target.value,
                       });
                     }}
+                    disabled={modalState.type == "view"}
                     status={errMessage.name && "error"}
                   />
                   <div className="unitType_form_input_err">
@@ -251,7 +254,9 @@ const UnitTypeCUModal = () => {
                         });
                       }
                     }}
-                    disabled={modalState.type == "update"}
+                    disabled={
+                      modalState.type == "update" || modalState.type == "view"
+                    }
                     status={errMessage.convertionQuantity && "error"}
                   />
                   <div className="unitType_form_input_err">
@@ -287,14 +292,18 @@ const UnitTypeCUModal = () => {
                   </Button>
                 </>
               ) : (
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    onSubmit("update", true);
-                  }}
-                >
-                  Cập nhật
-                </Button>
+                <>
+                  {modalState.type == "update" && (
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        onSubmit("update", true);
+                      }}
+                    >
+                      Cập nhật
+                    </Button>
+                  )}
+                </>
               )}
               <Button type="primary" danger onClick={closeModal}>
                 Hủy bỏ
