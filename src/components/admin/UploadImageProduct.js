@@ -1,6 +1,7 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { Modal, Upload } from "antd";
 import { useState } from "react";
+import { baseURL } from "../../api/axiosClient";
 
 const UploadImageProduct = ({ fileList = [], setFileList, disabled }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -55,7 +56,7 @@ const UploadImageProduct = ({ fileList = [], setFileList, disabled }) => {
   return (
     <>
       <Upload
-        action="http://localhost:3000/images/post"
+        action={`${baseURL}images/post`}
         listType="picture-card"
         fileList={fileList}
         onPreview={handlePreview}

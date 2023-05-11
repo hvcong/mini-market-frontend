@@ -7,6 +7,7 @@ import priceHeaderApi from "../../api/priceHeaderApi";
 import storeApi from "../../api/storeApi";
 import { compareDMY, sqlToDDmmYYY, sqlToHHmmDDmmYYYY } from "../../utils";
 import { useSelector } from "react-redux";
+import { baseURL } from "../../api/axiosClient";
 const numFmtStr = '_(""* #,##0_);_(""* (#,##0);_(""* "-"??_);_(@_)';
 const moneyFmtStr = '_(""* #,##0.00_);_(""* (#,##0.00);_(""* "-"??_);_(@_)';
 
@@ -60,10 +61,7 @@ export default ExportExcelButton;
 
 // done
 async function statisStorage({ data, headerNameList, date }) {
-  let newFile = await createFile(
-    "http://localhost:3000/files/reportFile.xlsx",
-    "xlsx"
-  );
+  let newFile = await createFile(`${baseURL}files/reportFile.xlsx`, "xlsx");
 
   const newData = await newFile.arrayBuffer();
   const ExcelJSWorkbook = new ExcelJS.Workbook();
@@ -151,10 +149,7 @@ async function statisStorage({ data, headerNameList, date }) {
 
 // done
 async function statisStoreInput({ data, headerNameList, fromDate, toDate }) {
-  let newFile = await createFile(
-    "http://localhost:3000/files/reportFile.xlsx",
-    "xlsx"
-  );
+  let newFile = await createFile(`${baseURL}files/reportFile.xlsx`, "xlsx");
 
   const newData = await newFile.arrayBuffer();
   const ExcelJSWorkbook = new ExcelJS.Workbook();
@@ -240,10 +235,7 @@ async function statisPromotions({
   toDate,
   employeeName,
 }) {
-  let newFile = await createFile(
-    "http://localhost:3000/files/reportFile.xlsx",
-    "xlsx"
-  );
+  let newFile = await createFile(`${baseURL}files/reportFile.xlsx`, "xlsx");
 
   const newData = await newFile.arrayBuffer();
   const ExcelJSWorkbook = new ExcelJS.Workbook();
@@ -322,10 +314,7 @@ async function statisPromotions({
 
 // done
 async function statisRetrieves({ data, headerNameList, fromDate, toDate }) {
-  let newFile = await createFile(
-    "http://localhost:3000/files/reportFile.xlsx",
-    "xlsx"
-  );
+  let newFile = await createFile(`${baseURL}files/reportFile.xlsx`, "xlsx");
 
   const newData = await newFile.arrayBuffer();
   const ExcelJSWorkbook = new ExcelJS.Workbook();
@@ -414,10 +403,7 @@ async function statisBillsCustomers({
   fromDate,
   toDate,
 }) {
-  let newFile = await createFile(
-    "http://localhost:3000/files/reportFile.xlsx",
-    "xlsx"
-  );
+  let newFile = await createFile(`${baseURL}files/reportFile.xlsx`, "xlsx");
 
   const newData = await newFile.arrayBuffer();
   const ExcelJSWorkbook = new ExcelJS.Workbook();
@@ -548,10 +534,7 @@ async function statisBillsCustomers({
 
 // done
 async function statisBillsDay({ data, headerNameList, fromDate, toDate }) {
-  let newFile = await createFile(
-    "http://localhost:3000/files/reportFile.xlsx",
-    "xlsx"
-  );
+  let newFile = await createFile(`${baseURL}files/reportFile.xlsx`, "xlsx");
 
   const newData = await newFile.arrayBuffer();
   const ExcelJSWorkbook = new ExcelJS.Workbook();
