@@ -4,6 +4,8 @@ import axios from "axios";
 // let baseURL = "https://minimarket-server.onrender.com/";
 let baseURL = "http://13.250.27.60:3000/";
 
+export { baseURL };
+
 const axiosClient = axios.create({
   baseURL: baseURL,
   headers: {
