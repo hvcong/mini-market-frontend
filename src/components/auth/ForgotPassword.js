@@ -10,7 +10,7 @@ const ForgotPassword = ({ setIsForgot }) => {
 
   const dispatch = useDispatch();
 
-  const [phone, setPhone] = useState("0868283915");
+  const [phone, setPhone] = useState("");
   const [step, setStep] = useState("INPUT_PHONE");
   const [recaptchaResult, setRecaptchaResult] = useState(false);
   const [otp, setOtp] = useState("");

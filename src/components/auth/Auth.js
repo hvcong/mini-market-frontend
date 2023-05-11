@@ -21,8 +21,8 @@ const Auth = function () {
 
   const dispatch = useDispatch();
 
-  const [username, setUsername] = useState("0868283915");
-  const [password, setPassword] = useState("22222222");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [isForgot, setIsForgot] = useState(false);
   // useEffect(() => {
   //   onSubmit();
@@ -102,7 +102,7 @@ const Auth = function () {
                   onChange={({ target }) => {
                     setUsername(target.value);
                   }}
-                  placeholder="Email / Số điện thoại"
+                  placeholder="Số điện thoại"
                 />
                 <div className="auth_input_err"></div>
               </div>
