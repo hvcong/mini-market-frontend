@@ -1,6 +1,6 @@
 import { Button, ConfigProvider } from "antd";
 import "antd/dist/reset.css";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Main from "../components/admin/layout/Main";
 import AdminProducts from "./../components/product/AdminProducts";
 import Price from "../components/price/Price";
@@ -38,6 +38,8 @@ function App() {
       }}
     >
       <Routes>
+        <Route path="auth" element={<Auth />} />
+
         <Route path="/admin" element={<Main />}>
           <Route path="products" element={<AdminProducts />} />
           <Route path="category" element={<Category />} />
@@ -65,7 +67,7 @@ function App() {
           />
           <Route path="statistic/bills-days" element={<StatisBillsDay />} />
         </Route>
-        <Route path="auth" element={<Auth />} />
+        <Route path="/" element={<Navigate to="/auth" />}></Route>
       </Routes>
     </ConfigProvider>
   );
