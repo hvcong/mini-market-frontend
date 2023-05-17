@@ -23,7 +23,10 @@ const Sidenav = ({ isAdmin }) => {
   const items = [
     getItem("Giao dịch", "sub2", <FileDoneOutlined />, [
       getItem(<NavLink to="orders">Đơn đặt hàng</NavLink>, "orders"),
-      getItem(<NavLink to="create_bill">Tạo đơn hàng</NavLink>, "create_bill"),
+      getItem(
+        <NavLink to="create_bill">Cửa sổ bán hàng</NavLink>,
+        "create_bill"
+      ),
       getItem(<NavLink to="bills">Hóa đơn</NavLink>, "bills"),
       getItem(<NavLink to="bills_receive">Trả hàng</NavLink>, "returns"),
     ]),

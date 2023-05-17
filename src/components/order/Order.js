@@ -43,6 +43,7 @@ import billApi from "./../../api/billApi";
 import { setBills, setRefreshBills } from "../../store/slices/billSlice";
 import { setOpen } from "../../store/slices/modalSlice";
 import storeApi from "../../api/storeApi";
+import CancelOrderButton from "../common/CancelOrderButton";
 
 const { Text } = Typography;
 
@@ -50,6 +51,8 @@ const Order = ({}) => {
   let hideLoading = null;
   const { bills, refresh, count } = useSelector((state) => state.bill);
   const dispatch = useDispatch();
+  const { account } = useSelector((state) => state.user);
+  const [billIdSelected, setBillIdSelected] = useState(null);
 
   const [pageState, setPageState] = useState({
     page: 1,
@@ -82,14 +85,6 @@ const Order = ({}) => {
           return sqlToHHmmDDmmYYYY(orderDate);
         },
       },
-      {
-        title: "Tổng tiền",
-        dataIndex: "cost",
-        align: "right",
-        render: (cost) => {
-          return convertToVND(cost);
-        },
-      },
 
       {
         title: "Mã khách hàng",
@@ -120,57 +115,49 @@ const Order = ({}) => {
         dataIndex: "type",
         render: (type) => {
           if (type == "pending") {
-            return <Tag color="green">Đang chờ xử lí</Tag>;
+            return <Tag color="green">Đặt hàng thành công</Tag>;
           } else {
             return <Tag color="error">Đã hủy </Tag>;
           }
         },
       },
       {
+        title: "Tổng tiền",
+        dataIndex: "cost",
+        align: "right",
+        render: (cost) => {
+          return convertToVND(cost);
+        },
+      },
+      {
         title: "Xử lí",
-        width: 120,
+        width: 240,
         fixed: "right",
         render: (_, rowData) => {
           let type = rowData.type;
           if (type == "pending")
             return (
-              <Popover
-                placement="leftTop"
-                content={
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                    }}
-                  >
-                    <>
-                      <Button
-                        size="small"
-                        style={{
-                          marginBottom: 12,
-                        }}
-                        type="primary"
-                        onClick={() => {
-                          orderToBill(rowData.id);
-                        }}
-                      >
-                        Xác nhận
-                      </Button>
-                      <Button
-                        size="small"
-                        danger
-                        onClick={() => {
-                          cancelOrder(rowData.id);
-                        }}
-                      >
-                        Hủy đơn hàng
-                      </Button>
-                    </>
-                  </div>
-                }
-              >
-                <Button size="small" icon={<MenuUnfoldOutlined />}></Button>
-              </Popover>
+              <>
+                <Button
+                  size="small"
+                  style={{
+                    marginRight: 12,
+                  }}
+                  type="primary"
+                  onClick={() => {
+                    orderToBill(rowData.id);
+                  }}
+                >
+                  Giao hàng
+                </Button>
+                <CancelOrderButton
+                  setOpen={(value) => {
+                    setBillIdSelected(value);
+                  }}
+                  billId={rowData.id}
+                  size="small"
+                />
+              </>
             );
         },
       },
@@ -178,7 +165,7 @@ const Order = ({}) => {
 
     setAllColumns(_allCol);
     return () => {};
-  }, []);
+  }, [billIdSelected]);
 
   useEffect(() => {
     getOrders(pageState.page, pageState.limit);
@@ -242,19 +229,7 @@ const Order = ({}) => {
 
   async function orderToBill(billId) {
     hideLoading = message.loading("Đang xử lí...");
-    let res = await billApi.updateType(billId, "success");
-    if (res.isSuccess) {
-      message.info("Thao tác thành công", 3);
-      dispatch(setRefreshBills());
-    } else {
-      message.info("Có lỗi xảy ra, vui lòng thử lại!", 3);
-    }
-    hideLoading();
-  }
-
-  async function cancelOrder(billId) {
-    hideLoading = message.loading("Đang xử lí...");
-    let res = await billApi.updateType(billId, "cancel");
+    let res = await billApi.updateType(billId, "success", account.id);
     if (res.isSuccess) {
       message.info("Thao tác thành công", 3);
       dispatch(setRefreshBills());

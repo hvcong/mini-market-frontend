@@ -48,7 +48,7 @@ const StatisBillsCustomers = () => {
   const [allColumns, setAllColumns] = useState([]);
 
   const [filterState, setFilterState] = useState({
-    fromDate: new Date("2023/04/01"),
+    fromDate: getStartToDay(),
     toDate: new Date(),
     customerId: "",
     typeCustomer: "",

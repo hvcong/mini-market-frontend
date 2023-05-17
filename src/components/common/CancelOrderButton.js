@@ -4,11 +4,11 @@ import { useState } from "react";
 import billApi from "./../../api/billApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setRefreshBills } from "../../store/slices/billSlice";
-const ReceiveButton = ({
+const CancelOrderButton = ({
   open,
   setOpen,
   billId,
-  handleReceiveOke,
+  handleCancelOke,
   ...props
 }) => {
   const [confirmLoading, setConfirmLoading] = useState(false);
@@ -20,32 +20,20 @@ const ReceiveButton = ({
   //   return;
   // }
   const showPopconfirm = () => {
-    console.log(billId);
     setOpen(billId);
   };
   const handleOk = async () => {
     if (!input || (input && input.trim().length == 0)) {
-      message.error("Vui lòng thêm lí do trả hàng!");
+      message.error("Vui lòng thêm lí do hủy đơn hàng!");
       return;
     } else {
       setConfirmLoading(true);
 
-      let res = await billApi.addOneReceive({
-        note: input,
-        BillId: billId,
-        employeeId: account.id,
-      });
-
-      if (res.isSuccess) {
-        message.info("Thao tác thành công");
-        dispatch(setRefreshBills());
-        if (handleReceiveOke) {
-          handleReceiveOke();
-        }
-        handleCancel();
-      } else {
-        message.error("Có lỗi xảy ra, vui lòng thử lại!");
+      await cancelOrder(billId, input);
+      if (handleCancelOke) {
+        handleCancelOke();
       }
+      handleCancel();
       setConfirmLoading(false);
     }
   };
@@ -54,6 +42,24 @@ const ReceiveButton = ({
     setInput("");
     setConfirmLoading(false);
   };
+
+  async function cancelOrder(billId, note) {
+    let res = await billApi.addOneReceive({
+      note,
+      BillId: billId,
+      employeeId: account.id,
+    });
+    if (res.isSuccess) {
+      await billApi.updateInfo(billId, {
+        employeeId: account.id,
+      });
+
+      message.info("Thao tác thành công", 3);
+      dispatch(setRefreshBills());
+    } else {
+      message.info("Có lỗi xảy ra, vui lòng thử lại!", 3);
+    }
+  }
   return (
     <Popconfirm
       title={
@@ -61,12 +67,12 @@ const ReceiveButton = ({
           style={{
             width: "200px",
           }}
-          placeholder="Ghi chú trả hàng ..."
+          placeholder="Lí do hủy đơn hàng..."
           value={input}
           onChange={({ target }) => setInput(target.value)}
         />
       }
-      open={open}
+      //   open={open}
       onConfirm={handleOk}
       okButtonProps={{
         loading: confirmLoading,
@@ -74,15 +80,11 @@ const ReceiveButton = ({
       onCancel={handleCancel}
       placement="left"
     >
-      <Button
-        danger
-        icon={<RedoOutlined />}
-        onClick={showPopconfirm}
-        {...props}
-      >
-        Trả hàng
+      <Button danger onClick={showPopconfirm} {...props}>
+        Hủy đơn hàng
       </Button>
     </Popconfirm>
   );
 };
-export default ReceiveButton;
+
+export default CancelOrderButton;

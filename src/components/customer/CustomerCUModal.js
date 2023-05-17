@@ -46,7 +46,7 @@ const initFormState = {
     wardId: "",
     homeAddress: "",
   },
-  typeCustomerId: "",
+  typeCustomerId: "BT",
   email: "",
 };
 const initErrMessage = {
@@ -312,6 +312,16 @@ const CustomerCUModal = () => {
       if (name == "type") return true;
     }
   }
+
+  useEffect(() => {
+    if (modalState.type == "create") {
+      setFormState({
+        ...initFormState,
+        id: "KH" + uidNumber(),
+      });
+    }
+    return () => {};
+  }, [modalState]);
 
   return (
     <div className="customer_modal">

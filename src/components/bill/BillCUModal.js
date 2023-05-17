@@ -34,6 +34,7 @@ import ReceiveButton from "./ReceiveButton";
 import { setOpen } from "../../store/slices/modalSlice";
 import { convertToVND, handleAfter } from "../../utils";
 import { setRefreshBills } from "../../store/slices/billSlice";
+import CancelOrderButton from "../common/CancelOrderButton";
 const dateFormat = "YYYY-MM-DD";
 
 const initFormState = {
@@ -49,11 +50,13 @@ const initFormState = {
 const BillCUModal = () => {
   let hideLoading = null;
   const dispatch = useDispatch();
+  const { account } = useSelector((state) => state.user);
   const modalState = useSelector((state) => state.modal.modals.BillCUModal);
   const [formState, setFormState] = useState(initFormState);
   const [receiveOpenId, setReceiveOpenId] = useState("");
   const [listKM, setListKM] = useState([]);
   const [MPused, setMPused] = useState(null);
+  const [billIdSelected, setBillIdSelected] = useState(null);
 
   let type = formState.type;
 
@@ -151,7 +154,7 @@ const BillCUModal = () => {
 
   async function orderToBill(billId) {
     hideLoading = message.loading("Đang xử lí...");
-    let res = await billApi.updateType(billId, "success");
+    let res = await billApi.updateType(billId, "success", account.id);
     if (res.isSuccess) {
       message.info("Thao tác thành công", 3);
       closeModal();
@@ -165,8 +168,16 @@ const BillCUModal = () => {
 
   async function cancelOrder(billId) {
     hideLoading = message.loading("Đang xử lí...");
-    let res = await billApi.updateType(billId, "cancel");
+    let res = await billApi.addOneReceive({
+      note: "Số lượng hàng không đủ do bị hư hỏng",
+      BillId: billId,
+      employeeId: account.id,
+    });
+
     if (res.isSuccess) {
+      await billApi.updateInfo(billId, {
+        employeeId: account.id,
+      });
       message.info("Thao tác thành công", 3);
       closeModal();
       dispatch(setRefreshBills());
@@ -293,8 +304,8 @@ const BillCUModal = () => {
                           </Tag>
                         )}
                         {type == "pending" && (
-                          <Tag style={{ fontSize: "13px" }} color="green">
-                            Đang chờ xử lí
+                          <Tag style={{ fontSize: "13px" }} color="blue">
+                            Đặt hàng thành công
                           </Tag>
                         )}
                         {type == "cancel" && (
@@ -393,16 +404,15 @@ const BillCUModal = () => {
                       orderToBill(formState.id);
                     }}
                   >
-                    Xác nhận
+                    Giao hàng
                   </Button>
-                  <Button
-                    onClick={() => {
-                      cancelOrder(formState.id);
+                  <CancelOrderButton
+                    setOpen={(value) => {
+                      setBillIdSelected(value);
                     }}
-                    danger
-                  >
-                    Hủy đơn hàng
-                  </Button>
+                    handleCancelOke={() => closeModal()}
+                    billId={formState.id}
+                  />
                 </>
               )}
 

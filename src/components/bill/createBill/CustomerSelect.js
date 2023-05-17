@@ -26,6 +26,7 @@ import {
   WarningOutlined,
 } from "@ant-design/icons";
 import { isVietnamesePhoneNumberValid, uid, uidNumber } from "../../../utils";
+import { setOpen } from "../../../store/slices/modalSlice";
 
 const CustomerSelect = (props) => {
   const { activeKey } = useSelector((state) => state.createBill.tabState);
@@ -130,28 +131,34 @@ const CustomerSelect = (props) => {
         dropdownRender={(menu) => (
           <>
             {menu}
-            {data.length == 0 && !errMess && input && (
-              <>
-                <Divider
-                  style={{
-                    margin: "8px 0",
-                  }}
-                />
+            <>
+              <Divider
+                style={{
+                  margin: "8px 0",
+                }}
+              />
 
-                <Button
-                  type="dashed"
-                  icon={<PlusOutlined />}
-                  onClick={() => {
-                    addNewCustomer(input);
-                  }}
-                  style={{
-                    width: "100%",
-                  }}
-                >
-                  Thêm mới
-                </Button>
-              </>
-            )}
+              <Button
+                type="dashed"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  dispatch(
+                    setOpen({
+                      name: "CustomerCUModal",
+                      modalState: {
+                        visible: true,
+                        type: "create",
+                      },
+                    })
+                  );
+                }}
+                style={{
+                  width: "100%",
+                }}
+              >
+                Thêm mới
+              </Button>
+            </>
           </>
         )}
         notFoundContent={fetching ? <Spin size="small" /> : <></>}

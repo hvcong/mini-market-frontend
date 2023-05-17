@@ -41,6 +41,11 @@ class BillApi {
     let url = `bill/fail?_page=${page}&_limit=${limit}`;
     return axiosClient.get(url);
   }
+
+  updateInfo(billId, newBill) {
+    let url = `bill/${billId}/update-info`;
+    return axiosClient.put(url, newBill);
+  }
 }
 
 const billApi = new BillApi();
