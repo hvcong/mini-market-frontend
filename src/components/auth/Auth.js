@@ -41,6 +41,9 @@ const Auth = function () {
   }
 
   async function onSubmit() {
+    if (hideLoading) {
+      hideLoading();
+    }
     hideLoading = message.loading("Đang đăng nhập...", 0);
     let res = await userApi.logIn({
       phonenumber: username,
@@ -116,6 +119,11 @@ const Auth = function () {
                   value={password}
                   onChange={({ target }) => {
                     setPassword(target.value);
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.code == "Enter") {
+                      onSubmit();
+                    }
                   }}
                   placeholder="Mật khẩu"
                 />

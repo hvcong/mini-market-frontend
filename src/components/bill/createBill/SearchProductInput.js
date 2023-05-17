@@ -1,6 +1,12 @@
-import { SearchOutlined } from "@ant-design/icons";
 import {
+  EyeInvisibleOutlined,
+  EyeOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
+import {
+  Button,
   Empty,
+  Image,
   InputNumber,
   message,
   Select,
@@ -21,6 +27,8 @@ import { addOneProductToActiveTab } from "../../../store/slices/createBillSlice"
 import priceHeaderApi from "../../../api/priceHeaderApi";
 import { compareDMY, convertToVND } from "../../../utils";
 import BarcodeScanner from "./BarcodeScanner";
+import barcodeIcon from "../../../assets/images/barcode_icon.jpg";
+import Icon from "@ant-design/icons/lib/components/Icon";
 
 const SearchProductInput = ({ ...props }) => {
   const dispatch = useDispatch();
@@ -32,7 +40,7 @@ const SearchProductInput = ({ ...props }) => {
   const [priceSelected, setPriceSelected] = useState();
   const [maxQuantityAvailabe, setMaxQuantityAvailabe] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
-
+  const [isShowWebCam, setIsShowWebCam] = useState(false);
   const quantityRef = useRef();
   const searchInput = useRef();
 
@@ -119,11 +127,11 @@ const SearchProductInput = ({ ...props }) => {
 
   async function onScanned(barcode) {
     let res = await productApi.getOneByBarcode(barcode);
-
     if (res.isSuccess) {
       let product = res.product;
-      console.log(product);
-      fetchData(input, setData, setFetching, list, product.id);
+      await fetchData(input, setData, setFetching, list, product.id);
+    } else {
+      message.warning("Không tìm thấy sản phẩm!");
     }
     searchInput.current.focus();
   }
@@ -135,9 +143,11 @@ const SearchProductInput = ({ ...props }) => {
         justifyItems: "center",
       }}
     >
+      {/* ant-select-dropdown */}
       <Select
         ref={searchInput}
         showSearch
+        menuPortalTarget={document.body}
         value={input}
         placeholder={"Thêm sản phẩm vào hóa đơn"}
         style={props.style}
@@ -200,7 +210,27 @@ const SearchProductInput = ({ ...props }) => {
         }}
         min={1}
       />
-      <BarcodeScanner onScanned={onScanned} />
+      <Button
+        type="dashed"
+        style={{
+          marginLeft: 12,
+        }}
+        onClick={() => {
+          handleAddProductToBill();
+        }}
+      >
+        Thêm vào
+      </Button>
+      <div className="barcode_icon_container">
+        <img
+          className="barcode_icon_container_img"
+          src={barcodeIcon}
+          onClick={() => {
+            setIsShowWebCam(!isShowWebCam);
+          }}
+        />
+      </div>
+      <BarcodeScanner onScanned={onScanned} isShowWebCam={isShowWebCam} />
     </div>
   );
 };

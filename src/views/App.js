@@ -24,7 +24,6 @@ import StatisPromotions from "./../components/statistical/StatisPromotions";
 import StatisRetrieves from "./../components/statistical/StatisRetrieves";
 import StatisBillsCustomers from "./../components/statistical/StatisBillsCustomers";
 import StatisBillsDay from "./../components/statistical/StatisBillsDay";
-import BarcodeScanner from "../components/bill/createBill/BarcodeScanner";
 import { useEffect, useRef } from "react";
 
 function App() {

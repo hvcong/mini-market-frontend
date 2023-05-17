@@ -603,7 +603,10 @@
 }
 
 .ant-select-dropdown.css-dev-only-do-not-override-16u169c {
-  z-index: 100000 !important;
+  z-index: 200000 !important;
+}
+.ant-select-dropdown.css-dev-only-do-not-override-r0b53p {
+  z-index: 200000 !important;
 }
 
 // bill cu
@@ -703,7 +706,44 @@
   position: absolute;
   top: 32px;
   right: 73px;
+  // z-index: 200000000;
+  z-index: -1;
+  opacity: 0;
+}
+
+.full_screen_active {
+  .webcamera {
+    top: -13px;
+    right: 386px;
+  }
+}
+
+.webcamera {
+  position: absolute;
+  top: 32px;
+  width: 100px;
+  height: 100px;
+  right: 240px;
   z-index: 200000000;
-  // z-index: 0;
-  // opacity: 0;
+}
+
+.barcode_icon_container {
+  width: 32px;
+  height: 32px;
+  position: relative;
+  margin-left: 12px;
+}
+.eyes_icon {
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  width: 16px;
+  height: 16px;
+  color: red;
+}
+.barcode_icon_container_img {
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  z-index: 10;
 }
