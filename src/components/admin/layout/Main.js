@@ -28,7 +28,7 @@ const Main = () => {
   );
 
   useEffect(() => {
-    console.log(isLogged, account, refresh);
+    //console.log(isLogged, account, refresh);
     if (isLogged && account && refresh) {
       loadAccountLoged(account.id);
     }

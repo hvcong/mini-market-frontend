@@ -66,7 +66,7 @@ const ListProduct = () => {
   async function loadPromotionLinesActiveCanUsed() {
     let res = await promotionApi.getAllOnActive();
     let listLinePromotions = [];
-    console.log(res);
+    //console.log(res);
 
     if (res.isSuccess) {
       let promotions = res.promotions || [];
@@ -411,7 +411,7 @@ const ListProduct = () => {
 
     // first row for calculate
     _tableData.unshift({ isFirstRow: true, isRowNotData: true });
-    console.log(_tableData);
+    //console.log(_tableData);
     _tableData = _tableData.filter((rowData) => {
       if (rowData.quantity == 0 && rowData.isPromotion) {
         return rowData.quantity > 0;
@@ -463,7 +463,7 @@ const ListProduct = () => {
           }
 
           if (rowData.isSecondRow) {
-            console.log(rowData);
+            //console.log(rowData);
             return rowData.MPused.title;
           }
         },

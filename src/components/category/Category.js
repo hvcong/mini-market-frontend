@@ -66,7 +66,7 @@ const Category = ({}) => {
 
   const searchInput = useRef(null);
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
-    console.log("here", selectedKeys, confirm, dataIndex);
+    //console.log("here", selectedKeys, confirm, dataIndex);
     confirm();
     setSearchText(selectedKeys[0]);
     setSearchedColumn(dataIndex);

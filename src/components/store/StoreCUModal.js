@@ -365,7 +365,7 @@ const StoreCUModal = () => {
         note: formState.note,
         inputDetails,
       };
-      console.log(formData);
+      //console.log(formData);
       res = await storeApi.addOneInputTicket(formData);
       if (res.isSuccess) {
         message.info("Nhập kho thành công");

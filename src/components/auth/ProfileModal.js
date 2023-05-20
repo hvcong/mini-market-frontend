@@ -33,7 +33,7 @@ const ProfileModal = () => {
     if (res.isSuccess) {
       setEmployee(res.employee);
 
-      console.log(res);
+      //console.log(res);
     } else {
       message.error("Có lỗi xảy ra, vui lòng thử lại");
     }

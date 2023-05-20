@@ -37,7 +37,7 @@ import HighlightedText from "../HighlightedText";
 
 const StatisBillsDay = () => {
   const { data, refresh } = useSelector((state) => state.statis.allBillsDay);
-  console.log(data);
+  //console.log(data);
 
   const [dataAfterFilted, setDataAfterFilted] = useState([]);
   const dispatch = useDispatch();

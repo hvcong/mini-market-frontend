@@ -165,7 +165,7 @@ const Order = ({}) => {
 
   useEffect(() => {
     if (refresh) {
-      console.log("refresh");
+      //console.log("refresh");
       getOrders(pageState.page, pageState.limit);
     }
 
@@ -181,7 +181,6 @@ const Order = ({}) => {
   }, []);
 
   async function getOrders(page, limit) {
-    hideLoading = message.loading("Tải dữ liệu hóa đơn...", 0);
     let res = await billApi.getLimitOrders(page, limit);
 
     if (res.isSuccess) {
@@ -194,7 +193,6 @@ const Order = ({}) => {
         })
       );
     }
-    hideLoading();
   }
 
   // pagination handle

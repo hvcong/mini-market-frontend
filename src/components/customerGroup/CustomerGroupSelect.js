@@ -14,7 +14,7 @@ const CustomerGroupSelect = ({ ...props }) => {
 
   async function getCustomerTypes() {
     let res = await userApi.getAllCustomerType();
-    console.log(res);
+    //console.log(res);
     if (res.isSuccess) {
       setListType(res.typeCustomers);
     }

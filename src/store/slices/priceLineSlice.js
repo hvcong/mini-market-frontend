@@ -21,7 +21,7 @@ export const priceLineSlice = createSlice({
       state.priceLines.unshift(action.payload);
     },
     removePriceLineByProductId: (state, action) => {
-      console.log(action.payload);
+      //console.log(action.payload);
       state.priceLines = state.priceLines.filter((item) => {
         return item.ProductUnitType.Product.id != action.payload;
       });

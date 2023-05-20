@@ -146,7 +146,7 @@ const CustomerCUModal = () => {
       let res = {};
 
       if (type == "create") {
-        console.log(id);
+        //console.log(id);
         let formData = {
           id,
           firstName,

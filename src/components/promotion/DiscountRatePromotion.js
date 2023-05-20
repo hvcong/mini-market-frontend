@@ -44,7 +44,7 @@ const DiscountRatePromotion = ({
                 disabled={disabledInput("productId")}
                 value={formState.productId}
                 onChange={(value) => {
-                  console.log(value);
+                  //console.log(value);
                   setFormState({
                     ...formState,
                     productId: value,

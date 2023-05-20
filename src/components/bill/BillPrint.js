@@ -219,7 +219,7 @@ const BillPrint = () => {
         // DRP
         if (isSuccess && type == "DRP") {
           let proDRP = result.DiscountRateProduct;
-          console.log(proDRP);
+          //console.log(proDRP);
 
           _dataTable = _dataTable.map((row) => {
             if (row.put && !row.PPused) {

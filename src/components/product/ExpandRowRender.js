@@ -15,10 +15,10 @@ import { render } from "@testing-library/react";
 
 const ExpandRowRender = ({ rowData, modalState, setModalState }) => {
   const onChange = (key) => {
-    console.log(key);
+    //console.log(key);
   };
 
-  console.log(rowData);
+  //console.log(rowData);
   const [imageIndexActive, setImageIndexActive] = useState(0);
 
   const items = [
@@ -194,7 +194,7 @@ const ExpandRowRender = ({ rowData, modalState, setModalState }) => {
 
     // pagination handle
     function onChangePageNumber(pageNumber, pageSize) {
-      console.log(pageNumber, ",", pageSize);
+      //console.log(pageNumber, ",", pageSize);
     }
 
     return (

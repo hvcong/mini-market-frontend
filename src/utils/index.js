@@ -176,7 +176,7 @@ export function formatDateJsToYMD(date) {
 
     return [year, month, day].join("-");
   } else {
-    console.log("date wrong");
+    //console.log("date wrong");
   }
 }
 

@@ -115,7 +115,7 @@ const Sidenav = ({ isAdmin }) => {
           height: "90%",
         }}
         onSelect={(item) => {
-          console.log(item);
+          //console.log(item);
         }}
       />
     </div>

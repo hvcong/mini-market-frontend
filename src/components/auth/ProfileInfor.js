@@ -49,7 +49,7 @@ const ProfileInfor = ({ employee }) => {
   const [errMessage, setErrMessage] = useState(initErrMessage);
 
   useEffect(() => {
-    console.log("refresh");
+    //console.log("refresh");
     if (employee) {
       let newFormState = {
         name: employee.name,

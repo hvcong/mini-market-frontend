@@ -15,7 +15,7 @@ import { render } from "@testing-library/react";
 
 const ExpandRowRender = ({ rowData, setIsShowDetailModal }) => {
   const onChange = (key) => {
-    console.log(key);
+    //console.log(key);
   };
 
   const items = [
@@ -128,7 +128,7 @@ const ExpandRowRender = ({ rowData, setIsShowDetailModal }) => {
 
     // pagination handle
     function onChangePageNumber(pageNumber, pageSize) {
-      console.log(pageNumber, ",", pageSize);
+      //console.log(pageNumber, ",", pageSize);
     }
 
     return (

@@ -243,7 +243,7 @@ const Price = ({}) => {
             compareDMY(start1, start2) >= 0 && compareDMY(start1, end2) <= 0;
           let is3 =
             compareDMY(start1, start2) <= 0 && compareDMY(end2, end1) <= 0;
-          console.log(is1, is2, is3);
+          //console.log(is1, is2, is3);
 
           if (is1 || is2 || is3) {
             // loop through each line in a header

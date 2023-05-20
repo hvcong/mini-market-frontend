@@ -39,7 +39,7 @@ const CustomerGroup = ({}) => {
   const { customerTypes, refresh, count } = useSelector(
     (state) => state.customerType
   );
-  console.log(customerTypes);
+  //console.log(customerTypes);
   const dispatch = useDispatch();
 
   const [modalState, setModalState] = useState({

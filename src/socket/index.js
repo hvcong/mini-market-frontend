@@ -10,6 +10,6 @@ export default function connectSocketIo() {
 
 function handleListentSocket(socket, io) {
   socket.on("connect", () => {
-    console.log(socket.id); // "G5p5..."
+    //console.log(socket.id); // "G5p5..."
   });
 }

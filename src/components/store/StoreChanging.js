@@ -44,7 +44,7 @@ const StoreChanging = ({}) => {
     (state) => state.storeTran
   );
   const { isAdmin } = useSelector((state) => state.user);
-  console.log(storeTrans);
+  //console.log(storeTrans);
   const dispatch = useDispatch();
 
   const [modalState, setModalState] = useState({

@@ -1,9 +1,9 @@
 import { Select } from "antd";
 const onChange = (value) => {
-  console.log(`selected ${value}`);
+  //console.log(`selected ${value}`);
 };
 const onSearch = (value) => {
-  console.log("search:", value);
+  //console.log("search:", value);
 };
 
 const EmployeeSelect = () => {

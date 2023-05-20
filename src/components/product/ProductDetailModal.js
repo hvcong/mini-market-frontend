@@ -183,7 +183,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
             };
           }),
         };
-        console.log(formData);
+        //console.log(formData);
         res = await productApi.updateOne(formData);
         dispatch(setRefresh(true));
       }
@@ -233,7 +233,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
     }
 
     if (!name) {
-      console.log(name);
+      //console.log(name);
       _errMess.name = "Không được bỏ trống!";
       isCheck = false;
     } else {
@@ -277,7 +277,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
       }
     });
 
-    console.log(barcode, type);
+    //console.log(barcode, type);
     // validate with database
     if (type == "create") {
       if (id) {
@@ -291,9 +291,9 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
       }
 
       if (barcode) {
-        console.log(barcode);
+        //console.log(barcode);
         let res = await productApi.getOneByBarcode(barcode);
-        console.log(res);
+        //console.log(res);
         if (res.isSuccess) {
           _errMess.barcode = "Mã vạnh đã trùng với sản phẩm khác!";
           isCheck = false;
@@ -302,7 +302,7 @@ const ProductDetailModal = ({ modalState, setModalState }) => {
     } else {
       if (barcode) {
         let res = await productApi.getOneByBarcode(barcode);
-        console.log(res);
+        //console.log(res);
         if (res.isSuccess) {
           let product = res.product;
           if (product.id != id) {

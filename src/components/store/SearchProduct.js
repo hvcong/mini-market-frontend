@@ -58,7 +58,7 @@ const SearchProduct = ({ formState, ...props }) => {
 };
 
 async function fetchData(input, setData, setFetching) {
-  console.log(input);
+  //console.log(input);
 }
 
 export default SearchProduct;

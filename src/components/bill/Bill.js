@@ -236,7 +236,7 @@ const Bill = ({}) => {
                 open={rowData.id == receiveOpenId}
                 setOpen={(id) => {
                   setReceiveOpenId(id);
-                  console.log(id);
+                  //console.log(id);
                 }}
                 billId={rowData.id}
                 size="small"

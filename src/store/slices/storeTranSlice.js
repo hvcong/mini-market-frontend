@@ -11,7 +11,7 @@ export const storeTranSlice = createSlice({
   initialState: initState,
   reducers: {
     setStoreTrans: (state, action) => {
-      console.log(action.payload);
+      //console.log(action.payload);
       state.storeTrans = action.payload.rows;
       state.count = action.payload.count;
       state.refresh = false;

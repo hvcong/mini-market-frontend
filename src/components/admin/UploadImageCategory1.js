@@ -76,7 +76,7 @@ const UploadImageCategory1 = () => {
     }
     return false;
   }
-  console.log(fileList.length);
+  //console.log(fileList.length);
 
   function onRemove(file) {
     const index = fileList.indexOf(file);

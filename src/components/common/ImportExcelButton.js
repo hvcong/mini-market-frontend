@@ -12,7 +12,7 @@ import storeApi from "../../api/storeApi";
 import productApi from "../../api/productApi";
 import fileaaa from "../../assets/files/reportFile.xlsx";
 import imageApi from "../../api/imageApi";
-console.log("file", fileaaa);
+//console.log("file", fileaaa);
 
 const ImportExcelButton = ({
   disabled,
@@ -148,7 +148,7 @@ const ImportExcelButton = ({
       headerRow.getCell(2).value = "unitTypeId";
       headerRow.getCell(3).value = "quantity";
       headerRow.getCell(4).value = "Lỗi";
-      console.log(jsonData);
+      //console.log(jsonData);
 
       for (let i = 0; i < jsonData.length; i++) {
         let count = 0;

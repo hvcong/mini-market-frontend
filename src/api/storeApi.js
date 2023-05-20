@@ -19,7 +19,7 @@ class StoreApi {
 
   getOneInputById(id) {
     let url = `input/one?id=${id}`;
-    console.log(url);
+    //console.log(url);
     return axiosClient.get(url);
   }
 

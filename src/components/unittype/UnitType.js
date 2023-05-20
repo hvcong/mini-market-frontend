@@ -102,7 +102,7 @@ const UnitType = ({}) => {
   async function getUnitTypes(page, limit) {
     let res = await unitTypeApi.getMany(page, limit);
     if (res.isSuccess) {
-      console.log(res);
+      //console.log(res);
       dispatch(setUnitTypes(res.unitTypes));
     }
   }

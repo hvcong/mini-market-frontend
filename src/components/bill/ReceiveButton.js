@@ -22,7 +22,7 @@ const ReceiveButton = ({
   //   return;
   // }
   const showPopconfirm = () => {
-    console.log(billId);
+    //console.log(billId);
     setOpen(billId);
   };
   const handleOk = async () => {

@@ -68,7 +68,7 @@ export const modalSlice = createSlice({
   initialState: initState,
   reducers: {
     setOpen: (state, action) => {
-      console.log(action);
+      //console.log(action);
       state.modals[action.payload.name] = action.payload.modalState;
     },
     setRefreshModal: (state, action) => {

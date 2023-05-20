@@ -483,7 +483,7 @@ const PromotionLineModal = () => {
           } else {
             await promotionApi.deleteOneDRP(id);
             res = await promotionApi.addOneDRP(formData);
-            console.log(res);
+            //console.log(res);
           }
         }
       }
@@ -581,7 +581,7 @@ const PromotionLineModal = () => {
 
               try {
                 res = await promotionApi.addOneV(newVoucherFormData);
-                console.log("create voucher:", res.isSuccess);
+                //console.log("create voucher:", res.isSuccess);
               } catch (error) {
                 message.error("Có lỗi xảy ra, vui lòng thử lại");
               }
@@ -600,14 +600,14 @@ const PromotionLineModal = () => {
               endDate: formState.endDate,
               state: formState.state,
             };
-            console.log(groupVoucher);
+            //console.log(groupVoucher);
 
             try {
               res = await promotionApi.updateByGroup(
                 groupVoucher,
                 newVoucherFormData
               );
-              console.log("update voucher:", res.isSuccess);
+              //console.log("update voucher:", res.isSuccess);
             } catch (error) {
               message.error("Có lỗi xảy ra, vui lòng thử lại");
             }
@@ -781,7 +781,7 @@ const PromotionLineModal = () => {
         ..._lvErrMess,
         ...lvErrMessage,
       };
-      console.log(_lvErrMess);
+      //console.log(_lvErrMess);
       let { V } = formState;
       if (V && formState.typePromotionId == "V") {
         //check list voucher
@@ -875,7 +875,7 @@ const PromotionLineModal = () => {
 
       setErrMessage(_errMess);
       setLvErrMessage(_lvErrMess);
-      console.log(isCheck);
+      //console.log(isCheck);
       return isCheck;
     }
   }
@@ -894,7 +894,7 @@ const PromotionLineModal = () => {
 
   function disabledDate() {
     if (minMaxTime) {
-      console.log(minMaxTime);
+      //console.log(minMaxTime);
       let min = new Date(minMaxTime.min);
       let max = new Date(minMaxTime.max);
       let now = new Date();
@@ -945,7 +945,7 @@ const PromotionLineModal = () => {
   }
 
   function disabledInput(name) {
-    console.log(modalState.type);
+    //console.log(modalState.type);
     if (
       modalState.type == "update" &&
       formState.startDate &&

@@ -183,7 +183,7 @@ class HandleAfter {
         };
       }),
     });
-    console.log(storeTrans);
+    //console.log(storeTrans);
 
     // cộng lại số lượng đã trừ trước khi tạo bill
 

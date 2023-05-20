@@ -113,7 +113,7 @@ class PromotionApi {
     // let url = `voucher/getId?id=${code}`;
     // return axiosClient.get(url);
     let url = `voucher/getByCode?bycode=${code}`;
-    console.log(url);
+    //console.log(url);
     return axiosClient.get(url);
   }
 

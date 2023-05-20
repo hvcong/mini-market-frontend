@@ -25,7 +25,7 @@ const VoucherEnter = ({ voucherUsed, customer, discountByVoucher }) => {
     setErrMess("");
     let res = await promotionApi.getOneVByCode(input);
     if (res.isSuccess) {
-      console.log(res);
+      //console.log(res);
       let voucher = res.voucher;
 
       let headerState = voucher.PromotionHeader.state;

@@ -24,7 +24,7 @@ let initDataTable = [
 ];
 
 const BillLineTable = ({ BillDetails = [], listKM = [], bill = {} }) => {
-  console.log(listKM);
+  //console.log(listKM);
   let hideLoading = null;
   const dispatch = useDispatch();
   const [tableData, setTableData] = useState(initDataTable);
@@ -124,7 +124,7 @@ const BillLineTable = ({ BillDetails = [], listKM = [], bill = {} }) => {
           }
         });
       } catch (ex) {
-        console.log("data err");
+        //console.log("data err");
       }
       setTableData(_dataTable);
     }
@@ -257,7 +257,7 @@ const BillLineTable = ({ BillDetails = [], listKM = [], bill = {} }) => {
         render: (_, rowData) => {
           if (rowData) {
             if (rowData.isPromotion) {
-              console.log(rowData.ProductPromotion);
+              //console.log(rowData.ProductPromotion);
               return (
                 <Tag
                   color="green"

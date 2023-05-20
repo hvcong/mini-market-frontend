@@ -359,7 +359,7 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
       try {
         value = new Date(antdToYmd(val));
       } catch (ex) {
-        console.log("exception");
+        //console.log("exception");
       }
       if (value) {
         if (modalState.type == "create") {

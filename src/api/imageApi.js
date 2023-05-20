@@ -2,7 +2,7 @@ import axiosClient from "./axiosClient";
 
 class ImageApi {
   uploadOne(file) {
-    console.log(file);
+    //console.log(file);
   }
 
   getReportFile() {

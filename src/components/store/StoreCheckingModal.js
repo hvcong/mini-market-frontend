@@ -487,7 +487,7 @@ const StoreCheckingModal = () => {
           };
 
           hideLoading = message.loading("Đang tạo mới...", 0);
-          console.log(formData);
+          //console.log(formData);
           res = await storeApi.addTiket(formData);
 
           if (res.isSuccess) {
@@ -499,7 +499,7 @@ const StoreCheckingModal = () => {
             closeModal();
           }
         } catch (ex) {
-          console.log("Có lỗi xảy ra, vui lòng thử lại!");
+          //console.log("Có lỗi xảy ra, vui lòng thử lại!");
         }
       }
 
@@ -765,7 +765,7 @@ const StoreCheckingModal = () => {
                           templateName="storeChecking"
                           oldData={dataTable
                             .filter((item) => {
-                              console.log(item);
+                              //console.log(item);
                               return item.product && item.utSelectedId;
                             })
                             .map((item) => {

@@ -111,7 +111,7 @@ export const createBillState = createSlice({
     removeOneProductLine: (state, action) => {
       // id of priceline
       let list = state.listState[state.tabState.activeKey];
-      console.log(action.payload);
+      //console.log(action.payload);
       list = list.filter((item) => item.id != action.payload);
       state.listState[state.tabState.activeKey] = list;
     },
@@ -119,7 +119,7 @@ export const createBillState = createSlice({
       state.listState[state.tabState.activeKey] = [];
     },
     onChangeCustomerPhone: (state, action) => {
-      console.log("phone:", action.payload);
+      //console.log("phone:", action.payload);
       let _tabItems = state.tabState.tabItems;
       let activeKey = state.tabState.activeKey;
       _tabItems = _tabItems.map((item) => {

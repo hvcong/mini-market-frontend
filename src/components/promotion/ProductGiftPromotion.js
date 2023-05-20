@@ -61,7 +61,7 @@ const ProductGiftPromotion = ({
                 value={formState.productId1}
                 disabled={disabledInput("productId")}
                 onChange={(value) => {
-                  console.log(value);
+                  //console.log(value);
                   setFormState({
                     ...formState,
                     productId1: value,
@@ -145,7 +145,7 @@ const ProductGiftPromotion = ({
                 disabled={disabledInput("productId")}
                 value={formState.productId2}
                 onChange={(value) => {
-                  console.log(value);
+                  //console.log(value);
                   setFormState({
                     ...formState,
                     productId2: value,

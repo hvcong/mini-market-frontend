@@ -81,7 +81,7 @@ const ForgotPassword = ({ setIsForgot }) => {
           );
           setTimeout(() => {
             hideLoading();
-            console.log(res.employee);
+            //console.log(res.employee);
             dispatch(
               employeeLoginOke({
                 ...res.employee,

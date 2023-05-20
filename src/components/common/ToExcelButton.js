@@ -10,10 +10,10 @@
 //   name: "file",
 //   multiple: true,
 //   onChange(info) {
-//     console.log(info);
+//     //console.log(info);
 //   },
 //   onDrop(e) {
-//     console.log("Dropped files", e.dataTransfer.files);
+//     //console.log("Dropped files", e.dataTransfer.files);
 //   },
 // };
 
@@ -94,11 +94,11 @@ const ToExcelButton = ({ nameTemplate, data }) => {
   //     const data = await file.arrayBuffer();
 
   //     const workbook = XLSX.read(data);
-  //     console.log(workbook);
+  //     //console.log(workbook);
   //     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 
   //     const jsonData = XLSX.utils.sheet_to_json(worksheet);
-  //     console.log(jsonData);
+  //     //console.log(jsonData);
   //   }
   return (
     // <Button

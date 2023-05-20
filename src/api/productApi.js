@@ -51,7 +51,7 @@ class ProductApi {
 
   getOneByBarcode(barcode) {
     let url = `product/getOneByBarcode?barCode=${barcode}`;
-    console.log(url);
+    //console.log(url);
     return axiosClient.post(url);
   }
 }

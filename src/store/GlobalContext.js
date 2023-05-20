@@ -45,7 +45,7 @@ function GlobalContextProvider({ children }) {
 
   async function emitUpdateOrder() {
     if (socket.current) {
-      console.log("emit to server");
+      //console.log("emit to server");
       socket.current.emit("have_new_order");
     }
   }

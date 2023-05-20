@@ -381,7 +381,7 @@ const BillCUModal = () => {
                   <Button
                     type="primary"
                     onClick={() => {
-                      console.log(formState.id);
+                      //console.log(formState.id);
                       dispatch(
                         setOpen({
                           name: "BillPrintModal",

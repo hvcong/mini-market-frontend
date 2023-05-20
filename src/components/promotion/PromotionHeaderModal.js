@@ -371,7 +371,7 @@ const PromotionHeaderModal = ({
       try {
         value = new Date(antdToYmd(val));
       } catch (ex) {
-        console.log("exception");
+        //console.log("exception");
       }
       if (value) {
         if (modalState.type == "create") {
@@ -587,7 +587,7 @@ const PromotionHeaderModal = ({
                         value={customerTypeIds}
                         mode="multiple"
                         onChange={(value) => {
-                          console.log(value);
+                          //console.log(value);
                           setFormState({
                             ...formState,
                             customerTypeIds: value,

@@ -108,7 +108,7 @@ const ReceiveBill = ({}) => {
     {
       title: "Tên khách hàng",
       render: (_, rowData) => {
-        console.log(rowData.Bill.Customer);
+        //console.log(rowData.Bill.Customer);
         let firstName =
           (rowData.Bill.Customer.firstName &&
             rowData.Bill.Customer.firstName + " ") ||
@@ -117,7 +117,7 @@ const ReceiveBill = ({}) => {
           rowData.Bill.Customer.lastName &&
           rowData.Bill.Customer.lastName + " " + " ";
         let name = firstName || "" + lastName || "";
-        console.log(firstName, lastName);
+        //console.log(firstName, lastName);
 
         if (name) {
           name = name.trim();
@@ -172,12 +172,10 @@ const ReceiveBill = ({}) => {
   }, []);
 
   async function getBills(page, limit) {
-    hideLoading = message.loading("Tải dữ liệu hóa đơn...", 0);
     let res = await billApi.getLimitReceives(page, limit);
     if (res.isSuccess) {
       dispatch(setReceiveBills(res.retrieves));
     }
-    hideLoading();
   }
 
   // pagination handle
