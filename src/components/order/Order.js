@@ -44,6 +44,7 @@ import { setBills, setRefreshBills } from "../../store/slices/billSlice";
 import { setOpen } from "../../store/slices/modalSlice";
 import storeApi from "../../api/storeApi";
 import CancelOrderButton from "../common/CancelOrderButton";
+import { useGlobalContext } from "../../store/GlobalContext";
 
 const { Text } = Typography;
 
@@ -53,7 +54,7 @@ const Order = ({}) => {
   const dispatch = useDispatch();
   const { account } = useSelector((state) => state.user);
   const [billIdSelected, setBillIdSelected] = useState(null);
-
+  const { emitUpdateOrder } = useGlobalContext();
   const [pageState, setPageState] = useState({
     page: 1,
     limit: 10,
@@ -110,17 +111,7 @@ const Order = ({}) => {
           );
         },
       },
-      {
-        title: "Trạng thái",
-        dataIndex: "type",
-        render: (type) => {
-          if (type == "pending") {
-            return <Tag color="green">Đặt hàng thành công</Tag>;
-          } else {
-            return <Tag color="error">Đã hủy </Tag>;
-          }
-        },
-      },
+
       {
         title: "Tổng tiền",
         dataIndex: "cost",
@@ -232,6 +223,7 @@ const Order = ({}) => {
     let res = await billApi.updateType(billId, "success", account.id);
     if (res.isSuccess) {
       message.info("Thao tác thành công", 3);
+      emitUpdateOrder();
       dispatch(setRefreshBills());
     } else {
       message.info("Có lỗi xảy ra, vui lòng thử lại!", 3);

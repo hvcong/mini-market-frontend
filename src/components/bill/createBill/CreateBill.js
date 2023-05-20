@@ -9,10 +9,13 @@ import BillInfor from "./BillInfor";
 import { FullscreenOutlined } from "@ant-design/icons";
 import SearchProductInput from "./SearchProductInput";
 import barcodeImage from "../../../assets/images/barcode_icon.jpg";
+import { useGlobalContext } from "../../../store/GlobalContext";
 
 const CreateBill = () => {
   const { tabState, listState } = useSelector((state) => state.createBill);
   const [isFullScreen, setIsFullScreen] = useState(false);
+
+  //io
 
   return (
     <div

@@ -4,6 +4,7 @@ import { useState } from "react";
 import billApi from "./../../api/billApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setRefreshBills } from "../../store/slices/billSlice";
+import { useGlobalContext } from "../../store/GlobalContext";
 const ReceiveButton = ({
   open,
   setOpen,
@@ -15,6 +16,7 @@ const ReceiveButton = ({
   const dispatch = useDispatch();
   const { account } = useSelector((state) => state.user);
   const [input, setInput] = useState("");
+  const { emitUpdateOrder } = useGlobalContext();
   // if (!billId) {
   //   setOpen(false);
   //   return;
@@ -38,6 +40,7 @@ const ReceiveButton = ({
 
       if (res.isSuccess) {
         message.info("Thao tác thành công");
+        emitUpdateOrder();
         dispatch(setRefreshBills());
         if (handleReceiveOke) {
           handleReceiveOke();

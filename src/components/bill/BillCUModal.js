@@ -35,6 +35,7 @@ import { setOpen } from "../../store/slices/modalSlice";
 import { convertToVND, handleAfter } from "../../utils";
 import { setRefreshBills } from "../../store/slices/billSlice";
 import CancelOrderButton from "../common/CancelOrderButton";
+import { useGlobalContext } from "../../store/GlobalContext";
 const dateFormat = "YYYY-MM-DD";
 
 const initFormState = {
@@ -57,6 +58,7 @@ const BillCUModal = () => {
   const [listKM, setListKM] = useState([]);
   const [MPused, setMPused] = useState(null);
   const [billIdSelected, setBillIdSelected] = useState(null);
+  const { emitUpdateOrder } = useGlobalContext();
 
   let type = formState.type;
 
@@ -158,7 +160,7 @@ const BillCUModal = () => {
     if (res.isSuccess) {
       message.info("Thao tác thành công", 3);
       closeModal();
-
+      emitUpdateOrder();
       dispatch(setRefreshBills());
     } else {
       message.info("Có lỗi xảy ra, vui lòng thử lại!", 3);

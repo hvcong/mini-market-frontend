@@ -8,6 +8,7 @@ const initState = {
   isLogged: false,
   refresh: false,
   isAdmin: false,
+  socket: null,
 };
 
 export const userSlice = createSlice({
@@ -29,8 +30,12 @@ export const userSlice = createSlice({
     setRefreshUser: (state, action) => {
       state.refresh = true;
     },
+    setSocket: (state, action) => {
+      state.socket = action.payload;
+    },
   },
 });
 
-export const { employeeLoginOke, logOut, setRefreshUser } = userSlice.actions;
+export const { employeeLoginOke, logOut, setRefreshUser, setSocket } =
+  userSlice.actions;
 export default userSlice.reducer;

@@ -23,7 +23,7 @@ const TabsCreateBill = () => {
   const onEdit = (targetKey, action) => {
     if (action === "add") {
       let _newTab = {
-        label: "Đơn hàng tạm",
+        label: "Phiếu tạm",
         children: "abd",
         key: uid(),
       };

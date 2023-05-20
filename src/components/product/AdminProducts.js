@@ -34,6 +34,7 @@ import DropSelectColum from "./DropSelectColum";
 import ProductDetailModal from "./ProductDetailModal";
 import StoreTransationDetailModal from "./../StoreTransationDetailModal";
 import HighlightedText from "../HighlightedText";
+import { useGlobalContext } from "../../store/GlobalContext";
 
 const { Text } = Typography;
 
@@ -50,6 +51,8 @@ const AdminProducts = ({}) => {
     type: "",
     rowSelected: null,
   });
+
+  const { socket } = useGlobalContext();
 
   let data = products;
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import billApi from "./../../api/billApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setRefreshBills } from "../../store/slices/billSlice";
+import { useGlobalContext } from "../../store/GlobalContext";
 const CancelOrderButton = ({
   open,
   setOpen,
@@ -15,6 +16,7 @@ const CancelOrderButton = ({
   const dispatch = useDispatch();
   const { account } = useSelector((state) => state.user);
   const [input, setInput] = useState("");
+  const { emitUpdateOrder } = useGlobalContext();
   // if (!billId) {
   //   setOpen(false);
   //   return;
@@ -53,7 +55,7 @@ const CancelOrderButton = ({
       await billApi.updateInfo(billId, {
         employeeId: account.id,
       });
-
+      emitUpdateOrder();
       message.info("Thao tác thành công", 3);
       dispatch(setRefreshBills());
     } else {

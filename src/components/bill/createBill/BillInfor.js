@@ -27,6 +27,7 @@ import BillInforTop from "./BillInforTop";
 import BillInforTotal from "./BillInforTotal";
 import BillPrint from "../BillPrint";
 import productApi from "../../../api/productApi";
+import { useGlobalContext } from "../../../store/GlobalContext";
 
 const BillInfor = ({
   listPromotionLinesOnActive,
@@ -40,6 +41,7 @@ const BillInfor = ({
   // sẽ lưu khuyến mãi MP mà bill áp dụng
   const { activeKey } = useSelector((state) => state.createBill.tabState);
   const { tabItems = [] } = useSelector((state) => state.createBill.tabState);
+  const { emitUpdateOrder } = useGlobalContext();
 
   let voucherUsed = null;
   tabItems.map((item) => {
@@ -147,6 +149,7 @@ const BillInfor = ({
           discountMoneyByMoneyPromotion,
           amountMoney.discountByVoucher
         );
+        emitUpdateOrder();
         dispatch(
           setOpen({
             name: "BillPrintModal",
@@ -248,7 +251,7 @@ const BillInfor = ({
           onClick={onSubmit}
           disabled={tableData.length <= 1}
         >
-          THANH TOÁN (F5)
+          THANH TOÁN
         </Button>
       </div>
       <BillPrint />

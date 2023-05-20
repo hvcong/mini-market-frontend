@@ -5,7 +5,7 @@ const initState = {
     activeKey: "1",
     tabItems: [
       {
-        label: "Đơn hàng tạm",
+        label: "Phiếu tạm",
         key: "1",
         customerPhone: "0",
         newPhoneInput: "",

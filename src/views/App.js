@@ -25,50 +25,61 @@ import StatisRetrieves from "./../components/statistical/StatisRetrieves";
 import StatisBillsCustomers from "./../components/statistical/StatisBillsCustomers";
 import StatisBillsDay from "./../components/statistical/StatisBillsDay";
 import { useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import connectSocketIo from "../socket";
+import { useState } from "react";
+import { setSocket } from "../store/slices/userSlice";
+import GlobalContextProvider from "../store/GlobalContext";
 
 function App() {
+  const { isLogged, refresh, account, isAdmin } = useSelector(
+    (state) => state.user
+  );
+
   return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: "#018547",
-          fontSize: 13,
-        },
-      }}
-    >
-      <Routes>
-        <Route path="auth" element={<Auth />} />
+    <GlobalContextProvider>
+      <ConfigProvider
+        theme={{
+          token: {
+            colorPrimary: "#018547",
+            fontSize: 13,
+          },
+        }}
+      >
+        <Routes>
+          <Route path="auth" element={<Auth />} />
 
-        <Route path="/admin" element={<Main />}>
-          <Route path="products" element={<AdminProducts />} />
-          <Route path="category" element={<Category />} />
-          <Route path="prices" element={<Price />} />
-          <Route path="bills" element={<Bill />} />
-          <Route path="bills_receive" element={<ReceiveBill />} />
-          <Route path="customers" element={<Customer />} />
-          <Route path="promotion" element={<Promotion />} />
-          <Route path="unitType" element={<UnitType />} />
-          <Route path="store_change" element={<StoreChanging />} />
-          <Route path="store_check" element={<StoreChecking />} />
-          <Route path="store_tickets" element={<StoreEnterTicket />} />
-          <Route path="customer_group" element={<CustomerGroup />} />
-          <Route path="employee" element={<Employee />} />
-          <Route path="create_bill" element={<CreateBill />} />
-          <Route path="orders" element={<Order />} />
+          <Route path="/admin" element={<Main />}>
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="category" element={<Category />} />
+            <Route path="prices" element={<Price />} />
+            <Route path="bills" element={<Bill />} />
+            <Route path="bills_receive" element={<ReceiveBill />} />
+            <Route path="customers" element={<Customer />} />
+            <Route path="promotion" element={<Promotion />} />
+            <Route path="unitType" element={<UnitType />} />
+            <Route path="store_change" element={<StoreChanging />} />
+            <Route path="store_check" element={<StoreChecking />} />
+            <Route path="store_tickets" element={<StoreEnterTicket />} />
+            <Route path="customer_group" element={<CustomerGroup />} />
+            <Route path="employee" element={<Employee />} />
+            <Route path="create_bill" element={<CreateBill />} />
+            <Route path="orders" element={<Order />} />
 
-          <Route path="statistic/inputs" element={<StatisStoreInput />} />
-          <Route path="statistic/storage" element={<StatisStorage />} />
-          <Route path="statistic/promotions" element={<StatisPromotions />} />
-          <Route path="statistic/retrieves" element={<StatisRetrieves />} />
-          <Route
-            path="statistic/bills-customers"
-            element={<StatisBillsCustomers />}
-          />
-          <Route path="statistic/bills-days" element={<StatisBillsDay />} />
-        </Route>
-        <Route path="/" element={<Navigate to="/auth" />}></Route>
-      </Routes>
-    </ConfigProvider>
+            <Route path="statistic/inputs" element={<StatisStoreInput />} />
+            <Route path="statistic/storage" element={<StatisStorage />} />
+            <Route path="statistic/promotions" element={<StatisPromotions />} />
+            <Route path="statistic/retrieves" element={<StatisRetrieves />} />
+            <Route
+              path="statistic/bills-customers"
+              element={<StatisBillsCustomers />}
+            />
+            <Route path="statistic/bills-days" element={<StatisBillsDay />} />
+          </Route>
+          <Route path="/" element={<Navigate to="/auth" />}></Route>
+        </Routes>
+      </ConfigProvider>
+    </GlobalContextProvider>
   );
 }
 

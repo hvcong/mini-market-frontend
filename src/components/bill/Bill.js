@@ -42,11 +42,13 @@ import { setBills, setRefreshBills } from "../../store/slices/billSlice";
 import ReceiveButton from "./ReceiveButton";
 import { setOpen } from "../../store/slices/modalSlice";
 import HighlightedText from "../HighlightedText";
+import { useGlobalContext } from "../../store/GlobalContext";
 
 const { Text } = Typography;
 
 const Bill = ({}) => {
   const { bills, refresh, count } = useSelector((state) => state.bill);
+  const { emitUpdateOrder } = useGlobalContext();
 
   const [receiveOpenId, setReceiveOpenId] = useState("billId");
   let data = bills;
