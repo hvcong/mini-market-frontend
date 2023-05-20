@@ -493,7 +493,7 @@ const StatisPromotions = () => {
                   j: item.productId,
                   k: item.productName,
                   l: item.unitType,
-                  m: item.discount,
+                  m: item.discountedMoney,
                   n: item.budget,
                   o: item.used,
                   p: item.availableBudget,
