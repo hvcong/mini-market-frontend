@@ -24,6 +24,7 @@ function GlobalContextProvider({ children }) {
 
   function addListenIO() {
     socket.current.on("have_new_order", () => {
+      message.info("Vừa có đơn đặt hàng mới", 5);
       dispatch(setRefreshBills());
     });
   }
