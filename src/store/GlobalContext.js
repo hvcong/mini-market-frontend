@@ -5,6 +5,13 @@ import connectSocketIo from "../socket";
 import { useRef } from "react";
 import { setRefreshBills } from "./slices/billSlice";
 import { message } from "antd";
+import { Howl } from "howler";
+import orderAudio from "../assets/files/have_order_audio.mp3";
+
+var sound = new Howl({
+  src: [orderAudio],
+  html5: true,
+});
 
 const GlobalContext = createContext();
 
@@ -24,7 +31,8 @@ function GlobalContextProvider({ children }) {
 
   function addListenIO() {
     socket.current.on("have_new_order", () => {
-      message.info("Vừa có đơn đặt hàng mới", 5);
+      message.info("Vừa có đơn đặt hàng mới", 8);
+      sound.play();
       dispatch(setRefreshBills());
     });
   }
