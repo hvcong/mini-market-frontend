@@ -1,8 +1,8 @@
 import { Howl } from "howler";
+import qrAudioUrl from "../../../assets/files/qr_audio.mp3";
 import React, { useEffect } from "react";
 import { useRef } from "react";
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
-import qrAudioUrl from "../../../assets/files/qr_audio.mp3";
 import Webcam from "react-webcam";
 import { message } from "antd";
 

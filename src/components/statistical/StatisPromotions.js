@@ -134,7 +134,7 @@ const StatisPromotions = () => {
           {
             title: "Ngày bắt đầu",
             dataIndex: "startDate",
-            width: 160,
+            width: 120,
             render: (_, rowData) => {
               if (!rowData.isFirstRow) {
                 return sqlToDDmmYYY(_);
@@ -154,7 +154,11 @@ const StatisPromotions = () => {
         ],
       },
       {
-        title: "KM tặng SP",
+        title: (
+          <p className="header_promotion_statis_text product_promotion">
+            KM tặng SP
+          </p>
+        ),
         children: [
           {
             title: "Mã SP tặng",
@@ -163,12 +167,38 @@ const StatisPromotions = () => {
           },
           {
             title: "Tên SP tặng",
-            dataIndex: "productName",
+            dataIndex: "giftProductName",
+            width: 160,
+          },
+          {
+            title: "Đơn vị tính",
+            dataIndex: "giftUnitType",
             width: 160,
           },
           {
             title: "SL tặng",
             dataIndex: "quantityApplied",
+            width: 160,
+            align: "right",
+          },
+        ],
+      },
+
+      {
+        title: (
+          <p className="header_promotion_statis_text discount_rate">
+            Chiếu khấu trên SP
+          </p>
+        ),
+        children: [
+          {
+            title: "Mã SP",
+            dataIndex: "productId",
+            width: 160,
+          },
+          {
+            title: "Tên SP",
+            dataIndex: "productName",
             width: 160,
           },
           {
@@ -176,15 +206,9 @@ const StatisPromotions = () => {
             dataIndex: "unitType",
             width: 160,
           },
-        ],
-      },
-
-      {
-        title: "Chiếu khấu trên SP",
-        children: [
           {
             title: "Tổng tiền đã chiết khấu",
-            dataIndex: "discounted",
+            dataIndex: "discountedMoney",
             width: 160,
             align: "right",
             render: (_, rowData) => {
@@ -196,7 +220,11 @@ const StatisPromotions = () => {
         ],
       },
       {
-        title: "Chiếu khấu trên đơn hàng",
+        title: (
+          <p className="header_promotion_statis_text money_promotion">
+            Chiếu khấu trên đơn hàng
+          </p>
+        ),
         children: [
           {
             title: "Ngân sách tổng",
@@ -234,7 +262,12 @@ const StatisPromotions = () => {
         ],
       },
       {
-        title: "Phiếu giảm giá",
+        title: (
+          <p className="header_promotion_statis_text  voucher">
+            {" "}
+            Phiếu giảm giá
+          </p>
+        ),
         children: [
           {
             title: "Tổng số lượng",
@@ -259,7 +292,7 @@ const StatisPromotions = () => {
             },
           },
           {
-            title: "Số lượng còn lại",
+            title: "Số lượng chưa sử dụng",
             dataIndex: "remaining",
             width: 160,
             align: "right",
@@ -448,19 +481,26 @@ const StatisPromotions = () => {
             <ExportExcelButton
               data={dataAfterFilted.map((item) => {
                 return {
-                  index: item.index,
-                  promotionId: item.promotionId,
-                  name: item.name,
-                  startDate: sqlToDDmmYYY(item.startDate),
-                  endDate: sqlToDDmmYYY(item.endDate),
-                  giftProductId: item.giftProductId,
-                  productName: item.productName,
-                  quantityApplied: item.quantityApplied,
-                  unitType: item.unitType,
-                  discount: item.discount,
-                  budget: item.budget,
-                  discounted: item.discounted,
-                  availableBudget: item.availableBudget,
+                  a: item.index,
+                  b: item.promotionId,
+                  c: item.name,
+                  d: sqlToDDmmYYY(item.startDate),
+                  e: sqlToDDmmYYY(item.endDate),
+                  f: item.giftProductId,
+                  g: item.giftProductName,
+                  h: item.giftUnitType,
+                  i: item.quantityApplied,
+                  j: item.productId,
+                  k: item.productName,
+                  l: item.unitType,
+                  m: item.discount,
+                  n: item.budget,
+                  o: item.used,
+                  p: item.availableBudget,
+                  q: item.sumAllVoucher,
+                  r: item.voucherUsed,
+                  s: item.remaining,
+                  t: item.totalDiscount,
                 };
               })}
               nameTemplate={"StatisPromotions"}

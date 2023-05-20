@@ -285,11 +285,35 @@ async function statisPromotions({
     });
 
     // sum row
-    // let lastRow = worksheet.getRow(rowStartInd + length);
+    let lastRow = worksheet.getRow(rowStartInd + length);
 
-    // lastRow.getCell("N").value = {
-    //   formula: `SUM(N9:N${rowStartInd + length - 1})`,
-    // };
+    lastRow.getCell("I").value = {
+      formula: `SUM(I8:I${rowStartInd + length - 1})`,
+    };
+    lastRow.getCell("M").value = {
+      formula: `SUM(M8:M${rowStartInd + length - 1})`,
+    };
+    lastRow.getCell("N").value = {
+      formula: `SUM(N8:N${rowStartInd + length - 1})`,
+    };
+    lastRow.getCell("O").value = {
+      formula: `SUM(O8:O${rowStartInd + length - 1})`,
+    };
+    lastRow.getCell("P").value = {
+      formula: `SUM(P8:P${rowStartInd + length - 1})`,
+    };
+    lastRow.getCell("Q").value = {
+      formula: `SUM(Q8:Q${rowStartInd + length - 1})`,
+    };
+    lastRow.getCell("R").value = {
+      formula: `SUM(R8:R${rowStartInd + length - 1})`,
+    };
+    lastRow.getCell("S").value = {
+      formula: `SUM(S8:S${rowStartInd + length - 1})`,
+    };
+    lastRow.getCell("T").value = {
+      formula: `SUM(T8:T${rowStartInd + length - 1})`,
+    };
 
     // lastRow.getCell("M").value = {
     //   formula: `SUM(M9:M${rowStartInd + length - 1})`,

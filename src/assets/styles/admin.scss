@@ -754,3 +754,28 @@
   cursor: pointer;
   z-index: 10;
 }
+
+.ant-menu-item.ant-menu-item-only-child {
+  padding-left: 28px !important;
+}
+
+.header_promotion_statis_text {
+  background-color: green;
+  margin: 0;
+}
+.header_promotion_statis_text.discount_rate {
+  background-color: rgb(53, 133, 214);
+}
+.header_promotion_statis_text.product_promotion {
+  background-color: rgb(197, 222, 30);
+}
+.header_promotion_statis_text.money_promotion {
+  background-color: rgb(233, 93, 51);
+}
+.header_promotion_statis_text.voucher {
+  background-color: rgb(4, 216, 50);
+}
+
+.ant-table-cell {
+  // height: 32px !important;
+}
