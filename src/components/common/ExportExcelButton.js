@@ -817,7 +817,7 @@ async function storeInputExport({ data, title, inputStoreId }) {
   for (let i = 0; i < 4; i++) {
     // let currentColumnWidth = "123";
     if (i == 0) {
-      worksheet.getColumn(i + 1).width = 5;
+      worksheet.getColumn(i + 1).width = 20;
     } else {
       worksheet.getColumn(i + 1).width = 20;
     }

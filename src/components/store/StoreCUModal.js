@@ -452,6 +452,7 @@ const StoreCUModal = () => {
 
   useEffect(() => {
     if (modalState.type == "create" && modalState.visible) {
+      setDataTable(initDataTable);
       setFormState({
         ...formState,
         id: "WHT" + uid(),

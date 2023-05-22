@@ -200,12 +200,12 @@ const PromotionLineModal = () => {
     return () => {};
   }, [minMaxTime]);
 
-  useEffect(() => {
-    if (formState.V) {
-      formState.V.code = codeVocherGenarate();
-    }
-    return () => {};
-  }, [formState.typePromotionId]);
+  // useEffect(() => {
+  //   if (formState.V) {
+  //     formState.V.code = codeVocherGenarate();
+  //   }
+  //   return () => {};
+  // }, [formState.typePromotionId]);
 
   async function loadPromotionLine(id) {
     let type = "";
@@ -921,17 +921,16 @@ const PromotionLineModal = () => {
   }
 
   function closeModal() {
+    clearModal();
     setModalState({
       visible: false,
     });
-    clearModal();
   }
 
   function clearModal() {
     setErrMessage(initErrMessage);
-    initFormState.id = uid();
+
     setFormState(initFormState);
-    setListVoucherCreate(initListVoucherCreate);
     loadMinMaxTime();
   }
 
@@ -990,6 +989,17 @@ const PromotionLineModal = () => {
   }
 
   useEffect(() => {
+    if (modalState.type == "create") {
+      initFormState.id = uid();
+      setFormState(initFormState);
+
+      setListVoucherCreate([
+        {
+          isLastRow: true,
+        },
+      ]);
+    }
+
     return () => {
       if (hideLoading) {
         hideLoading();
@@ -1293,18 +1303,10 @@ const PromotionLineModal = () => {
                   <Button
                     type="primary"
                     onClick={() => {
-                      onSubmit("create");
-                    }}
-                  >
-                    Lưu & Thêm mới dòng khuyến mãi
-                  </Button>
-                  <Button
-                    type="primary"
-                    onClick={() => {
                       onSubmit("create", true);
                     }}
                   >
-                    Lưu & Đóng
+                    Lưu
                   </Button>
                 </>
               )}

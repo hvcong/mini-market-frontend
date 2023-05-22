@@ -97,7 +97,12 @@ const ImportExcelButton = ({
         newRow.getCell(1).value = productId;
         newRow.getCell(2).value = unitTypeId;
         newRow.getCell(3).value = price;
-        newRow.getCell(4).value = errMess;
+        if (errMess) {
+          newRow.getCell(4).value = errMess;
+          newRow.getCell(4).font = {
+            color: { argb: "f3000c" },
+          };
+        }
       }
 
       if (!isCheck) {
@@ -203,7 +208,12 @@ const ImportExcelButton = ({
         newRow.getCell(1).value = productId;
         newRow.getCell(2).value = unitTypeId;
         newRow.getCell(3).value = quantity;
-        newRow.getCell(4).value = errMess;
+        if (errMess) {
+          newRow.getCell(4).value = errMess;
+          newRow.getCell(4).font = {
+            color: { argb: "f3000c" },
+          };
+        }
       }
 
       if (!isCheck) {
@@ -212,6 +222,117 @@ const ImportExcelButton = ({
           saveAs(
             new Blob([buffer], { type: "application/octet-stream" }),
             `File nhập kho lỗi.xlsx`
+          );
+        });
+      } else {
+        message.info("Nhập file thành công");
+        handleInportOke(jsonData);
+      }
+    }
+
+    if (templateName == "storeChecking") {
+      const file = e.target.files[0];
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+      let isCheck = true;
+      const ExcelJSWorkbook = new ExcelJS.Workbook();
+      const newWorkSheet = ExcelJSWorkbook.addWorksheet("DSKiemKho");
+
+      const headerRow = newWorkSheet.addRow();
+
+      for (let i = 0; i < 4; i++) {
+        newWorkSheet.getColumn(i + 1).width = 30;
+      }
+
+      headerRow.getCell(1).value = "productId";
+      headerRow.getCell(2).value = "reportUnitTypeId";
+      headerRow.getCell(3).value = "quantityByReportUnitype";
+      headerRow.getCell(4).value = "quantityByBaseUnitype";
+      headerRow.getCell(5).value = "Lỗi";
+      //console.log(jsonData);
+
+      for (let i = 0; i < jsonData.length; i++) {
+        let count = 0;
+        let errMess = "";
+        let rowData = jsonData[i];
+
+        let productId = rowData.productId;
+        let reportUnitTypeId = rowData.reportUnitTypeId;
+        let quantityByReportUnitype = rowData.quantityByReportUnitype;
+        let quantityByBaseUnitype = rowData.quantityByBaseUnitype;
+
+        let res = await productApi.findOneById(productId);
+        if (!res.isSuccess) {
+          errMess += "Mã SP này không chính xác, ";
+        } else {
+          // check trùng in file
+          jsonData.map((item) => {
+            if (item.productId == productId) {
+              count++;
+            }
+          });
+          if (count > 1) {
+            errMess += "SP này đã bị trùng, ";
+          }
+          let putId = await getPUTid(productId, reportUnitTypeId);
+          if (!putId) {
+            errMess += "SP không có ĐVT này, ";
+          } else {
+            rowData.putId = putId;
+          }
+        }
+
+        // check trùng in oldData
+        let isExitInOldData = false;
+        oldData.map((item) => {
+          if (item.productId == productId) {
+            isExitInOldData = true;
+          }
+        });
+
+        if (isExitInOldData) {
+          errMess += "SP này đã thêm vào bảng trước đó, ";
+        }
+
+        if (
+          !Number.isInteger(quantityByReportUnitype) ||
+          quantityByReportUnitype < 0
+        ) {
+          errMess += "SL báo cáo phải là số nguyên và phải >= 0, ";
+        }
+
+        if (
+          !Number.isInteger(quantityByBaseUnitype) ||
+          quantityByBaseUnitype < 0
+        ) {
+          errMess += "SL cơ bản phải là số nguyên và phải >= 0, ";
+        }
+
+        if (errMess) {
+          isCheck = false;
+        }
+        let newRow = newWorkSheet.addRow();
+        newRow.getCell(1).value = productId;
+        newRow.getCell(2).value = reportUnitTypeId;
+        newRow.getCell(3).value = quantityByReportUnitype;
+        newRow.getCell(4).value = quantityByBaseUnitype;
+        if (errMess) {
+          newRow.getCell(5).value = errMess;
+          newRow.getCell(5).font = {
+            color: { argb: "f3000c" },
+          };
+        }
+      }
+
+      if (!isCheck) {
+        message.error("Dữ liệu file không hợp lệ!");
+        ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
+          saveAs(
+            new Blob([buffer], { type: "application/octet-stream" }),
+            `File kiểm kho lỗi.xlsx`
           );
         });
       } else {

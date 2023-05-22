@@ -603,7 +603,48 @@ const StoreCheckingModal = () => {
      */
   }
 
-  function handleInportOke(addList) {}
+  async function handleInportOke(addList = []) {
+    let _dataTable = [...dataTable];
+    let _errMess = { ...errMessage };
+
+    for (const item of addList) {
+      let rowId = uid();
+
+      let product;
+      let res = await productApi.findById(item.productId);
+      if (res.isSuccess) {
+        product = res.product;
+      }
+
+      let quantity1 = 0;
+      let quantity2 = 0;
+
+      product.ProductUnitTypes?.map((ut) => {
+        if (ut.UnitTypeId == item.reportUnitTypeId) {
+          quantity1 = Math.floor(
+            product.quantity / ut.UnitType.convertionQuantity
+          );
+          quantity2 =
+            product.quantity - quantity1 * ut.UnitType.convertionQuantity;
+        }
+      });
+
+      _dataTable.unshift({
+        rowId: rowId,
+        product: product,
+        utIdSelected: item.reportUnitTypeId,
+        quantity1: quantity1,
+        quantity2: quantity2,
+
+        quantity3: item.quantityByReportUnitype,
+        quantity4: item.quantityByBaseUnitype,
+      });
+
+      _errMess[rowId] = {};
+    }
+    setDataTable(_dataTable);
+    setErrMessage(_errMess);
+  }
 
   return (
     <div className="price__modal">
@@ -765,14 +806,12 @@ const StoreCheckingModal = () => {
                           templateName="storeChecking"
                           oldData={dataTable
                             .filter((item) => {
-                              //console.log(item);
-                              return item.product && item.utSelectedId;
+                              console.log(item);
+                              return item.product;
                             })
                             .map((item) => {
                               return {
                                 productId: item.product.id,
-                                quantity: item.quantity,
-                                unitTypeId: item.utSelectedId,
                               };
                             })}
                           handleInportOke={handleInportOke}
