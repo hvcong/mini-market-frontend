@@ -50,6 +50,7 @@ function App() {
           <Route path="auth" element={<Auth />} />
 
           <Route path="/admin" element={<Main />}>
+            <Route path="create_bill" element={<CreateBill />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="category" element={<Category />} />
             <Route path="prices" element={<Price />} />
@@ -63,7 +64,6 @@ function App() {
             <Route path="store_tickets" element={<StoreEnterTicket />} />
             <Route path="customer_group" element={<CustomerGroup />} />
             <Route path="employee" element={<Employee />} />
-            <Route path="create_bill" element={<CreateBill />} />
             <Route path="orders" element={<Order />} />
 
             <Route path="statistic/inputs" element={<StatisStoreInput />} />

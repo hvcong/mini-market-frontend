@@ -37,7 +37,7 @@ const Auth = function () {
     };
   }, [hideLoading]);
   if (isLogged) {
-    return <Navigate to="/admin/products" replace={true} />;
+    return <Navigate to="/admin/create_bill" replace={true} />;
   }
 
   async function onSubmit() {

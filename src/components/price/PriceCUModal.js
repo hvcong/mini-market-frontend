@@ -440,6 +440,10 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
       let end = new Date(formState.endDate);
       let now = new Date();
 
+      if (name == "id") {
+        return true;
+      }
+
       if (formState.state) {
         return true;
       }
