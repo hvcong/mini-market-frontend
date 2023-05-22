@@ -176,7 +176,7 @@ const StoreCheckingModal = () => {
         },
       },
       {
-        title: "ĐV báo cáo",
+        title: "ĐV kiểm kê",
         dataIndex: "product",
 
         render: (_, rowData) => {
@@ -209,7 +209,7 @@ const StoreCheckingModal = () => {
         },
       },
       {
-        title: "SL tồn hệ thống (ĐV báo cáo)",
+        title: "SL tồn hệ thống (ĐV kiểm kê)",
         width: 130,
         dataIndex: "quantity1",
       },
@@ -220,7 +220,7 @@ const StoreCheckingModal = () => {
         dataIndex: "quantity2",
       },
       {
-        title: "SL thực tế (ĐV báo cáo)",
+        title: "SL thực tế (ĐV kiểm kê)",
         dataIndex: "product",
         render: (_, rowData) => {
           if (!rowData.isLastRow) {

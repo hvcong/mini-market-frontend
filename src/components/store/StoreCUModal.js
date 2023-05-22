@@ -587,7 +587,7 @@ const StoreCUModal = () => {
               <div className="store_checking_modal_detail_form_left">
                 <div className="store_checking_modal_form_group">
                   <div className="store_checking_modal_form_label">
-                    Mã phiếu kiểm
+                    Mã phiếu nhập
                   </div>
                   <div className="store_checking_modal_form_input_wrap">
                     <Input
@@ -600,7 +600,7 @@ const StoreCUModal = () => {
                 </div>
                 <div className="store_checking_modal_form_group">
                   <div className="store_checking_modal_form_label">
-                    Mã nhân viên kiểm
+                    Mã nhân viên nhập
                   </div>
                   <div className="store_checking_modal_form_input_wrap">
                     <div

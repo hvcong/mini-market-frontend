@@ -309,7 +309,6 @@ const CustomerCUModal = () => {
     if (type == "update") {
       if (name == "id") return true;
       if (name == "phonenumber") return true;
-      if (name == "type") return true;
     }
   }
 
@@ -464,7 +463,7 @@ const CustomerCUModal = () => {
                         });
                       }}
                       value={typeCustomerId}
-                      // disabled={disabledInputs("type")}
+                      disabled={disabledInputs("type")}
                       status={errMessage.typeCustomerId && "error"}
                     />
                     <div className="customer_form_input_err">
