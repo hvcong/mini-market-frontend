@@ -223,6 +223,7 @@ const BillInfor = ({
   }
 
   function clearBill() {
+    setVoucherUsed(null);
     dispatch(clearOneTab());
   }
   return (
