@@ -197,6 +197,7 @@ const BillCUModal = () => {
           width: "90%",
         }}
         closeModal={() => {
+          clearModal();
           dispatch(
             setOpen({
               name: "BillCUModal",

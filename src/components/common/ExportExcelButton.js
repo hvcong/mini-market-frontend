@@ -723,11 +723,8 @@ function priceExport({ data, title }) {
 
   for (let i = 0; i < 5; i++) {
     // let currentColumnWidth = "123";
-    if (i == 0) {
-      worksheet.getColumn(i + 1).width = 5;
-    } else {
-      worksheet.getColumn(i + 1).width = 20;
-    }
+
+    worksheet.getColumn(i + 1).width = 20;
     let cell = headerRow.getCell(i + 1);
     cell.value = header[i];
   }

@@ -479,9 +479,7 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
           width: "96%",
         }}
         closeModal={() => {
-          setModalState({
-            visible: false,
-          });
+          onCloseModal();
         }}
       >
         <div>
