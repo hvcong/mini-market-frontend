@@ -80,7 +80,7 @@ const ReceiveBill = ({}) => {
       title: "Tổng tiền",
       align: "right",
       render: (_, rowData) => {
-        let cost = rowData.Bill.cost;
+        let cost = rowData.Bill?.cost;
         return convertToVND(cost);
       },
     },
@@ -94,7 +94,7 @@ const ReceiveBill = ({}) => {
     {
       title: "Tên nhân viên",
       render: (_, rowData) => {
-        return rowData.Bill.Employee?.name;
+        return rowData.Bill?.Employee?.name;
       },
     },
     {
@@ -102,20 +102,20 @@ const ReceiveBill = ({}) => {
       hidden: true,
 
       render: (_, rowData) => {
-        return <Typography.Link>{rowData.Bill.CustomerId}</Typography.Link>;
+        return <Typography.Link>{rowData.Bill?.CustomerId}</Typography.Link>;
       },
     },
     {
       title: "Tên khách hàng",
       render: (_, rowData) => {
-        //console.log(rowData.Bill.Customer);
+        //console.log(rowData.Bill?.Customer);
         let firstName =
-          (rowData.Bill.Customer.firstName &&
-            rowData.Bill.Customer.firstName + " ") ||
+          (rowData.Bill?.Customer.firstName &&
+            rowData.Bill?.Customer.firstName + " ") ||
           " ";
         let lastName =
-          rowData.Bill.Customer.lastName &&
-          rowData.Bill.Customer.lastName + " " + " ";
+          rowData.Bill?.Customer.lastName &&
+          rowData.Bill?.Customer.lastName + " " + " ";
         let name = firstName || "" + lastName || "";
         //console.log(firstName, lastName);
 
@@ -131,13 +131,13 @@ const ReceiveBill = ({}) => {
                   modalState: {
                     visible: true,
                     type: "view",
-                    idSelected: rowData.Bill.Customer.id,
+                    idSelected: rowData.Bill?.Customer.id,
                   },
                 })
               );
             }}
           >
-            {name || rowData.Bill.Customer.phonenumber}
+            {name || rowData.Bill?.Customer.phonenumber}
           </Typography.Link>
         );
       },
@@ -174,6 +174,7 @@ const ReceiveBill = ({}) => {
   async function getBills(page, limit) {
     let res = await billApi.getLimitReceives(page, limit);
     if (res.isSuccess) {
+      console.log(res.retrieves);
       dispatch(setReceiveBills(res.retrieves));
     }
   }
@@ -211,6 +212,7 @@ const ReceiveBill = ({}) => {
     );
   }
 
+  console.log(count);
   return (
     <div className="products promotion">
       <div className="table__header">
