@@ -700,14 +700,18 @@ const PromotionHeaderModal = ({
                   </Button>
                 </>
               ) : (
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    onSubmit("update", true);
-                  }}
-                >
-                  Cập nhật
-                </Button>
+                <>
+                  {modalState.type == "update" && (
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        onSubmit("update", true);
+                      }}
+                    >
+                      Cập nhật
+                    </Button>
+                  )}
+                </>
               )}
               <Button type="primary" danger onClick={closeModal}>
                 Hủy bỏ

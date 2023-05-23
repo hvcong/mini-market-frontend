@@ -50,6 +50,7 @@ const PriceLineModal = ({
   const dispatch = useDispatch();
   const [formState, setFormState] = useState(initFormState);
   const [errMessage, setErrMessage] = useState(initErrMessage);
+  const { isAdmin } = useSelector((state) => state.user);
 
   useEffect(() => {
     let { type, rowSelected, visible } = modalState;
@@ -328,14 +329,18 @@ const PriceLineModal = ({
                   </Button>
                 </>
               ) : (
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    onSubmit("update", true);
-                  }}
-                >
-                  Cập nhật
-                </Button>
+                <>
+                  {modalState.type == "update" && isAdmin && (
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        onSubmit("update", true);
+                      }}
+                    >
+                      Cập nhật
+                    </Button>
+                  )}
+                </>
               )}
               <Button type="primary" danger onClick={closeModal}>
                 Hủy bỏ

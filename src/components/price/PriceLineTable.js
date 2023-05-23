@@ -23,7 +23,6 @@ const PriceLineTable = ({
   isDisabledAddButton,
   disabledItem,
 }) => {
-  let hideLoading = null;
   const { priceLines, refresh } = useSelector((state) => state.priceLine);
   const dispatch = useDispatch();
   const [modalState, setModalState] = useState({
@@ -31,6 +30,7 @@ const PriceLineTable = ({
     type: "",
     rowSelected: null,
   });
+  const { isAdmin } = useSelector((state) => state.user);
 
   const [allColumns, setAllColumns] = useState([]);
 
@@ -141,40 +141,26 @@ const PriceLineTable = ({
   }, [refresh]);
 
   async function getAllLinesByHeaderId(headerPriceId) {
-    hideLoading = message.loading("Đang tải dữ liệu...");
     let res = await priceLineApi.getByHeaderId(headerPriceId);
     if (res.isSuccess) {
       setTimeout(() => {
-        hideLoading();
         dispatch(setPriceLines(res.listPrices));
       }, 500);
     } else {
-      hideLoading();
     }
   }
 
   async function deleteOnePriceById(id) {
-    hideLoading = message.loading("Đang xử lí...");
     let res = await priceLineApi.deleteOneById(id);
     if (res.isSuccess) {
       setTimeout(() => {
         message.info("Thao tác thành công", 3);
-        hideLoading();
         dispatch(setRefreshPriceLines());
       }, 500);
     } else {
       message.info("Có lỗi xảy ra, vui lòng thử lại!");
-      hideLoading();
     }
   }
-
-  useEffect(() => {
-    return () => {
-      if (hideLoading) {
-        hideLoading();
-      }
-    };
-  }, [modalState]);
 
   let dataToExport = priceLines.map((item) => {
     return {
@@ -200,62 +186,64 @@ const PriceLineTable = ({
           </Typography.Title>
         </div>
 
-        <div className="btn__item">
-          <Popover
-            placement="leftTop"
-            content={
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
+        {isAdmin && (
+          <div className="btn__item">
+            <Popover
+              placement="leftTop"
+              content={
                 <div
                   style={{
-                    marginBottom: 4,
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
-                  <ExportExcelButton
-                    data={dataToExport}
-                    nameTemplate={"price"}
-                    title={"Bảng giá tháng 3"}
-                  />
+                  <div
+                    style={{
+                      marginBottom: 4,
+                    }}
+                  >
+                    <ExportExcelButton
+                      data={dataToExport}
+                      nameTemplate={"price"}
+                      title={"Bảng giá tháng 3"}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      marginBottom: 4,
+                    }}
+                  >
+                    <DownLoadTemplate
+                      nameTemplate={"price"}
+                      title={"Mẫu nhập giá"}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      marginBottom: 4,
+                    }}
+                  >
+                    <ImportExcelButton
+                      disabled={isDisabledAddButton}
+                      templateName="price"
+                      priceHeaderId={headerPriceId}
+                      oldData={priceLines.map((item) => {
+                        return {
+                          productId: item.ProductUnitType.ProductId,
+                          unitTypeId: item.ProductUnitType.UnitType.id,
+                          price: item.price,
+                          putId: item.ProductUnitType.id,
+                        };
+                      })}
+                    />
+                  </div>
                 </div>
-                <div
-                  style={{
-                    marginBottom: 4,
-                  }}
-                >
-                  <DownLoadTemplate
-                    nameTemplate={"price"}
-                    title={"Mẫu nhập giá"}
-                  />
-                </div>
-                <div
-                  style={{
-                    marginBottom: 4,
-                  }}
-                >
-                  <ImportExcelButton
-                    disabled={isDisabledAddButton}
-                    templateName="price"
-                    priceHeaderId={headerPriceId}
-                    oldData={priceLines.map((item) => {
-                      return {
-                        productId: item.ProductUnitType.ProductId,
-                        unitTypeId: item.ProductUnitType.UnitType.id,
-                        price: item.price,
-                        putId: item.ProductUnitType.id,
-                      };
-                    })}
-                  />
-                </div>
-              </div>
-            }
-          >
-            <Button>Nhập / Xuất bằng file</Button>
-          </Popover>
-        </div>
+              }
+            >
+              <Button>Nhập / Xuất bằng file</Button>
+            </Popover>
+          </div>
+        )}
 
         <div className="btn__item">
           <Button

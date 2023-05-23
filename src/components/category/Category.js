@@ -62,7 +62,6 @@ const Category = ({}) => {
   // search on a column handle
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
-  let hideLoading = null;
 
   const searchInput = useRef(null);
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
@@ -212,11 +211,7 @@ const Category = ({}) => {
   useEffect(() => {
     getCates(pageState.page, pageState.limit);
 
-    return () => {
-      if (hideLoading) {
-        hideLoading();
-      }
-    };
+    return () => {};
   }, [pageState]);
 
   // handle when have some update will reload data
@@ -224,18 +219,12 @@ const Category = ({}) => {
     if (refresh) {
       getCates(pageState.page, pageState.limit);
     }
-    return () => {
-      if (hideLoading) {
-        hideLoading();
-      }
-    };
+    return () => {};
   }, [refresh]);
 
   async function getCates(page, limit) {
-    hideLoading = message.loading("Đang tải dữ liệu nhóm hàng...", 0);
     const res = await cateApi.getMany(page, limit);
     dispatch(setCates(res.cates));
-    hideLoading();
   }
 
   // expand when click row

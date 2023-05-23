@@ -199,10 +199,7 @@ const Customer = ({}) => {
           return rowData.TypeCustomer && rowData.TypeCustomer.name;
         },
       },
-      {
-        title: "Email",
-        dataIndex: "email",
-      },
+
       {
         title: "Địa chỉ",
         width: 260,

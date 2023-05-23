@@ -52,6 +52,10 @@ const CustomerGroupCuModal = ({ modalState, setModalState }) => {
         name: rowSelected.name,
       });
     }
+
+    if (type == "create") {
+      clearModal();
+    }
     return () => {};
   }, [modalState]);
 
@@ -162,7 +166,7 @@ const CustomerGroupCuModal = ({ modalState, setModalState }) => {
                         id: target.value,
                       });
                     }}
-                    disabled={modalState.type == "update"}
+                    disabled={modalState.type != "create"}
                     status={errMessage.id && "error"}
                   />
                   <div className="customer_group_form_input_err">

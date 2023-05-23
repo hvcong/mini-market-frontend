@@ -430,7 +430,7 @@ const CustomerCUModal = () => {
                     </div>
                   </div>
                 </div>
-                <div className="customer_form_group">
+                {/* <div className="customer_form_group">
                   <div className="customer_form_label">Email</div>
                   <div className="customer_form_input_wrap">
                     <Input
@@ -450,7 +450,7 @@ const CustomerCUModal = () => {
                       {errMessage.email}
                     </div>
                   </div>
-                </div>
+                </div> */}
                 <div className="customer_form_group">
                   <div className="customer_form_label">Nhóm khách hàng</div>
                   <div className="customer_form_input_wrap">

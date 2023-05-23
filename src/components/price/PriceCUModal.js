@@ -652,14 +652,18 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
                   </Button>
                 </>
               ) : (
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    onSubmit("update");
-                  }}
-                >
-                  Cập nhật
-                </Button>
+                <>
+                  {modalState.type == "update" && (
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        onSubmit("update");
+                      }}
+                    >
+                      Cập nhật
+                    </Button>
+                  )}
+                </>
               )}
               <Button type="primary" danger onClick={onCloseModal}>
                 Hủy bỏ
