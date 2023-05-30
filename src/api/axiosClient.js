@@ -1,8 +1,8 @@
 import axios from "axios";
 
 // let baseURL = "http://localhost:3000/";
-let baseURL = "https://minimarket-server.onrender.com/";
-// let baseURL = "http://13.250.27.60:3000/";
+// let baseURL = "https://minimarket-server.onrender.com/";
+let baseURL = "http://13.250.27.60:3000/";
 
 export { baseURL };
 
