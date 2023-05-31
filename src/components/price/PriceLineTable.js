@@ -22,6 +22,7 @@ const PriceLineTable = ({
   endDateHeader,
   isDisabledAddButton,
   disabledItem,
+  headerPriceTitle,
 }) => {
   const { priceLines, refresh } = useSelector((state) => state.priceLine);
   const dispatch = useDispatch();
@@ -145,7 +146,7 @@ const PriceLineTable = ({
     if (res.isSuccess) {
       setTimeout(() => {
         dispatch(setPriceLines(res.listPrices));
-      }, 500);
+      }, 100);
     } else {
     }
   }
@@ -156,7 +157,7 @@ const PriceLineTable = ({
       setTimeout(() => {
         message.info("Thao tác thành công", 3);
         dispatch(setRefreshPriceLines());
-      }, 500);
+      }, 100);
     } else {
       message.info("Có lỗi xảy ra, vui lòng thử lại!");
     }
@@ -205,7 +206,7 @@ const PriceLineTable = ({
                     <ExportExcelButton
                       data={dataToExport}
                       nameTemplate={"price"}
-                      title={"Bảng giá tháng 3"}
+                      title={headerPriceTitle}
                     />
                   </div>
                   <div

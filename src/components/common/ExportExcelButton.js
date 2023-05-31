@@ -20,6 +20,10 @@ const ExportExcelButton = ({ nameTemplate, disabled, ...props }) => {
       storeInputExport(props);
     }
 
+    if (nameTemplate == "storeChecking") {
+      storeChecking(props);
+    }
+
     if (nameTemplate == "StatisStorage") {
       statisStorage(props);
     }
@@ -696,6 +700,7 @@ async function statisBillsDay({ data, headerNameList, fromDate, toDate }) {
   });
 }
 
+// done
 function priceExport({ data, title }) {
   const ExcelJSWorkbook = new ExcelJS.Workbook();
   var worksheet = ExcelJSWorkbook.addWorksheet("DSGiaBan");
@@ -736,7 +741,7 @@ function priceExport({ data, title }) {
     },
     to: {
       row: 5,
-      column: 6,
+      column: 5,
     },
   };
 
@@ -758,6 +763,118 @@ function priceExport({ data, title }) {
   });
 }
 
+// done
+async function storeChecking({ title, inputStoreId }) {
+  let res = await storeApi.getOneTicketById(inputStoreId);
+  console.log(res);
+  if (!res.isSuccess) {
+    message.error("Có lỗi xảy, vui lòng thử lại!");
+    return;
+  }
+
+  let ticketHeader = res.ticket;
+  let data = ticketHeader.TicketDetails || [];
+
+  const ExcelJSWorkbook = new ExcelJS.Workbook();
+  var worksheet = ExcelJSWorkbook.addWorksheet("PhieuKiemKho");
+
+  worksheet.mergeCells("A2:G2");
+
+  const customCell = worksheet.getCell("A2");
+  customCell.font = {
+    name: "Times New Roman",
+    family: 4,
+    size: 20,
+    bold: true,
+  };
+  customCell.alignment = { vertical: "middle", horizontal: "center" };
+
+  customCell.value = title;
+
+  // header info
+  var newRow = worksheet.addRow();
+  newRow.getCell(1).value = "Mã phiếu kiểm";
+  newRow.getCell(1).font = { bold: true };
+  newRow.getCell(2).value = ticketHeader.id;
+
+  var newRow = worksheet.addRow();
+  newRow.getCell(1).value = "Mã nhân viên";
+  newRow.getCell(1).font = { bold: true };
+  newRow.getCell(2).value = ticketHeader.EmployeeId;
+
+  var newRow = worksheet.addRow();
+  newRow.getCell(1).value = "Thời gian kiểm";
+  newRow.getCell(1).font = { bold: true };
+  newRow.getCell(2).value = sqlToHHmmDDmmYYYY(ticketHeader.createAt);
+
+  var newRow = worksheet.addRow();
+  newRow.getCell(1).value = "Ghi chú";
+  newRow.getCell(1).font = { bold: true };
+  newRow.getCell(2).value = ticketHeader.note;
+
+  worksheet.mergeCells("B3:G3");
+  worksheet.mergeCells("B4:G4");
+  worksheet.mergeCells("B5:G5");
+  worksheet.mergeCells("B6:G6");
+
+  // table
+  let header = [
+    "Mã SP",
+    "Tên SP",
+    "Mã ĐV kiểm",
+    "SL tồn hệ thống (ĐV kiểm kê)",
+    "SL lẻ tồn hệ thống (ĐV cơ bản)",
+    "SL thực tế (ĐV kiểm kê)",
+    "SL lẻ thực tế (ĐV cơ bản)",
+  ];
+  var headerRow = worksheet.addRow();
+  var headerRow = worksheet.addRow();
+  var headerRow = worksheet.addRow();
+  headerRow.font = { bold: true };
+
+  for (let i = 0; i < 8; i++) {
+    // let currentColumnWidth = "123";
+    if (i == 0) {
+      worksheet.getColumn(i + 1).width = 20;
+    } else {
+      worksheet.getColumn(i + 1).width = 20;
+    }
+    let cell = headerRow.getCell(i + 1);
+    cell.value = header[i];
+  }
+
+  // worksheet.autoFilter = {
+  //   from: {
+  //     row: 9,
+  //     column: 1,
+  //   },
+  //   to: {
+  //     row: 9,
+  //     column: 4,
+  //   },
+  // };
+
+  data.forEach((element) => {
+    worksheet.addRow([
+      element.ProductUnitType.ProductId,
+      element.ProductUnitType.Product.name,
+      element.ProductUnitType.UnitTypeId,
+      element.reportQty,
+      element.reportQtyBase,
+      element.realReportQty,
+      element.realBaseQty,
+    ]);
+  });
+
+  ExcelJSWorkbook.xlsx.writeBuffer().then(function (buffer) {
+    saveAs(
+      new Blob([buffer], { type: "application/octet-stream" }),
+      `${title}.xlsx`
+    );
+  });
+}
+
+// done
 async function storeInputExport({ data, title, inputStoreId }) {
   let res = await storeApi.getOneInputById(inputStoreId);
   if (!res.isSuccess) {
@@ -770,7 +887,7 @@ async function storeInputExport({ data, title, inputStoreId }) {
   const ExcelJSWorkbook = new ExcelJS.Workbook();
   var worksheet = ExcelJSWorkbook.addWorksheet("DSNhapKho");
 
-  worksheet.mergeCells("A2:E2");
+  worksheet.mergeCells("A2:D2");
 
   const customCell = worksheet.getCell("A2");
   customCell.font = {
@@ -803,6 +920,11 @@ async function storeInputExport({ data, title, inputStoreId }) {
   newRow.getCell(1).value = "Ghi chú";
   newRow.getCell(1).font = { bold: true };
   newRow.getCell(2).value = ticketHeader.note;
+
+  worksheet.mergeCells("B3:D3");
+  worksheet.mergeCells("B4:D4");
+  worksheet.mergeCells("B5:D5");
+  worksheet.mergeCells("B6:D6");
 
   // table
   let header = ["Mã SP", "Tên SP", "Mã ĐVT", "Số lượng"];

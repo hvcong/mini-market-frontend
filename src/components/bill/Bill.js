@@ -48,7 +48,6 @@ const { Text } = Typography;
 
 const Bill = ({}) => {
   const { bills, refresh, count } = useSelector((state) => state.bill);
-  const { emitUpdateOrder } = useGlobalContext();
 
   const [receiveOpenId, setReceiveOpenId] = useState("billId");
   let data = bills;
@@ -339,7 +338,7 @@ const Bill = ({}) => {
           })
         );
         setIsLoading(false);
-      }, 500);
+      }, 100);
     } else {
       setIsLoading(false);
     }
@@ -375,7 +374,7 @@ const Bill = ({}) => {
         page: pageNumber,
       });
       setIsLoading(false);
-    }, 500);
+    }, 100);
   }
 
   useEffect(() => {

@@ -613,6 +613,7 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
             {modalState.type != "create" && (
               <PriceLineTable
                 headerPriceId={formState.id}
+                headerPriceTitle={formState.title}
                 startDateHeader={formState.startDate}
                 endDateHeader={formState.endDate}
                 isDisabledAddButton={disableAddNewPriceLine(

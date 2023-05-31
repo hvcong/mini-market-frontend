@@ -283,7 +283,7 @@ const Employee = ({}) => {
           })
         );
         setIsLoading(false);
-      }, 500);
+      }, 100);
     } else {
       setIsLoading(false);
     }
@@ -319,7 +319,7 @@ const Employee = ({}) => {
         page: pageNumber,
       });
       setIsLoading(false);
-    }, 500);
+    }, 100);
   }
 
   useEffect(() => {

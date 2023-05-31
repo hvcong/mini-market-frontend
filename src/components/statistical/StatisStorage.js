@@ -346,7 +346,7 @@ const StatisBillsCustomers = () => {
           })
         );
         setIsLoading(false);
-      }, 500);
+      }, 100);
     } else {
       setIsLoading(false);
     }

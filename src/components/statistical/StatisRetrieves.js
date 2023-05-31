@@ -316,7 +316,7 @@ const StatisRetrieves = () => {
           })
         );
         setIsLoading(false);
-      }, 500);
+      }, 100);
     } else {
       setIsLoading(false);
     }

@@ -313,7 +313,7 @@ const Customer = ({}) => {
           })
         );
         setIsLoading(false);
-      }, 500);
+      }, 100);
     } else {
       setIsLoading(false);
     }
@@ -349,7 +349,7 @@ const Customer = ({}) => {
         page: pageNumber,
       });
       setIsLoading(false);
-    }, 500);
+    }, 100);
   }
 
   useEffect(() => {
