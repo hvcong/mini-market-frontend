@@ -28,6 +28,7 @@ const SelectCategory = ({
   async function getAllActiveCategory() {
     let res = await cateApi.getMany();
     if (res.isSuccess) {
+      console.log(res);
       dispatch(setCates(res.cates));
     }
   }
@@ -83,10 +84,22 @@ const SelectCategory = ({
             .toLowerCase()
             .localeCompare((optionB?.label ?? "").toLowerCase())
         }
-        options={categories.map((item) => ({
-          label: item.name,
-          value: item.id,
-        }))}
+        options={categories
+          .filter((item) => {
+            if (item.id == idSelected) {
+              return true;
+            }
+
+            if (item.state) {
+              return true;
+            }
+          })
+          .map((item) => {
+            return {
+              label: item.name,
+              value: item.id,
+            };
+          })}
         status={status}
       />
       <CategoryDetailModal

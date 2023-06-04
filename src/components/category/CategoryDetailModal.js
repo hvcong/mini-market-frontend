@@ -326,7 +326,7 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                   <div className="sub_input_container">
                     <Text className="sub_input_label">Mã nhóm (c2)</Text>
                     <Text className="sub_input_label">Tên nhóm (c2)</Text>
-                    <Text className="sub_input_state">Trạng thái</Text>
+                    {/* <Text className="sub_input_state">Trạng thái</Text> */}
                   </div>
                   {listSub &&
                     listSub.map((item, index) => {
@@ -377,7 +377,7 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                               {errMessage.subCategories[index]?.name}
                             </div>
                           </div>
-                          <Switch
+                          {/* <Switch
                             className="switch"
                             checkedChildren="On"
                             unCheckedChildren="Off"
@@ -388,7 +388,7 @@ const CategoryDetailModal = ({ modalState, setModalState }) => {
                               setListSub(_lst);
                             }}
                             disabled={modalState.type == "view"}
-                          />
+                          /> */}
                           <div className="icon_delete">
                             <Button
                               size="small"
