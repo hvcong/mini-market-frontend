@@ -21,8 +21,8 @@ const Auth = function () {
 
   const dispatch = useDispatch();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("0868283915");
+  const [password, setPassword] = useState("22222222");
   const [isForgot, setIsForgot] = useState(false);
   // useEffect(() => {
   //   onSubmit();
