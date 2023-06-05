@@ -1,4 +1,5 @@
 ## Mô tả:
 Website quản lí bán hàng của siêu thị vừa và nhỏ, dành cho nhân viên bán hàng và người quản lí sử dụng
 
-- Link deployed: https://lambent-heliotrope-5d7ea4.netlify.app/auth
+- Deployed link: https://production--imaginative-pika-89c0cb.netlify.app/auth
+- Server resource link: https://github.com/hvcong/mini-market-server
