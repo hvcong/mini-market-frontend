@@ -11,8 +11,8 @@ export const ReceiveBillSlice = createSlice({
   initialState: initState,
   reducers: {
     setReceiveBills: (state, action) => {
-      state.receiveBills = action.payload.rows;
-      state.count = action.payload.count;
+      state.receiveBills = action.payload || [];
+      state.count = action.payload ? action.payload.length : 0;
       state.refresh = false;
     },
     setRefreshReceiveBills: (state) => {

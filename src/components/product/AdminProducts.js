@@ -1,39 +1,22 @@
 import {
+  PlusOutlined
+} from "@ant-design/icons";
+import {
   Button,
-  Col,
-  Dropdown,
   Image,
   Input,
   message,
-  Modal,
   Pagination,
-  Row,
-  Space,
-  Spin,
-  Switch,
   Table,
-  Tooltip,
-  Typography,
+  Typography
 } from "antd";
-import {
-  MoreOutlined,
-  EditOutlined,
-  PlusOutlined,
-  DeleteOutlined,
-  HolderOutlined,
-  StopOutlined,
-  DownOutlined,
-} from "@ant-design/icons";
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
-import productApi from "./../../api/productApi";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { setProducts } from "../../store/slices/productSlice";
-import ExpandRowRender from "./ExpandRowRender";
+import HighlightedText from "../HighlightedText";
+import productApi from "./../../api/productApi";
 import DropSelectColum from "./DropSelectColum";
 import ProductDetailModal from "./ProductDetailModal";
-import StoreTransationDetailModal from "./../StoreTransationDetailModal";
-import HighlightedText from "../HighlightedText";
 
 const { Text } = Typography;
 
@@ -50,8 +33,6 @@ const AdminProducts = ({}) => {
     type: "",
     rowSelected: null,
   });
-
-  let data = products;
 
   const [dataAfterFilted, setDataAfterFilted] = useState([]);
   const dispatch = useDispatch();
@@ -71,150 +52,136 @@ const AdminProducts = ({}) => {
     total: 20,
   });
 
-  useEffect(() => {
-    setAllColumns([
-      {
-        title: "STT",
-        width: 44,
-        fixed: "left",
-        dataIndex: "index",
-      },
-
-      {
-        title: "Mã SP",
-        dataIndex: "id",
-        width: 160,
-        fixed: "left",
-        fixedShow: true,
-        render: (_, rowData) => {
-          if (rowData.isFirstRow) {
-            return (
-              <Input
-                placeholder="Tìm kiếm"
-                value={filterState.id}
-                allowClear
-                onChange={({ target }) => {
-                  setFilterState({
-                    ...filterState,
-                    id: target.value,
-                  });
-                }}
-              />
-            );
-          }
-
-          return (
-            <Typography.Link
-              onClick={() => {
-                setModalState({
-                  type: isAdmin ? "update" : "view",
-                  visible: true,
-                  rowSelected: rowData,
-                });
-              }}
-            >
-              <HighlightedText text={_} highlightText={filterState.id} />
-            </Typography.Link>
-          );
-        },
-      },
-      {
-        title: "Tên",
-        dataIndex: "name",
-        width: 200,
-        fixedShow: true,
-        render: (_, rowData) => {
-          if (rowData.isFirstRow) {
-            return (
-              <Input
-                placeholder="Tìm kiếm"
-                value={filterState.name}
-                allowClear
-                onChange={({ target }) => {
-                  setFilterState({
-                    ...filterState,
-                    name: target.value,
-                  });
-                }}
-              />
-            );
-          }
-
-          return <HighlightedText text={_} highlightText={filterState.name} />;
-        },
-      },
-      {
-        title: "Hình ảnh",
-        dataIndex: "images",
-        width: 200,
-        render: (images) => {
-          return (
-            <div>
-              {images &&
-                images.map((image) => {
-                  return (
-                    <Image
-                      width={36}
-                      height={36}
-                      src={image.uri}
-                      style={{
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  );
-                })}
-            </div>
-          );
-        },
-      },
-
-      {
-        title: "Nhóm sản phẩm",
-        dataIndex: "SubCategory",
-        render: (_, rowData) => {
-          if (!rowData.isFirstRow) {
-            return _?.name;
-          }
-        },
-      },
-      {
-        title: "Mô tả",
-        dataIndex: "description",
-        render: (description) => {
-          return description && description.slice(0, 50) + "...";
-        },
-      },
-
-      {
-        title: "Trạng thái",
-        dataIndex: "state",
-        render: (_, rowData) => {
-          if (!rowData.isFirstRow) {
-            return _ ? (
-              <div style={{ color: "green" }}>Đang kinh doanh</div>
-            ) : (
-              <div style={{ color: "red" }}>Đã ngưng</div>
-            );
-          }
-        },
-      },
-    ]);
-
-    return () => {};
-  }, [filterState]);
-
-  useEffect(() => {
-    loadAllData();
-    return () => {};
+  const handleFilterChange = useCallback((field, value) => {
+    setFilterState(prev => ({
+      ...prev,
+      [field]: value,
+    }));
   }, []);
 
+  const handleModalOpen = useCallback((type, rowData = null) => {
+    setModalState({
+      type,
+      visible: true,
+      rowSelected: rowData,
+    });
+  }, []);
+
+  const columns = useMemo(() => [
+    {
+      title: "STT",
+      width: 44,
+      fixed: "left",
+      dataIndex: "index",
+    },
+    {
+      title: "Mã SP",
+      dataIndex: "id",
+      width: 160,
+      fixed: "left",
+      fixedShow: true,
+      render: (_, rowData) => {
+        if (rowData.isFirstRow) {
+          return (
+            <Input
+              placeholder="Tìm kiếm"
+              value={filterState.id}
+              allowClear
+              onChange={({ target }) => handleFilterChange('id', target.value)}
+            />
+          );
+        }
+
+        return (
+          <Typography.Link
+            onClick={() => handleModalOpen(isAdmin ? "update" : "view", rowData)}
+          >
+            <HighlightedText text={_} highlightText={filterState.id} />
+          </Typography.Link>
+        );
+      },
+    },
+    {
+      title: "Tên",
+      dataIndex: "name",
+      width: 200,
+      fixedShow: true,
+      render: (_, rowData) => {
+        if (rowData.isFirstRow) {
+          return (
+            <Input
+              placeholder="Tìm kiếm"
+              value={filterState.name}
+              allowClear
+              onChange={({ target }) => handleFilterChange('name', target.value)}
+            />
+          );
+        }
+
+        return <HighlightedText text={_} highlightText={filterState.name} />;
+      },
+    },
+    {
+      title: "Hình ảnh",
+      dataIndex: "images",
+      width: 200,
+      render: (images) => {
+        return (
+          <div>
+            {images &&
+              images.map((image, idx) => {
+                return (
+                  <Image
+                    key={idx}
+                    width={36}
+                    height={36}
+                    src={image.uri}
+                    style={{
+                      border: "1px solid #ccc",
+                    }}
+                  />
+                );
+              })}
+          </div>
+        );
+      },
+    },
+    {
+      title: "Nhóm sản phẩm",
+      dataIndex: "SubCategory",
+      render: (_, rowData) => {
+        if (!rowData.isFirstRow) {
+          return _?.name;
+        }
+      },
+    },
+    {
+      title: "Mô tả",
+      dataIndex: "description",
+      render: (description) => {
+        return description && description.slice(0, 50) + "...";
+      },
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "state",
+      render: (_, rowData) => {
+        if (!rowData.isFirstRow) {
+          return _ ? (
+            <div style={{ color: "green" }}>Đang kinh doanh</div>
+          ) : (
+            <div style={{ color: "red" }}>Đã ngưng</div>
+          );
+        }
+      },
+    },
+  ], [filterState, isAdmin, handleFilterChange, handleModalOpen]);
+
   useEffect(() => {
-    handleUpliedFilters();
+    setAllColumns(columns);
+  }, [columns]);
 
-    return () => {};
-  }, [filterState, data]);
-
-  async function loadAllData() {
+  const loadAllData = useCallback(async () => {
     setIsLoading(true);
 
     let res = await productApi.getMany(1, 1000);
@@ -225,56 +192,60 @@ const AdminProducts = ({}) => {
       message.error("Có lỗi xảy ra, vui lòng thử lại!");
     }
     setIsLoading(false);
-  }
+  }, [dispatch]);
 
-  function handleUpliedFilters() {
+  useEffect(() => {
+    loadAllData();
+  }, [loadAllData]);
+
+  const handleUpliedFilters = useCallback(() => {
     setIsLoading(true);
-    if (data) {
-      let _list = [...data];
+    if (products) {
+      let _list = [...products];
 
       let [...filterNames] = Object.keys(filterState);
-      filterNames.map((key) => {
+      filterNames.forEach((key) => {
         if (filterState[key]) {
           _list = _list.filter((item) => {
             let text = item[key]?.toLowerCase();
             let searchInput = filterState[key]?.toLowerCase();
 
-            if (text?.includes(searchInput)) {
-              return true;
-            } else {
-              return false;
-            }
+            return text?.includes(searchInput);
           });
         }
       });
 
       setTimeout(() => {
         setDataAfterFilted(
-          (_list || []).map((item, index) => {
-            return {
-              ...item,
-              index: index + 1,
-            };
-          })
+          (_list || []).map((item, index) => ({
+            ...item,
+            index: index + 1,
+          }))
         );
         setIsLoading(false);
       }, 500);
     } else {
       setIsLoading(false);
     }
-  }
+  }, [products, filterState]);
 
   useEffect(() => {
+    handleUpliedFilters();
+  }, [handleUpliedFilters]);
+
+  const currentPageData = useMemo(() => {
     let startIndex = pageState.limit * (pageState.page - 1);
     let endIndex = startIndex + pageState.limit;
     let _dataTable = dataAfterFilted.slice(startIndex, endIndex);
     _dataTable.unshift({
       isFirstRow: true,
     });
-    setDataTable(_dataTable);
+    return _dataTable;
+  }, [dataAfterFilted, pageState.limit, pageState.page]);
 
-    return () => {};
-  }, [pageState]);
+  useEffect(() => {
+    setDataTable(currentPageData);
+  }, [currentPageData]);
 
   useEffect(() => {
     setPageState({
@@ -282,32 +253,34 @@ const AdminProducts = ({}) => {
       limit: 10,
       total: dataAfterFilted && dataAfterFilted.length,
     });
-
-    return () => {};
   }, [dataAfterFilted]);
 
-  function onChangePageNumber(pageNumber) {
+  const onChangePageNumber = useCallback((pageNumber) => {
     setIsLoading(true);
     setTimeout(() => {
-      setPageState({
-        ...pageState,
+      setPageState(prev => ({
+        ...prev,
         page: pageNumber,
-      });
+      }));
       setIsLoading(false);
     }, 500);
-  }
+  }, []);
 
   useEffect(() => {
     if (refresh) {
       loadAllData();
     }
+  }, [refresh, loadAllData]);
 
-    return () => {};
-  }, [refresh]);
+  const visibleColumns = useMemo(() => 
+    allColumns.filter((col) => !col.hidden),
+    [allColumns]
+  );
 
-  function clearFilter() {
-    setFilterState({});
-  }
+  const scrollConfig = useMemo(() => ({
+    x: visibleColumns.length * 180,
+    y: window.innerHeight * 0.66,
+  }), [visibleColumns.length]);
 
   return (
     <div className="products">
@@ -328,13 +301,7 @@ const AdminProducts = ({}) => {
               size="small"
               type="primary"
               icon={<PlusOutlined />}
-              onClick={() => {
-                setModalState({
-                  ...modalState,
-                  visible: true,
-                  type: "create",
-                });
-              }}
+              onClick={() => handleModalOpen("create")}
             >
               Thêm mới
             </Button>
@@ -348,17 +315,12 @@ const AdminProducts = ({}) => {
         </div>
       </div>
 
-      {/* table */}
-
       <Table
-        columns={allColumns.filter((col) => !col.hidden)}
+        columns={visibleColumns}
         dataSource={dataTable}
         pagination={false}
         size="small"
-        scroll={{
-          x: allColumns.filter((item) => !item.hidden).length * 180,
-          y: window.innerHeight * 0.66,
-        }}
+        scroll={scrollConfig}
         className="table"
         loading={isLoading}
       />

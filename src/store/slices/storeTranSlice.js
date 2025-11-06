@@ -12,8 +12,8 @@ export const storeTranSlice = createSlice({
   reducers: {
     setStoreTrans: (state, action) => {
       console.log(action.payload);
-      state.storeTrans = action.payload.rows;
-      state.count = action.payload.count;
+      state.storeTrans = action.payload || [];
+      state.count = action.payload ? action.payload.length : 0;
       state.refresh = false;
     },
     setRefreshStoreTrans: (state) => {

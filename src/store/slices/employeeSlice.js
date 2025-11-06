@@ -11,8 +11,8 @@ export const employeeSlice = createSlice({
   initialState: initState,
   reducers: {
     setEmployees: (state, action) => {
-      state.employees = action.payload.rows;
-      state.count = action.payload.count;
+      state.employees = action.payload || [];
+      state.count = action.payload ? action.payload.length : 0;
       state.refresh = false;
     },
     setRefreshEmployees: (state) => {

@@ -12,8 +12,8 @@ export const storeEnterTicketSlice = createSlice({
   reducers: {
     setStoreEnterTickets: (state, action) => {
       console.log(action.payload);
-      state.storeEnterTickets = action.payload.rows;
-      state.count = action.payload.count;
+      state.storeEnterTickets = action.payload || [];
+      state.count = action.payload ? action.payload.length : 0;
       state.refresh = false;
     },
     setRefreshStoreEnterTickets: (state) => {

@@ -11,8 +11,8 @@ export const priceHeaderSlice = createSlice({
   initialState: initState,
   reducers: {
     setPriceHeaders: (state, action) => {
-      state.priceHeaders = action.payload.rows;
-      state.count = action.payload.count;
+      state.priceHeaders = action.payload || [];
+      state.count = action.payload ? action.payload.length : 0;
       state.refresh = false;
     },
     setRefreshPriceHeaders: (state) => {

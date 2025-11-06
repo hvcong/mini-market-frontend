@@ -11,8 +11,8 @@ export const unitTypeSlice = createSlice({
   initialState: initState,
   reducers: {
     setUnitTypes: (state, action) => {
-      state.unitTypes = action.payload.rows;
-      state.count = action.payload.count;
+      state.unitTypes = action.payload || [];
+      state.count = action.payload ? action.payload.length : 0;
       state.refresh = false;
     },
     setRefreshUnitType: (state) => {

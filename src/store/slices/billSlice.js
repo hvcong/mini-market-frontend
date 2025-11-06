@@ -11,8 +11,9 @@ export const billSlice = createSlice({
   initialState: initState,
   reducers: {
     setBills: (state, action) => {
-      state.bills = action.payload.rows;
-      state.count = action.payload.count;
+      // action.payload is the bills array directly
+      state.bills = action.payload || [];
+      state.count = action.payload ? action.payload.length : 0;
       state.refresh = false;
     },
     setRefreshBills: (state, action) => {

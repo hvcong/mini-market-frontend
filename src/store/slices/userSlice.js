@@ -17,7 +17,7 @@ export const userSlice = createSlice({
     employeeLoginOke: (state, action) => {
       state.account = action.payload;
 
-      state.isAdmin = action.payload.Account.role == "AD";
+      state.isAdmin = action.payload.Account?.role === "AD";
       state.isLogged = true;
       state.refresh = false;
     },
@@ -25,6 +25,11 @@ export const userSlice = createSlice({
       state.account = {};
       state.isLogged = false;
       state.refresh = false;
+      state.isAdmin = false;
+      
+      // Clear localStorage
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
     },
     setRefreshUser: (state, action) => {
       state.refresh = true;

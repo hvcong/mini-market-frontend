@@ -11,8 +11,8 @@ export const promotionHeaderSlice = createSlice({
   initialState: initState,
   reducers: {
     setPromotionHeaders: (state, action) => {
-      state.promotionHeaders = action.payload.rows;
-      state.count = action.payload.count;
+      state.promotionHeaders = action.payload || [];
+      state.count = action.payload ? action.payload.length : 0;
       state.refresh = false;
     },
     setRefreshPromotionHeaders: (state) => {

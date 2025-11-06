@@ -11,8 +11,9 @@ export const customerSlice = createSlice({
   initialState: initState,
   reducers: {
     setCustomers: (state, action) => {
-      state.customers = action.payload.rows;
-      state.count = action.payload.count;
+      // action.payload is the customers array directly
+      state.customers = action.payload || [];
+      state.count = action.payload ? action.payload.length : 0;
       state.refresh = false;
     },
     setRefreshCustomer: (state) => {

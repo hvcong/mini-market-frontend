@@ -11,8 +11,9 @@ export const cateSlice = createSlice({
   initialState: initState,
   reducers: {
     setCates: (state, action) => {
-      state.categories = action.payload.rows;
-      state.count = action.payload.count;
+      // action.payload is the categories array directly
+      state.categories = action.payload || [];
+      state.count = action.payload ? action.payload.length : 0;
       state.refresh = false;
     },
     setRefreshCate: (state) => {

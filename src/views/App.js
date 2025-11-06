@@ -26,8 +26,32 @@ import StatisBillsCustomers from "./../components/statistical/StatisBillsCustome
 import StatisBillsDay from "./../components/statistical/StatisBillsDay";
 import BarcodeScanner from "../components/bill/createBill/BarcodeScanner";
 import { useEffect, useRef } from "react";
+import { useDispatch } from "react-redux";
+import { employeeLoginOke } from "../store/slices/userSlice";
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    // Restore login state from localStorage on app init
+    const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        console.log("Restoring login state from localStorage:", user);
+        
+        // Restore user to Redux
+        dispatch(employeeLoginOke(user));
+      } catch (error) {
+        console.error("Failed to restore login state:", error);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+    }
+  }, [dispatch]);
+
   return (
     <ConfigProvider
       theme={{

@@ -129,7 +129,7 @@ const PriceCUModal = ({ modalState, setModalState, handleOnChangeState }) => {
             setModalState({
               visible: true,
               type: "update",
-              rowSelected: res.header,
+              rowSelected: res.priceHeader,
             });
           }
         } else {

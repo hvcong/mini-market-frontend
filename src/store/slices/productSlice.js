@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import productApi from "./../../api/productApi";
 
 const initState = {
   products: [],
@@ -12,8 +11,9 @@ export const productSlice = createSlice({
   initialState: initState,
   reducers: {
     setProducts: (state, action) => {
-      state.products = action.payload.rows;
-      state.count = action.payload.count;
+      // action.payload is the products array directly
+      state.products = action.payload || [];
+      state.count = action.payload ? action.payload.length : 0;
       state.refresh = false;
     },
 

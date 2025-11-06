@@ -11,8 +11,8 @@ export const billLineSlice = createSlice({
   initialState: initState,
   reducers: {
     setBillLines: (state, action) => {
-      state.billLines = action.payload.rows;
-      state.count = action.payload.count;
+      state.billLines = action.payload || [];
+      state.count = action.payload ? action.payload.length : 0;
       state.refresh = false;
     },
     setRefreshBillLines: (state) => {

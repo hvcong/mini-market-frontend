@@ -47,8 +47,14 @@ const Auth = function () {
       password: password,
     });
 
+    console.log("Login API response:", res);
+
     if (res.isSuccess) {
       if (res.account.Employee) {
+        console.log("Employee data:", res.account.Employee);
+        console.log("Account data:", res.account);
+        console.log("Account role:", res.account.role);
+        
         setTimeout(() => {
           hideLoading();
           dispatch(
@@ -131,6 +137,52 @@ const Auth = function () {
               <Button type="primary" className="button" onClick={onSubmit}>
                 Đăng Nhập
               </Button>
+              
+              {/* Dev Quick Login Buttons */}
+              <div style={{ marginTop: '20px', borderTop: '1px dashed #ccc', paddingTop: '15px' }}>
+                <Typography.Text 
+                  style={{ 
+                    display: 'block', 
+                    textAlign: 'center', 
+                    marginBottom: '10px',
+                    fontSize: '12px',
+                    color: '#999',
+                    fontStyle: 'italic'
+                  }}
+                >
+                  🛠️ Dev Tools - Quick Login
+                </Typography.Text>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                  <Button 
+                    type="default"
+                    size="small"
+                    onClick={() => {
+                      setUsername("0868283915");
+                      setPassword("123456");
+                      setTimeout(() => {
+                        onSubmit();
+                      }, 100);
+                    }}
+                    style={{ fontSize: '12px' }}
+                  >
+                    🔑 Login Admin
+                  </Button>
+                  <Button 
+                    type="default"
+                    size="small"
+                    onClick={() => {
+                      setUsername("0912345678");
+                      setPassword("123456");
+                      setTimeout(() => {
+                        onSubmit();
+                      }, 100);
+                    }}
+                    style={{ fontSize: '12px' }}
+                  >
+                    👤 Login Nhân viên
+                  </Button>
+                </div>
+              </div>
             </form>
           )}
         </div>
