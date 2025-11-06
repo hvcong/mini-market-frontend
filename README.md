@@ -34,4 +34,5 @@ npm run start
 4. Mở ứng dụng trên trình duyệt
 
 - Truy cập: http://localhost:3000
+- Hoặc: http://localhost:3000/admin
 
