@@ -12,8 +12,9 @@ Khởi động nhanh
 1. Clone repository
 
 ```bash
-git clone <REPO_URL>
+git clone https://github.com/hvcong/mini-market-frontend.git
 cd mini-market-frontend
+git checkout feat/mockup-data
 ```
 
 2. Cài đặt phụ thuộc
